@@ -13,6 +13,7 @@ import { GXRenderHelperGfx, fillSceneParamsDataOnTemplate } from "../gx/gx_rende
 import * as UI from "../ui.js";
 import * as Viewer from "../viewer.js";
 import { FileDropWorld, StageWorld, World, WorldData } from "./World.js";
+import { Gui } from "./Gui.js";
 
 // TODO(complexplane): Put somewhere else
 export type RenderContext = {
@@ -29,9 +30,7 @@ export class Renderer implements Viewer.SceneGfx {
     public textureCache: UI.TextureListHolder;
     private opaqueInstList = new GfxRenderInstList();
     private translucentInstList = new GfxRenderInstList();
-
-    private imguiSize: ImVec2;
-    private imguiPos: ImVec2;
+    private gui: Gui;
 
     constructor(device: GfxDevice, private worldData: WorldData) {
         this.renderHelper = new GXRenderHelperGfx(device);
@@ -43,10 +42,7 @@ export class Renderer implements Viewer.SceneGfx {
         const textureCache = this.world.getTextureCache();
         this.textureCache = textureCache;
         textureCache.updateViewerTextures();
-
-        const imguiCanvas = document.getElementById("imguiCanvas") as HTMLCanvasElement;
-        this.imguiSize = new ImVec2(imguiCanvas.width, imguiCanvas.height);
-        this.imguiPos = new ImVec2(0, 0);
+        this.gui = new Gui();
     }
 
     public createPanels(): UI.Panel[] {
@@ -80,6 +76,7 @@ export class Renderer implements Viewer.SceneGfx {
         opaqueInstList: GfxRenderInstList,
         translucentInstList: GfxRenderInstList
     ): void {
+        this.gui.render();
         this.world.update(viewerInput);
 
         viewerInput.camera.setClipPlanes(0.1);
@@ -133,22 +130,6 @@ export class Renderer implements Viewer.SceneGfx {
         this.prepareToRender(device, viewerInput, this.opaqueInstList, this.translucentInstList);
 
         this.renderHelper.renderGraph.execute(builder);
-
-        this.renderImgui();
-    }
-
-    private renderImgui() {
-        ImGuiImplWeb.BeginRender();
-
-        ImGui.SetNextWindowSize(this.imguiSize);
-        ImGui.SetNextWindowPos(this.imguiPos);
-
-        ImGui.Begin("Test Window", [], ImGui.WindowFlags.NoTitleBar | ImGui.WindowFlags.NoResize);
-        ImGui.Text("I'm loving it");
-        ImGui.Button("Okay then");
-        ImGui.End();
-
-        ImGuiImplWeb.EndRender();
     }
 
     public destroy(device: GfxDevice): void {
