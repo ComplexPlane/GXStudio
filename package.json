@@ -23,6 +23,7 @@
     "webm-muxer": "^5.1.4"
   },
   "dependencies": {
+    "@mori2003/jsimgui": "^0.8.0",
     "crc-32": "^1.2.2",
     "gl-matrix": "^3.4.3",
     "librw": "^0.4.0",

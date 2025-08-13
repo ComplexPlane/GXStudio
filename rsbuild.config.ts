@@ -42,12 +42,25 @@ export default defineConfig({
       { from: 'src/**/*.wasm', to: '[name][ext]' },
       { from: 'node_modules/librw/lib/librw.wasm', to: 'static/js/[name][ext]' },
       { from: 'src/vendor/basis_universal/basis_transcoder.wasm', to: 'static/js/[name][ext]' },
+      // Copy jsimgui WASM files as static assets to avoid WASI bundling issues
+      { from: 'node_modules/@mori2003/jsimgui/build/jsimgui-*.wasm', to: 'static/js/[name][ext]' },
     ],
   },
   // Enable async TypeScript type checking.
   plugins: [pluginTypeCheck()],
   tools: {
-    rspack(_config) {
+    rspack(config) {
+      // Exclude jsimgui WASM files from being processed as modules
+      config.module = config.module || {};
+      config.module.rules = config.module.rules || [];
+      // Exclude only jsimgui WASM files from module processing, allow JS files to be imported
+      config.module.rules.push({
+        test: /node_modules\/@mori2003\/jsimgui\/build\/jsimgui-.*\.wasm$/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'static/js/[name][ext]',
+        },
+      });
     },
     // Disable standards-compliant class field transforms.
     swc: {

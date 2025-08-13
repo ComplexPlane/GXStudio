@@ -22,6 +22,8 @@ import { MaterialInst } from "./Material.js";
 import { RenderParams, RenderSort } from "./Model.js";
 import { RenderContext } from "./Render.js";
 import { TevLayerInst } from "./TevLayer.js";
+import * as GuiScene from "./gxstudio/Scene.js";
+import { assertExists } from "../util.js";
 
 function fillVatFormat(vtxType: GX.CompType, isNBT: boolean): GX_VtxAttrFmt[] {
     const vatFormat: GX_VtxAttrFmt[] = [];
@@ -73,8 +75,9 @@ export class ShapeInst {
         renderCache: GfxRenderCache,
         public shapeData: Gma.Shape,
         modelTevLayers: TevLayerInst[],
-        modelFlags: Gma.ModelFlags,
-        private translucent: boolean
+        private modelData: Gma.Model,
+        private translucent: boolean,
+        private shapeIdx: number,
     ) {
         const vtxAttr = shapeData.material.vtxAttrs;
         const vcd: GX_VtxDesc[] = [];
@@ -125,13 +128,28 @@ export class ShapeInst {
 
         for (let i = 0; i < this.subShapes.length; i++) {
             const inst = ctx.renderInstManager.newRenderInst();
-            this.subShapes[i].material.setOnRenderInst(
-                ctx.device,
-                ctx.renderInstManager.gfxRenderCache,
-                inst,
-                drawParams,
-                renderParams
-            );
+
+            // Use custom material created in gxstudio gui if available
+            const guiMaterial = this.getGuiMaterial(ctx);
+            if (guiMaterial !== null) {
+                const cullMode = this.shapeData.dlists[i].cullMode;
+                const guiMaterialInst = assertExists(guiMaterial.instances.get(cullMode));
+                guiMaterialInst.setOnRenderInst(
+                    ctx.device,
+                    ctx.renderInstManager.gfxRenderCache,
+                    inst,
+                    drawParams,
+                    renderParams
+                );
+            } else {
+                this.subShapes[i].material.setOnRenderInst(
+                    ctx.device,
+                    ctx.renderInstManager.gfxRenderCache,
+                    inst,
+                    drawParams,
+                    renderParams
+                );
+            }
             this.subShapes[i].shapeHelper.setOnRenderInst(inst);
 
             if (
@@ -146,6 +164,12 @@ export class ShapeInst {
                 ctx.opaqueInstList.submitRenderInst(inst);
             }
         }
+    }
+
+    private getGuiMaterial(ctx: RenderContext): GuiScene.Material | null {
+        const guiModel = ctx.guiScene.models.find((m) => m.name === this.modelData.name);
+        if (guiModel === undefined) return null;
+        return guiModel.meshes[this.shapeIdx].material;
     }
 
     public destroy(device: GfxDevice): void {

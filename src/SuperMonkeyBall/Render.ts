@@ -1,3 +1,5 @@
+import { ImGui, ImGuiImplWeb, ImVec2 } from "@mori2003/jsimgui";
+
 import { CameraController } from "../Camera.js";
 import {
     makeAttachmentClearDescriptor,
@@ -6,11 +8,19 @@ import {
 } from "../gfx/helpers/RenderGraphHelpers.js";
 import { GfxDevice } from "../gfx/platform/GfxPlatform.js";
 import { GfxrAttachmentSlot } from "../gfx/render/GfxRenderGraph.js";
-import { GfxRenderInstList, GfxRenderInstManager } from "../gfx/render/GfxRenderInstManager.js";
-import { GXRenderHelperGfx, fillSceneParamsDataOnTemplate } from "../gx/gx_render.js";
+import {
+    GfxRenderInstList,
+    GfxRenderInstManager,
+} from "../gfx/render/GfxRenderInstManager.js";
+import {
+    GXRenderHelperGfx,
+    fillSceneParamsDataOnTemplate,
+} from "../gx/gx_render.js";
 import * as UI from "../ui.js";
 import * as Viewer from "../viewer.js";
 import { StageData, World } from "./World.js";
+import { Gui } from "./gxstudio/Gui.js";
+import { GuiScene } from "./gxstudio/Scene.js";
 
 // TODO(complexplane): Put somewhere else
 export type RenderContext = {
@@ -19,6 +29,7 @@ export type RenderContext = {
     viewerInput: Viewer.ViewerRenderInput;
     opaqueInstList: GfxRenderInstList;
     translucentInstList: GfxRenderInstList;
+    guiScene: GuiScene;
 };
 
 export class Renderer implements Viewer.SceneGfx {
@@ -41,7 +52,10 @@ export class Renderer implements Viewer.SceneGfx {
         renderHacksPanel.customHeaderBackgroundColor = UI.COOL_BLUE_COLOR;
         renderHacksPanel.setTitle(UI.RENDER_HACKS_ICON, "Render Hacks");
         // Enable Vertex Color
-        const enableVertexColorsCheckbox = new UI.Checkbox("Enable Vertex Colors", true);
+        const enableVertexColorsCheckbox = new UI.Checkbox(
+            "Enable Vertex Colors",
+            true
+        );
         enableVertexColorsCheckbox.onchanged = () => {
             this.world.setMaterialHacks({
                 disableVertexColors: !enableVertexColorsCheckbox.checked,
@@ -81,6 +95,7 @@ export class Renderer implements Viewer.SceneGfx {
             viewerInput,
             opaqueInstList,
             translucentInstList,
+            guiScene: this.world.getGuiScene(),
         };
         this.world.prepareToRender(renderCtx);
         this.renderHelper.prepareToRender();
@@ -103,21 +118,48 @@ export class Renderer implements Viewer.SceneGfx {
 
         const builder = this.renderHelper.renderGraph.newGraphBuilder();
 
-        const mainColorTargetID = builder.createRenderTargetID(mainColorDesc, "Main Color");
-        const mainDepthTargetID = builder.createRenderTargetID(mainDepthDesc, "Main Depth");
+        const mainColorTargetID = builder.createRenderTargetID(
+            mainColorDesc,
+            "Main Color"
+        );
+        const mainDepthTargetID = builder.createRenderTargetID(
+            mainDepthDesc,
+            "Main Depth"
+        );
         builder.pushPass((pass) => {
             pass.setDebugName("Main");
             pass.attachRenderTargetID(GfxrAttachmentSlot.Color0, mainColorTargetID);
-            pass.attachRenderTargetID(GfxrAttachmentSlot.DepthStencil, mainDepthTargetID);
+            pass.attachRenderTargetID(
+                GfxrAttachmentSlot.DepthStencil,
+                mainDepthTargetID
+            );
             pass.exec((passRenderer) => {
-                this.opaqueInstList.drawOnPassRenderer(this.renderHelper.renderCache, passRenderer);
-                this.translucentInstList.drawOnPassRenderer(this.renderHelper.renderCache, passRenderer);
+                this.opaqueInstList.drawOnPassRenderer(
+                    this.renderHelper.renderCache,
+                    passRenderer
+                );
+                this.translucentInstList.drawOnPassRenderer(
+                    this.renderHelper.renderCache,
+                    passRenderer
+                );
             });
         });
-        this.renderHelper.antialiasingSupport.pushPasses(builder, viewerInput, mainColorTargetID);
-        builder.resolveRenderTargetToExternalTexture(mainColorTargetID, viewerInput.onscreenTexture);
+        this.renderHelper.antialiasingSupport.pushPasses(
+            builder,
+            viewerInput,
+            mainColorTargetID
+        );
+        builder.resolveRenderTargetToExternalTexture(
+            mainColorTargetID,
+            viewerInput.onscreenTexture
+        );
 
-        this.prepareToRender(device, viewerInput, this.opaqueInstList, this.translucentInstList);
+        this.prepareToRender(
+            device,
+            viewerInput,
+            this.opaqueInstList,
+            this.translucentInstList
+        );
 
         this.renderHelper.renderGraph.execute(builder);
     }
