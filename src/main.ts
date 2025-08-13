@@ -333,6 +333,7 @@ class Main {
         this.imguiContainer.style.borderLeft = '1px solid #555';
 
         this.imguiCanvas = document.createElement('canvas');
+        this.imguiCanvas.id = "imguiCanvas";
         this.imguiCanvas.style.width = '100%';
         this.imguiCanvas.style.height = '100%';
         this.imguiCanvas.style.outline = 'none';
@@ -344,6 +345,7 @@ class Main {
 
         await ImGuiImplWeb.Init({
             canvas: this.imguiCanvas,
+            backend: "webgl2",
         });
 
         await loadRustLib();
@@ -522,21 +524,6 @@ class Main {
             this._takeScreenshot();
 
         this.ui.update();
-        this._renderImgui();
-    };
-
-    private _renderImgui(): void {
-        ImGuiImplWeb.BeginRender();
-
-        ImGui.Begin("Debug Panel");
-        ImGui.Text("Hello from ImGui!");
-        ImGui.Text(`Frame Time: ${this.viewer.viewerRenderInput.deltaTime.toFixed(2)}ms`);
-        if (ImGui.Button("Test Button")) {
-            console.log("ImGui button clicked!");
-        }
-        ImGui.End();
-
-        ImGuiImplWeb.EndRender();
     };
 
     private _onRequestAnimationFrameCanvas = (): void => {

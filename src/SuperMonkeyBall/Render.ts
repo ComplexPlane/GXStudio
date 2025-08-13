@@ -1,4 +1,4 @@
-import { ImGui, ImGuiImplWeb } from "@mori2003/jsimgui";
+import { ImGui, ImGuiImplWeb, ImVec2 } from "@mori2003/jsimgui";
 
 import { CameraController } from "../Camera.js";
 import {
@@ -30,6 +30,9 @@ export class Renderer implements Viewer.SceneGfx {
     private opaqueInstList = new GfxRenderInstList();
     private translucentInstList = new GfxRenderInstList();
 
+    private imguiSize: ImVec2;
+    private imguiPos: ImVec2;
+
     constructor(device: GfxDevice, private worldData: WorldData) {
         this.renderHelper = new GXRenderHelperGfx(device);
         if (worldData.kind === "Stage") {
@@ -40,6 +43,10 @@ export class Renderer implements Viewer.SceneGfx {
         const textureCache = this.world.getTextureCache();
         this.textureCache = textureCache;
         textureCache.updateViewerTextures();
+
+        const imguiCanvas = document.getElementById("imguiCanvas") as HTMLCanvasElement;
+        this.imguiSize = new ImVec2(imguiCanvas.width, imguiCanvas.height);
+        this.imguiPos = new ImVec2(0, 0);
     }
 
     public createPanels(): UI.Panel[] {
@@ -133,8 +140,12 @@ export class Renderer implements Viewer.SceneGfx {
     private renderImgui() {
         ImGuiImplWeb.BeginRender();
 
-        ImGui.Begin("New Window");
-        ImGui.Text("Hello from JS!");
+        ImGui.SetNextWindowSize(this.imguiSize);
+        ImGui.SetNextWindowPos(this.imguiPos);
+
+        ImGui.Begin("Test Window", [], ImGui.WindowFlags.NoTitleBar | ImGui.WindowFlags.NoResize);
+        ImGui.Text("I'm loving it");
+        ImGui.Button("Okay then");
         ImGui.End();
 
         ImGuiImplWeb.EndRender();

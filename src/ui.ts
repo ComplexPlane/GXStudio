@@ -2386,6 +2386,7 @@ abstract class SingleIconButton implements BottomBarWidget {
         this.elem.style.transition = '.1s ease-out';
         this.elem.style.width = '32px';
         this.elem.style.height = '32px';
+        this.elem.style.marginRight = '400px';
         this.elem.style.pointerEvents = 'auto';
         this.elem.onclick = this.onClick.bind(this);
         this.elem.onmouseover = () => {
