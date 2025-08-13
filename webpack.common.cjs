@@ -44,24 +44,6 @@ module.exports = {
       // Workaround for broken libraries
       resourceRegExp: /^(fs|path)$/,
     }),
-    new webpack.ContextReplacementPlugin(
-      /jsimgui.*build/,
-      path.resolve(__dirname, 'node_modules/@mori2003/jsimgui/build'),
-      {
-        './webgl/jsimgui-webgl-tt.js': './webgl/jsimgui-webgl-tt.js',
-        './webgl/jsimgui-webgl-ft.js': './webgl/jsimgui-webgl-ft.js',
-        './webgl/jsimgui-webgl-tt-demos.js': './webgl/jsimgui-webgl-tt-demos.js',
-        './webgl/jsimgui-webgl-ft-demos.js': './webgl/jsimgui-webgl-ft-demos.js',
-        './webgl2/jsimgui-webgl2-tt.js': './webgl2/jsimgui-webgl2-tt.js',
-        './webgl2/jsimgui-webgl2-ft.js': './webgl2/jsimgui-webgl2-ft.js',
-        './webgl2/jsimgui-webgl2-tt-demos.js': './webgl2/jsimgui-webgl2-tt-demos.js',
-        './webgl2/jsimgui-webgl2-ft-demos.js': './webgl2/jsimgui-webgl2-ft-demos.js',
-        './webgpu/jsimgui-webgpu-tt.js': './webgpu/jsimgui-webgpu-tt.js',
-        './webgpu/jsimgui-webgpu-ft.js': './webgpu/jsimgui-webgpu-ft.js',
-        './webgpu/jsimgui-webgpu-tt-demos.js': './webgpu/jsimgui-webgpu-tt-demos.js',
-        './webgpu/jsimgui-webgpu-ft-demos.js': './webgpu/jsimgui-webgpu-ft-demos.js',
-      }
-    ),
     new CleanWebpackPlugin({
       cleanOnceBeforeBuildPatterns: [
         '**/*',
@@ -85,21 +67,11 @@ module.exports = {
       patterns: [
         { from: 'src/**/*.wasm', to: '[name].[ext]' },
         { from: 'node_modules/librw/lib/librw.wasm', to: '[name].[ext]' },
-        // Copy jsimgui WASM assets (JS files are handled by webpack)
-        { from: 'node_modules/**/@mori2003/jsimgui/build/webgl/*.wasm', to: 'webgl/[name].[ext]' },
-        { from: 'node_modules/**/@mori2003/jsimgui/build/webgl2/*.wasm', to: 'webgl2/[name].[ext]' },
-        { from: 'node_modules/**/@mori2003/jsimgui/build/webgpu/*.wasm', to: 'webgpu/[name].[ext]' },
       ],
     }),
   ],
   experiments: {
     syncWebAssembly: true,
   },
-  ignoreWarnings: [
-    {
-      module: /jsimgui.*mod\.js$/,
-      message: /Critical dependency: the request of a dependency is an expression/,
-    },
-  ],
   target: 'web',
 };
