@@ -1,3 +1,5 @@
+import { ImGui, ImGuiImplWeb } from "@mori2003/jsimgui";
+
 import { CameraController } from "../Camera.js";
 import {
     makeAttachmentClearDescriptor,
@@ -124,6 +126,18 @@ export class Renderer implements Viewer.SceneGfx {
         this.prepareToRender(device, viewerInput, this.opaqueInstList, this.translucentInstList);
 
         this.renderHelper.renderGraph.execute(builder);
+
+        this.renderImgui();
+    }
+
+    private renderImgui() {
+        ImGuiImplWeb.BeginRender();
+
+        ImGui.Begin("New Window");
+        ImGui.Text("Hello from JS!");
+        ImGui.End();
+
+        ImGuiImplWeb.EndRender();
     }
 
     public destroy(device: GfxDevice): void {

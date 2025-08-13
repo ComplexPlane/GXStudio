@@ -29,6 +29,7 @@
     "webpack-merge": "^5.10.0"
   },
   "dependencies": {
+    "@mori2003/jsimgui": "^0.6.0",
     "@types/webxr": "^0.5.16",
     "crc-32": "^1.2.2",
     "gl-matrix": "^3.4.3",
