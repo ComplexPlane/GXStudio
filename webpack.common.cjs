@@ -18,6 +18,10 @@ module.exports = {
     extensionAlias: {
       '.js': ['.js', '.ts'],
     },
+    fallback: {
+      'env': false,
+      'wasi_snapshot_preview1': false,
+    },
   },
   module: {
     rules: [
@@ -32,8 +36,8 @@ module.exports = {
       },
       {
         test: /\.d\.ts$/,
-        loader: 'declaration-loader'
-    },
+        loader: 'ignore-loader'
+      },
     ],
   },
   plugins: [
