@@ -82,17 +82,34 @@ export class Gui {
         if (ImGui.Button("New")) {
             ImGui.OpenPopup("New Material");
         }
-        ImGui.SameLine();
-        if (ImGui.Button("Rename")) {
-            ImGui.OpenPopup("Rename Material");
+
+        if (this.materials.length === 0) {
+            ImGui.BeginDisabled();
         }
-        ImGui.SameLine();
-        if (ImGui.Button("Duplicate")) {
-            ImGui.OpenPopup("Duplicate Material");
+        {
+            ImGui.SameLine();
+            if (ImGui.Button("Rename")) {
+                ImGui.OpenPopup("Rename Material");
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Duplicate")) {
+                ImGui.OpenPopup("Duplicate Material");
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Delete")) {
+                ImGui.OpenPopup("Delete Material");
+            }
+            ImGui.SameLine();
+            if (ImGui.ArrowButton("Move Down", ImGui.Dir._Down)) {
+                this.selMaterial = swap(this.materials, this.selMaterial, this.selMaterial + 1);
+            }
+            ImGui.SameLine();
+            if (ImGui.ArrowButton("Move Up", ImGui.Dir._Up)) {
+                this.selMaterial = swap(this.materials, this.selMaterial, this.selMaterial - 1);
+            }
         }
-        ImGui.SameLine();
-        if (ImGui.Button("Delete")) {
-            ImGui.OpenPopup("Delete Material");
+        if (this.materials.length === 0) {
+            ImGui.EndDisabled();
         }
 
         if (ImGui.BeginPopup("New Material", undefined)) {
@@ -180,4 +197,18 @@ export type GuiModel = {
     name: string,
     visible: boolean,
     hover: boolean,
+}
+
+// Returns the new index of the current item
+function swap<T>(arr: T[], currIdx: number, targetIdx: number): number {
+    if (currIdx < 0 || currIdx >= arr.length) {
+        return currIdx;
+    }
+    if (targetIdx < 0 || targetIdx >= arr.length) {
+        return currIdx;
+    }
+    const tmp = arr[targetIdx];
+    arr[targetIdx] = arr[currIdx];
+    arr[currIdx] = tmp;
+    return targetIdx;
 }
