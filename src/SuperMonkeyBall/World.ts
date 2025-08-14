@@ -16,6 +16,7 @@ import { BgInfos, StageInfo } from "./StageInfo.js";
 import { MkbTime } from "./Utils.js";
 import { AnimGroup } from "./AnimGroup.js";
 import { Lighting } from "./Lighting.js";
+import { GuiState, ModelViz } from "./Gui.js";
 
 const scratchRenderParams = new RenderParams();
 
@@ -58,7 +59,7 @@ export type WorldState = {
 };
 
 export interface World {
-    update(viewerInput: Viewer.ViewerRenderInput): void;
+    update(viewerInput: Viewer.ViewerRenderInput, guiState: GuiState): void;
     prepareToRender(ctx: RenderContext): void;
     getTextureCache(): TextureCache;
     getClearColor(): Color;
@@ -71,7 +72,7 @@ export class StageWorld implements World {
     private animGroups: AnimGroup[];
     private background: Background;
 
-    constructor(device: GfxDevice, renderCache: GfxRenderCache, private stageData: StageData) {
+    constructor(device: GfxDevice, renderCache: GfxRenderCache, private stageData: StageData, guiState: GuiState) {
         this.worldState = {
             modelCache: new ModelCache(device, renderCache, stageData),
             time: new MkbTime(60), // TODO(complexplane): Per-stage time limit
@@ -91,7 +92,7 @@ export class StageWorld implements World {
         this.background = new stageData.stageInfo.bgInfo.bgConstructor(this.worldState, bgObjects);
     }
 
-    public update(viewerInput: Viewer.ViewerRenderInput): void {
+    public update(viewerInput: Viewer.ViewerRenderInput, guiState: GuiState): void {
         this.worldState.time.updateDeltaTimeSeconds(viewerInput.deltaTime / 1000);
         for (let i = 0; i < this.animGroups.length; i++) {
             this.animGroups[i].update(this.worldState);
@@ -130,11 +131,13 @@ export class FileDropWorld implements World {
     private models: ModelInterface[] = [];
     private textureCache: TextureCache;
 
-    constructor(device: GfxDevice, renderCache: GfxRenderCache, private worldData: GmaData | NlData) {
+    constructor(device: GfxDevice, renderCache: GfxRenderCache, private worldData: GmaData | NlData, guiState: GuiState) {
         this.textureCache = new TextureCache();
         if (worldData.kind === "Gma") {
             for (const model of worldData.gma.idMap.values()) {
-                this.models.push(new ModelInst(device, renderCache, model, this.textureCache));
+                const modelInst = new ModelInst(device, renderCache, model, this.textureCache);
+                guiState.models.set(modelInst.modelData.name, ModelViz.Visible);
+                this.models.push(modelInst);
             }
         } else {
             for (const nlModel of worldData.obj.values()) {
@@ -144,7 +147,7 @@ export class FileDropWorld implements World {
         this.lighting = new Lighting(BgInfos.Jungle); // Just assume Jungle's lighting, it's used in a few other BGs
     }
 
-    public update(viewerInput: Viewer.ViewerRenderInput): void {
+    public update(viewerInput: Viewer.ViewerRenderInput, guiState: GuiState): void {
         this.lighting.update(viewerInput);
     }
 

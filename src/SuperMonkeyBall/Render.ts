@@ -13,7 +13,7 @@ import { GXRenderHelperGfx, fillSceneParamsDataOnTemplate } from "../gx/gx_rende
 import * as UI from "../ui.js";
 import * as Viewer from "../viewer.js";
 import { FileDropWorld, StageWorld, World, WorldData } from "./World.js";
-import { Gui } from "./Gui.js";
+import { Gui, GuiState } from "./Gui.js";
 
 // TODO(complexplane): Put somewhere else
 export type RenderContext = {
@@ -22,6 +22,7 @@ export type RenderContext = {
     viewerInput: Viewer.ViewerRenderInput;
     opaqueInstList: GfxRenderInstList;
     translucentInstList: GfxRenderInstList;
+    guiState: GuiState;
 };
 
 export class Renderer implements Viewer.SceneGfx {
@@ -33,16 +34,17 @@ export class Renderer implements Viewer.SceneGfx {
     private gui: Gui;
 
     constructor(device: GfxDevice, private worldData: WorldData) {
+        const guiState = new GuiState();
         this.renderHelper = new GXRenderHelperGfx(device);
         if (worldData.kind === "Stage") {
-            this.world = new StageWorld(device, this.renderHelper.renderCache, worldData);
+            this.world = new StageWorld(device, this.renderHelper.renderCache, worldData, guiState);
         } else if (worldData.kind === "Gma" || worldData.kind === "Nl") {
-            this.world = new FileDropWorld(device, this.renderHelper.renderCache, worldData);
+            this.world = new FileDropWorld(device, this.renderHelper.renderCache, worldData, guiState);
         }
         const textureCache = this.world.getTextureCache();
         this.textureCache = textureCache;
         textureCache.updateViewerTextures();
-        this.gui = new Gui();
+        this.gui = new Gui(guiState);
     }
 
     public createPanels(): UI.Panel[] {
@@ -77,7 +79,8 @@ export class Renderer implements Viewer.SceneGfx {
         translucentInstList: GfxRenderInstList
     ): void {
         this.gui.render();
-        this.world.update(viewerInput);
+        const guiState = this.gui.getGuiState();
+        this.world.update(viewerInput, guiState);
 
         viewerInput.camera.setClipPlanes(0.1);
         // The GXRenderHelper's pushTemplateRenderInst() sets some stuff on the template inst for
@@ -91,6 +94,7 @@ export class Renderer implements Viewer.SceneGfx {
             viewerInput,
             opaqueInstList,
             translucentInstList,
+            guiState,
         };
         this.world.prepareToRender(renderCtx);
         this.renderHelper.prepareToRender();

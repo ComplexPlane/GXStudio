@@ -1,15 +1,12 @@
 import { ImGui, ImGuiImplWeb, ImVec2 } from "@mori2003/jsimgui";
 
 export class Gui {
-    private guiState: GuiState;
     private imguiSize: ImVec2;
     private imguiPos: ImVec2;
 
-    constructor() {
-        // TODO build GuiState
-
+    constructor(private guiState: GuiState) {
         const imguiCanvas = document.getElementById("imguiCanvas") as HTMLCanvasElement;
-        this.imguiSize = new ImVec2(imguiCanvas.width, imguiCanvas.height);
+        this.imguiSize = new ImVec2(imguiCanvas.clientWidth, imguiCanvas.clientHeight);
         this.imguiPos = new ImVec2(0, 0);
     }
 
@@ -19,20 +16,42 @@ export class Gui {
 
     public render() {
         ImGuiImplWeb.BeginRender();
-
         ImGui.SetNextWindowSize(this.imguiSize);
         ImGui.SetNextWindowPos(this.imguiPos);
-
         ImGui.Begin("Test Window", [], ImGui.WindowFlags.NoTitleBar | ImGui.WindowFlags.NoResize);
-        ImGui.Text("I'm loving it");
-        ImGui.Button("Okay then");
-        ImGui.End();
 
+        for (let [name, viz] of this.guiState.models.entries()) {
+            let currViz = viz;
+            if (ImGui.BeginCombo(name, viz)) {
+                for (const possibleViz of Object.values(ModelViz)) {
+                    const selected = viz == possibleViz;
+                    if (ImGui.Selectable(possibleViz, selected)) {
+                        currViz = possibleViz;
+                    }
+                    if (selected) {
+                        ImGui.SetItemDefaultFocus();
+                    }
+                }
+                ImGui.EndCombo();
+            }
+            this.guiState.models.set(name, currViz);
+        }
+
+        ImGui.End();
         ImGuiImplWeb.EndRender();
     }
 }
 
-// Shared state the GUI and rest of the world collaborate on
-export type GuiState = {
-    
+export class GuiState {
+    public models: Map<string, ModelViz>;
+
+    constructor() {
+        this.models = new Map();
+    }
 }
+
+export enum ModelViz {
+    Visible = "Visible",
+    Invisible = "Invisible",
+    Wireframe = "Wireframe",
+};
