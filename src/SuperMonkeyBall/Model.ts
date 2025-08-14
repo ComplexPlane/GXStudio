@@ -13,7 +13,8 @@ import { Color, colorNewFromRGBA } from "../Color.js";
 import { ModelInterface } from "./World.js";
 import { transformVec3Mat4w1 } from "../MathHelpers.js";
 import { Lighting } from "./Lighting.js";
-import { ModelViz } from "./Gui.js";
+import { GuiModel } from "./Gui.js";
+import { assertExists } from "../util.js";
 
 export const enum RenderSort {
     Translucent, // Depth sort "translucent" shapes only
@@ -72,7 +73,8 @@ export class ModelInst implements ModelInterface {
     }
 
     public prepareToRender(ctx: RenderContext, renderParams: RenderParams) {
-        if (ctx.guiState.models.get(this.modelData.name) !== ModelViz.Visible) {
+        const guiModel = assertExists(ctx.guiState.models.get(this.modelData.name));
+        if (!guiModel.visible) {
             return;
         }
 

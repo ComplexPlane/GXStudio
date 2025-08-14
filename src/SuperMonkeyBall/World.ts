@@ -16,7 +16,7 @@ import { BgInfos, StageInfo } from "./StageInfo.js";
 import { MkbTime } from "./Utils.js";
 import { AnimGroup } from "./AnimGroup.js";
 import { Lighting } from "./Lighting.js";
-import { GuiState, ModelViz } from "./Gui.js";
+import { GuiState, GuiModel } from "./Gui.js";
 
 const scratchRenderParams = new RenderParams();
 
@@ -136,7 +136,12 @@ export class FileDropWorld implements World {
         if (worldData.kind === "Gma") {
             for (const model of worldData.gma.idMap.values()) {
                 const modelInst = new ModelInst(device, renderCache, model, this.textureCache);
-                guiState.models.set(modelInst.modelData.name, ModelViz.Visible);
+                const guiModel: GuiModel = {
+                    name: model.name,
+                    visible: true,
+                    hover: false,
+                };
+                guiState.models.set(modelInst.modelData.name, guiModel);
                 this.models.push(modelInst);
             }
         } else {

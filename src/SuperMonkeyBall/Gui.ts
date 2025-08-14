@@ -20,21 +20,25 @@ export class Gui {
         ImGui.SetNextWindowPos(this.imguiPos);
         ImGui.Begin("Test Window", [], ImGui.WindowFlags.NoTitleBar | ImGui.WindowFlags.NoResize);
 
-        for (let [name, viz] of this.guiState.models.entries()) {
-            let currViz = viz;
-            if (ImGui.BeginCombo(name, viz)) {
-                for (const possibleViz of Object.values(ModelViz)) {
-                    const selected = viz == possibleViz;
-                    if (ImGui.Selectable(possibleViz, selected)) {
-                        currViz = possibleViz;
-                    }
-                    if (selected) {
-                        ImGui.SetItemDefaultFocus();
-                    }
-                }
-                ImGui.EndCombo();
+        ImGui.SameLine();
+        if (ImGui.Button("Show All")) {
+            for (let model of this.guiState.models.values()) {
+                model.visible = true;
             }
-            this.guiState.models.set(name, currViz);
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Hide All")) {
+            for (let model of this.guiState.models.values()) {
+                model.visible = false;
+            }
+        }
+
+        const a = [false];
+        for (let [name, model] of this.guiState.models.entries()) {
+            a[0] = model.visible;
+            ImGui.Checkbox(name, a);
+            model.visible = a[0];
+            model.hover = ImGui.IsItemHovered();
         }
 
         ImGui.End();
@@ -43,15 +47,15 @@ export class Gui {
 }
 
 export class GuiState {
-    public models: Map<string, ModelViz>;
+    public models: Map<string, GuiModel>;
 
     constructor() {
         this.models = new Map();
     }
 }
 
-export enum ModelViz {
-    Visible = "Visible",
-    Invisible = "Invisible",
-    Wireframe = "Wireframe",
-};
+export type GuiModel = {
+    name: string,
+    visible: boolean,
+    hover: boolean,
+}
