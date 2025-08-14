@@ -20,9 +20,12 @@ export class Gui {
 
     public render() {
         ImGuiImplWeb.BeginRender();
+
         ImGui.SetNextWindowSize(this.imguiSize);
         ImGui.SetNextWindowPos(this.imguiPos);
-        ImGui.Begin("Root", [], ImGui.WindowFlags.NoTitleBar | ImGui.WindowFlags.NoResize);
+        ImGui.Begin("Root", [], ImGui.WindowFlags.NoTitleBar | ImGui.WindowFlags.NoResize | ImGui.WindowFlags.MenuBar);
+
+        this.renderMenuBar();
 
         if (ImGui.BeginTabBar("Tabs")) {
             if (ImGui.BeginTabItem("Models")) {
@@ -39,8 +42,41 @@ export class Gui {
         ImGui.End();
         ImGuiImplWeb.EndRender();
     }
+    
+    private renderMenuBar() {
+        // TODO(complexplane): broken
+        if (ImGui.BeginMenuBar()) {
+            if (ImGui.BeginMenu("File")) {
+                if (ImGui.BeginPopup("Import")) {
+                    ImGui.Text("Not yet implemented");
+                    if (ImGui.Button("OK")) {
+                        ImGui.CloseCurrentPopup();
+                    }
+                    ImGui.EndPopup();
+                }
+                if (ImGui.BeginPopup("Export")) {
+                    ImGui.Text("Not yet implemented");
+                    if (ImGui.Button("OK")) {
+                        ImGui.CloseCurrentPopup();
+                    }
+                    ImGui.EndPopup();
+                }
+
+                if (ImGui.MenuItem("Import...", "")) {
+                    ImGui.OpenPopup("Import");
+                }
+                if (ImGui.MenuItem("Export...", "")) {
+                    ImGui.OpenPopup("Export");
+                }
+
+                ImGui.EndMenu();
+            }
+            ImGui.EndMenuBar();
+        }
+    }
 
     private renderModelsGui() {
+        ImGui.SeparatorText("Models List");
         if (ImGui.Button("Show All")) {
             for (let model of this.guiState.models.values()) {
                 model.visible = true;
@@ -64,10 +100,12 @@ export class Gui {
 
     private renderMaterialsGui() {
         this.renderMaterialsList();
+        this.renderMaterialEditor();
     }
 
     private renderMaterialsList() {
-        if (ImGui.BeginListBox("Materials List")) {
+        ImGui.SeparatorText("Materials List");
+        if (ImGui.BeginListBox("Materials")) {
             for (let i = 0; i < this.materials.length; i++) {
                 const selected = i == this.selMaterial;
                 if (ImGui.Selectable(this.materials[i], selected)) {
@@ -112,7 +150,7 @@ export class Gui {
             ImGui.EndDisabled();
         }
 
-        if (ImGui.BeginPopup("New Material", undefined)) {
+        if (ImGui.BeginPopup("New Material")) {
             this.tmpName = this.tmpName ?? ["My New Material"];
 
             ImGui.Text("New Material:");
@@ -131,7 +169,7 @@ export class Gui {
             ImGui.EndPopup();
         }
 
-        if (ImGui.BeginPopup("Rename Material", undefined)) {
+        if (ImGui.BeginPopup("Rename Material")) {
             this.tmpName = this.tmpName ?? [this.materials[this.selMaterial]];
 
             ImGui.InputText("Name", this.tmpName, 256);
@@ -148,7 +186,7 @@ export class Gui {
             ImGui.EndPopup();
         }
 
-        if (ImGui.BeginPopup("Duplicate Material", undefined)) {
+        if (ImGui.BeginPopup("Duplicate Material")) {
             this.tmpName = this.tmpName ?? [this.materials[this.selMaterial]];
 
             ImGui.Text(`Duplicate material '${this.materials[this.selMaterial]}':`);
@@ -167,7 +205,7 @@ export class Gui {
             ImGui.EndPopup();
         }
 
-        if (ImGui.BeginPopup("Delete Material", undefined)) {
+        if (ImGui.BeginPopup("Delete Material")) {
             ImGui.Text(`Delete material '${this.materials[this.selMaterial]}'?`);
             if (ImGui.Button("OK")) {
                 this.materials.splice(this.selMaterial, 1);
@@ -182,6 +220,13 @@ export class Gui {
             }
             ImGui.EndPopup();
         }
+    }
+
+    private renderMaterialEditor() {
+        if (this.materials.length === 0) {
+            return;
+        }
+        ImGui.SeparatorText(`Edit Material '${this.materials[this.selMaterial]}'`);
     }
 }
 

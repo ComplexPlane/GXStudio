@@ -417,10 +417,10 @@ class Main {
             }
         }
 
-        if (this.currentSceneDesc === null) {
-            // Make the user choose a scene if there's nothing loaded by default...
-            this.ui.sceneSelect.setExpanded(true);
-        }
+        // if (this.currentSceneDesc === null) {
+        //     // Make the user choose a scene if there's nothing loaded by default...
+        //     this.ui.sceneSelect.setExpanded(true);
+        // }
 
         this._onRequestAnimationFrameCanvas();
     }
@@ -862,6 +862,7 @@ class Main {
 
     private _makeUI() {
         this.ui = new UI(this.viewer);
+        this.ui.toggleUI(false);
         this.ui.setEmbedMode(this.isEmbedMode);
         this.toplevel.appendChild(this.ui.elem);
         this.ui.sceneSelect.onscenedescselected = this._onSceneDescSelected.bind(this);
