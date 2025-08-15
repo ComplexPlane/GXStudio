@@ -3,6 +3,35 @@ import { ImGui, ImGuiImplWeb, ImVec2, ImVec4 } from "@mori2003/jsimgui";
 import * as GX from '../gx/gx_enum.js';
 import { LoadedTexture } from "../TextureHolder.js";
 
+type ColorSel = {
+    id: GX.CC,
+    label: string,
+    help: string,
+};
+
+const COLOR_SELS: ColorSel[] = [
+    { id: GX.CC.CPREV, label: "Prev Color", help: "Color output from previous TEV stage" },
+    { id: GX.CC.APREV, label: "Prev Alpha", help: "Alpha output from previous TEV stage" },
+    { id: GX.CC.C0, label: "Color 0", help: "Color value from the color/output register 0" },
+    { id: GX.CC.A0, label: "Alpha 0", help: "Alpha value from the color/output register 0" },
+    { id: GX.CC.C1, label: "Color 1", help: "Color value from the color/output register 1" },
+    { id: GX.CC.A1, label: "Alpha 1", help: "Alpha value from the color/output register 1" },
+    { id: GX.CC.C2, label: "Color 2", help: "Color value from the color/output register 2" },
+    { id: GX.CC.A2, label: "Alpha 2", help: "Alpha value from the color/output register 2" },
+    { id: GX.CC.TEXC, label: "Texture Color", help: "Color value from texture" },
+    { id: GX.CC.TEXA, label: "Texture Alpha", help: "Alpha value from texture" },
+    { id: GX.CC.RASC, label: "Raster Color", help: "Color value from rasterizer" },
+    { id: GX.CC.RASA, label: "Raster Alpha", help: "Alpha value from rasterizer" },
+    { id: GX.CC.ONE, label: "One", help: "Constant value 1.0" },
+    { id: GX.CC.HALF, label: "Half", help: "Constant value 0.5" },
+    { id: GX.CC.KONST, label: "Constant", help: "Constant color" },
+    { id: GX.CC.ZERO, label: "Zero", help: "Constant value 0.0" }
+];
+
+const COLOR_SEL_MAP = new Map<GX.CC, ColorSel>(
+    COLOR_SELS.map(sel => [sel.id, sel])
+);
+
 export class Gui {
     private canvasElem: HTMLCanvasElement;
     private imguiSize = new ImVec2();
@@ -269,32 +298,15 @@ export class Gui {
             ImGui.Spacing();
             ImGui.Separator();
             ImGui.Spacing();
-            ImGui.TextColored(this.blue, `TEV Stage ${tevStageIdx}:`);
+            ImGui.TextColored(this.blue, `TEV Stage ${tevStageIdx}`);
 
-            if (ImGui.BeginCombo("Color A Source " + tevStageIdx, tevStage.colorInA.toString())) {
-                const sources = [
-                    GX.CC.CPREV,
-                    GX.CC.APREV,
-                    GX.CC.C0,
-                    GX.CC.A0,
-                    GX.CC.C1,
-                    GX.CC.A1,
-                    GX.CC.C2,
-                    GX.CC.A2,
-                    GX.CC.TEXC,
-                    GX.CC.TEXA,
-                    GX.CC.RASC,
-                    GX.CC.RASA,
-                    GX.CC.ONE,
-                    GX.CC.HALF,
-                    GX.CC.KONST,
-                    GX.CC.ZERO
-                ];
-
-                for (let source of sources) {
-                    const isSelected = tevStage.colorInA == source;
-                    if (ImGui.Selectable(source.toString(), isSelected)) {
-                        tevStage.colorInA = source;
+            const currColorSel = COLOR_SEL_MAP.get(tevStage.colorInA)!;
+            if (ImGui.BeginCombo(`${tevStageIdx}: Color A Source`, currColorSel.label)) {
+                for (let colorSelIdx = 0; colorSelIdx < COLOR_SELS.length; colorSelIdx++) {
+                    let colorSel = COLOR_SELS[colorSelIdx];
+                    const isSelected = tevStage.colorInA == colorSel.id;
+                    if (ImGui.Selectable(colorSel.label, isSelected)) {
+                        tevStage.colorInA = colorSel.id;
                     }
                     if (isSelected) {
                         ImGui.SetItemDefaultFocus();
