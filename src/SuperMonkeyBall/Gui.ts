@@ -22,14 +22,35 @@ const COLOR_SELS: ColorSel[] = [
     { id: GX.CC.TEXA, label: "Texture Alpha", help: "Alpha value from texture" },
     { id: GX.CC.RASC, label: "Lighting Color", help: "Color value from rasterizer" },
     { id: GX.CC.RASA, label: "Lighting Alpha", help: "Alpha value from rasterizer" },
-    { id: GX.CC.ONE, label: "One", help: "Constant value 1.0" },
-    { id: GX.CC.HALF, label: "Half", help: "Constant value 0.5" },
     { id: GX.CC.KONST, label: "Constant", help: "Constant color" },
-    { id: GX.CC.ZERO, label: "Zero", help: "Constant value 0.0" }
+    { id: GX.CC.ONE, label: "1.0", help: "Constant value 1.0" },
+    { id: GX.CC.HALF, label: "0.5", help: "Constant value 0.5" },
+    { id: GX.CC.ZERO, label: "0.0", help: "Constant value 0.0" }
 ];
 
 const COLOR_SEL_MAP = new Map<GX.CC, ColorSel>(
     COLOR_SELS.map(sel => [sel.id, sel])
+);
+
+type AlphaSel = {
+    id: GX.CA,
+    label: string,
+    help: string,
+};
+
+const ALPHA_SELS: AlphaSel[] = [
+    { id: GX.CA.APREV, label: "Prev Alpha", help: "Alpha value from previous TEV stage" },
+    { id: GX.CA.A0, label: "Alpha 0", help: "Alpha value from the color/output register 0" },
+    { id: GX.CA.A1, label: "Alpha 1", help: "Alpha value from the color/output register 1" },
+    { id: GX.CA.A2, label: "Alpha 2", help: "Alpha value from the color/output register 2" },
+    { id: GX.CA.TEXA, label: "Texture Alpha", help: "Alpha value from texture" },
+    { id: GX.CA.RASA, label: "Lighting Alpha", help: "Alpha value from rasterizer" },
+    { id: GX.CA.KONST, label: "Constant", help: "Constant alpha value" },
+    { id: GX.CA.ZERO, label: "0.0", help: "Constant value 0.0" }
+];
+
+const ALPHA_SEL_MAP = new Map<GX.CA, AlphaSel>(
+    ALPHA_SELS.map(sel => [sel.id, sel])
 );
 
 export class Gui {
@@ -262,6 +283,7 @@ export class Gui {
         if (this.materials.length === 0) {
             return;
         }
+        ImGui.Spacing();
         ImGui.SeparatorText(`Edit Material '${this.materials[this.selMaterial].name}'`);
 
         const material = this.materials[this.selMaterial];
@@ -272,16 +294,16 @@ export class Gui {
         }
         if (ImGui.Button(`Add TEV Stage (${material.tevStages.length}/8)`)) {
             this.materials[this.selMaterial].tevStages.push({
-                colorInA: GX.CC.C0,
-                colorInB: GX.CC.C0,
-                colorInC: GX.CC.C0,
-                colorInD: GX.CC.C0,
+                colorInA: GX.CC.CPREV,
+                colorInB: GX.CC.CPREV,
+                colorInC: GX.CC.CPREV,
+                colorInD: GX.CC.CPREV,
                 colorOp: GX.TevOp.ADD,
 
-                alphaInA: GX.CA.A0,
-                alphaInB: GX.CA.A0,
-                alphaInC: GX.CA.A0,
-                alphaInD: GX.CA.A0,
+                alphaInA: GX.CA.APREV,
+                alphaInB: GX.CA.APREV,
+                alphaInC: GX.CA.APREV,
+                alphaInD: GX.CA.APREV,
                 alphaOp: GX.TevOp.ADD,
 
                 // TODO
@@ -301,22 +323,16 @@ export class Gui {
             ImGui.Spacing();
             ImGui.TextColored(this.blue, `TEV Stage ${tevStageIdx}`);
 
-            const currColorSel = COLOR_SEL_MAP.get(tevStage.colorInA)!;
-            if (ImGui.BeginCombo(`${tevStageIdx}: Color A Source`, currColorSel.label)) {
-                for (let colorSelIdx = 0; colorSelIdx < COLOR_SELS.length; colorSelIdx++) {
-                    let colorSel = COLOR_SELS[colorSelIdx];
-                    const isSelected = tevStage.colorInA == colorSel.id;
-                    if (ImGui.Selectable(colorSel.label, isSelected)) {
-                        tevStage.colorInA = colorSel.id;
-                    }
-                    ImGui.SetItemTooltip(colorSel.help);
-                    if (isSelected) {
-                        ImGui.SetItemDefaultFocus();
-                    }
-                }
-
-                ImGui.EndCombo();
-            }
+            tevStage.colorInA = this.renderColorSelDropdown(`${tevStageIdx}: Color A Source`, tevStage.colorInA);
+            tevStage.colorInB = this.renderColorSelDropdown(`${tevStageIdx}: Color B Source`, tevStage.colorInB);
+            tevStage.colorInC = this.renderColorSelDropdown(`${tevStageIdx}: Color C Source`, tevStage.colorInC);
+            tevStage.colorInD = this.renderColorSelDropdown(`${tevStageIdx}: Color D Source`, tevStage.colorInD);
+            ImGui.Spacing();
+            tevStage.alphaInA = this.renderAlphaSelDropdown(`${tevStageIdx}: Alpha A Source`, tevStage.alphaInA);
+            tevStage.alphaInB = this.renderAlphaSelDropdown(`${tevStageIdx}: Alpha B Source`, tevStage.alphaInB);
+            tevStage.alphaInC = this.renderAlphaSelDropdown(`${tevStageIdx}: Alpha C Source`, tevStage.alphaInC);
+            tevStage.alphaInD = this.renderAlphaSelDropdown(`${tevStageIdx}: Alpha D Source`, tevStage.alphaInD);
+            ImGui.Spacing();
 
             if (ImGui.Button("Delete TEV Stage " + tevStageIdx)) {
                 tevStageToDelete = tevStageIdx;
@@ -326,6 +342,50 @@ export class Gui {
         if (tevStageToDelete !== null) {
             material.tevStages.splice(tevStageToDelete, 1)
         }
+    }
+
+    private renderColorSelDropdown(label: string, cc: GX.CC) {
+        const currColorSel = COLOR_SEL_MAP.get(cc)!;
+
+        if (ImGui.BeginCombo(label, currColorSel.label)) {
+            for (let colorSelIdx = 0; colorSelIdx < COLOR_SELS.length; colorSelIdx++) {
+                let colorSel = COLOR_SELS[colorSelIdx];
+                const isSelected = cc == colorSel.id;
+                if (ImGui.Selectable(colorSel.label, isSelected)) {
+                    cc = colorSel.id;
+                }
+                ImGui.SetItemTooltip(colorSel.help);
+                if (isSelected) {
+                    ImGui.SetItemDefaultFocus();
+                }
+            }
+
+            ImGui.EndCombo();
+        }
+
+        return cc;
+    }
+
+    private renderAlphaSelDropdown(label: string, ca: GX.CA) {
+        const currColorSel = ALPHA_SEL_MAP.get(ca)!;
+
+        if (ImGui.BeginCombo(label, currColorSel.label)) {
+            for (let alphaSelIdx = 0; alphaSelIdx < ALPHA_SELS.length; alphaSelIdx++) {
+                let alphaSel = ALPHA_SELS[alphaSelIdx];
+                const isSelected = ca == alphaSel.id;
+                if (ImGui.Selectable(alphaSel.label, isSelected)) {
+                    ca = alphaSel.id;
+                }
+                ImGui.SetItemTooltip(alphaSel.help);
+                if (isSelected) {
+                    ImGui.SetItemDefaultFocus();
+                }
+            }
+
+            ImGui.EndCombo();
+        }
+
+        return ca;
     }
 }
 
