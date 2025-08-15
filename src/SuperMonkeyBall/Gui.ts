@@ -20,8 +20,8 @@ const COLOR_SELS: ColorSel[] = [
     { id: GX.CC.A2, label: "Alpha 2", help: "Alpha value from the color/output register 2" },
     { id: GX.CC.TEXC, label: "Texture Color", help: "Color value from texture" },
     { id: GX.CC.TEXA, label: "Texture Alpha", help: "Alpha value from texture" },
-    { id: GX.CC.RASC, label: "Raster Color", help: "Color value from rasterizer" },
-    { id: GX.CC.RASA, label: "Raster Alpha", help: "Alpha value from rasterizer" },
+    { id: GX.CC.RASC, label: "Lighting Color", help: "Color value from rasterizer" },
+    { id: GX.CC.RASA, label: "Lighting Alpha", help: "Alpha value from rasterizer" },
     { id: GX.CC.ONE, label: "One", help: "Constant value 1.0" },
     { id: GX.CC.HALF, label: "Half", help: "Constant value 0.5" },
     { id: GX.CC.KONST, label: "Constant", help: "Constant color" },
@@ -292,6 +292,7 @@ export class Gui {
             ImGui.EndDisabled();
         }
 
+        let tevStageToDelete: number | null = null;
         for (let tevStageIdx = 0; tevStageIdx < material.tevStages.length; tevStageIdx++) {
             const tevStage = material.tevStages[tevStageIdx];
 
@@ -308,6 +309,7 @@ export class Gui {
                     if (ImGui.Selectable(colorSel.label, isSelected)) {
                         tevStage.colorInA = colorSel.id;
                     }
+                    ImGui.SetItemTooltip(colorSel.help);
                     if (isSelected) {
                         ImGui.SetItemDefaultFocus();
                     }
@@ -315,6 +317,14 @@ export class Gui {
 
                 ImGui.EndCombo();
             }
+
+            if (ImGui.Button("Delete TEV Stage " + tevStageIdx)) {
+                tevStageToDelete = tevStageIdx;
+            }
+        }
+
+        if (tevStageToDelete !== null) {
+            material.tevStages.splice(tevStageToDelete, 1)
         }
     }
 }
