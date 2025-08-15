@@ -1,17 +1,20 @@
-import { ImGui, ImGuiImplWeb, ImVec2 } from "@mori2003/jsimgui";
+import { ImGui, ImGuiImplWeb, ImVec2, ImVec4 } from "@mori2003/jsimgui";
+
+import * as GX from '../gx/gx_enum.js';
+import { LoadedTexture } from "../TextureHolder.js";
 
 export class Gui {
-    private imguiSize: ImVec2;
-    private imguiPos: ImVec2;
+    private canvasElem: HTMLCanvasElement;
+    private imguiSize = new ImVec2();
+    private imguiPos = new ImVec2(0, 0);
 
     private selMaterial: number = 0;
-    private materials = ["Material 1", "Material 2", "Material 3", "Material 4", "Material 5"];
+    private materials: Material[] = [];
     private tmpName: string[] | null = null;
+    private blue = new ImVec4(0, 0.9, 1, 1);
 
     constructor(private guiState: GuiState) {
-        const imguiCanvas = document.getElementById("imguiCanvas") as HTMLCanvasElement;
-        this.imguiSize = new ImVec2(imguiCanvas.clientWidth, imguiCanvas.clientHeight);
-        this.imguiPos = new ImVec2(0, 0);
+        this.canvasElem = document.getElementById("imguiCanvas") as HTMLCanvasElement;
     }
 
     public getGuiState(): GuiState {
@@ -21,6 +24,8 @@ export class Gui {
     public render() {
         ImGuiImplWeb.BeginRender();
 
+        this.imguiSize.x = this.canvasElem.clientWidth;
+        this.imguiSize.y = this.canvasElem.clientHeight;
         ImGui.SetNextWindowSize(this.imguiSize);
         ImGui.SetNextWindowPos(this.imguiPos);
         ImGui.Begin("Root", [], ImGui.WindowFlags.NoTitleBar | ImGui.WindowFlags.NoResize | ImGui.WindowFlags.MenuBar);
@@ -107,11 +112,11 @@ export class Gui {
         ImGui.SeparatorText("Materials List");
         if (ImGui.BeginListBox("Materials")) {
             for (let i = 0; i < this.materials.length; i++) {
-                const selected = i == this.selMaterial;
-                if (ImGui.Selectable(this.materials[i], selected)) {
+                const isSelected = i == this.selMaterial;
+                if (ImGui.Selectable(this.materials[i].name, isSelected)) {
                     this.selMaterial = i;
                 }
-                if (selected) {
+                if (isSelected) {
                     ImGui.SetItemDefaultFocus();
                 }
             }
@@ -156,7 +161,7 @@ export class Gui {
             ImGui.Text("New Material:");
             ImGui.InputText("Name", this.tmpName, 256);
             if (ImGui.Button("OK")) {
-                this.materials.push(this.tmpName[0]);
+                this.materials.push(newBasicMaterial(this.tmpName[0]));
                 this.selMaterial = this.materials.length - 1;
                 this.tmpName = null;
                 ImGui.CloseCurrentPopup();
@@ -170,11 +175,11 @@ export class Gui {
         }
 
         if (ImGui.BeginPopup("Rename Material")) {
-            this.tmpName = this.tmpName ?? [this.materials[this.selMaterial]];
+            this.tmpName = this.tmpName ?? [this.materials[this.selMaterial].name];
 
             ImGui.InputText("Name", this.tmpName, 256);
             if (ImGui.Button("OK")) {
-                this.materials[this.selMaterial] = this.tmpName[0];
+                this.materials[this.selMaterial].name = this.tmpName[0];
                 this.tmpName = null;
                 ImGui.CloseCurrentPopup();
             }
@@ -187,12 +192,14 @@ export class Gui {
         }
 
         if (ImGui.BeginPopup("Duplicate Material")) {
-            this.tmpName = this.tmpName ?? [this.materials[this.selMaterial]];
+            this.tmpName = this.tmpName ?? [this.materials[this.selMaterial].name];
 
             ImGui.Text(`Duplicate material '${this.materials[this.selMaterial]}':`);
             ImGui.InputText("New Name", this.tmpName, 256);
             if (ImGui.Button("OK")) {
-                this.materials.splice(this.selMaterial + 1, 0, this.tmpName[0]);
+                const copy = copyMaterial(this.materials[this.selMaterial]);
+                copy.name = this.tmpName[0];
+                this.materials.splice(this.selMaterial + 1, 0, copy);
                 this.selMaterial++;
                 this.tmpName = null;
                 ImGui.CloseCurrentPopup();
@@ -226,7 +233,77 @@ export class Gui {
         if (this.materials.length === 0) {
             return;
         }
-        ImGui.SeparatorText(`Edit Material '${this.materials[this.selMaterial]}'`);
+        ImGui.SeparatorText(`Edit Material '${this.materials[this.selMaterial].name}'`);
+
+        const material = this.materials[this.selMaterial];
+
+        const stagesFull = material.tevStages.length >= 8;
+        if (stagesFull) {
+            ImGui.BeginDisabled();
+        }
+        if (ImGui.Button(`Add TEV Stage (${material.tevStages.length}/8)`)) {
+            this.materials[this.selMaterial].tevStages.push({
+                colorInA: GX.CC.C0,
+                colorInB: GX.CC.C0,
+                colorInC: GX.CC.C0,
+                colorInD: GX.CC.C0,
+                colorOp: GX.TevOp.ADD,
+
+                alphaInA: GX.CA.A0,
+                alphaInB: GX.CA.A0,
+                alphaInC: GX.CA.A0,
+                alphaInD: GX.CA.A0,
+                alphaOp: GX.TevOp.ADD,
+
+                // TODO
+                texture: "TODO" as any as LoadedTexture,
+            });
+        }
+        if (stagesFull) {
+            ImGui.EndDisabled();
+        }
+
+        for (let tevStageIdx = 0; tevStageIdx < material.tevStages.length; tevStageIdx++) {
+            const tevStage = material.tevStages[tevStageIdx];
+
+            ImGui.Spacing();
+            ImGui.Separator();
+            ImGui.Spacing();
+            ImGui.TextColored(this.blue, `TEV Stage ${tevStageIdx}:`);
+
+            if (ImGui.BeginCombo("Color A Source " + tevStageIdx, tevStage.colorInA.toString())) {
+                const sources = [
+                    GX.CC.CPREV,
+                    GX.CC.APREV,
+                    GX.CC.C0,
+                    GX.CC.A0,
+                    GX.CC.C1,
+                    GX.CC.A1,
+                    GX.CC.C2,
+                    GX.CC.A2,
+                    GX.CC.TEXC,
+                    GX.CC.TEXA,
+                    GX.CC.RASC,
+                    GX.CC.RASA,
+                    GX.CC.ONE,
+                    GX.CC.HALF,
+                    GX.CC.KONST,
+                    GX.CC.ZERO
+                ];
+
+                for (let source of sources) {
+                    const isSelected = tevStage.colorInA == source;
+                    if (ImGui.Selectable(source.toString(), isSelected)) {
+                        tevStage.colorInA = source;
+                    }
+                    if (isSelected) {
+                        ImGui.SetItemDefaultFocus();
+                    }
+                }
+
+                ImGui.EndCombo();
+            }
+        }
     }
 }
 
@@ -242,6 +319,47 @@ export type GuiModel = {
     name: string,
     visible: boolean,
     hover: boolean,
+}
+
+type TevStage = {
+    colorInA: GX.CC;
+    colorInB: GX.CC;
+    colorInC: GX.CC;
+    colorInD: GX.CC;
+    colorOp: GX.TevOp;
+
+    alphaInA: GX.CA;
+    alphaInB: GX.CA;
+    alphaInC: GX.CA;
+    alphaInD: GX.CA;
+    alphaOp: GX.TevOp;
+
+    // SetTevOrder
+    // The hope is we provide these at a higher level, then build the GXMaterial
+    // with the specifics?
+    // texCoordId: GX.TexCoordID;
+    // texMap: GX.TexMapID;
+
+    texture: LoadedTexture,
+}
+
+type Material = {
+    name: string,
+    tevStages: TevStage[],
+}
+
+function newBasicMaterial(name: string): Material {
+    return {
+        name: name,
+        tevStages: [],
+    };
+}
+
+function copyMaterial(orig: Material): Material {
+    return {
+        name: orig.name,
+        tevStages: orig.tevStages.map((stage) => { return {...stage} }),
+    };
 }
 
 // Returns the new index of the current item
