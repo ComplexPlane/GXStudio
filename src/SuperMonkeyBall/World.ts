@@ -16,7 +16,7 @@ import { BgInfos, StageInfo } from "./StageInfo.js";
 import { MkbTime } from "./Utils.js";
 import { AnimGroup } from "./AnimGroup.js";
 import { Lighting } from "./Lighting.js";
-import { GuiState, GuiModel } from "./Gui.js";
+import { GuiState, GuiModel, Gui } from "./Gui.js";
 
 const scratchRenderParams = new RenderParams();
 
@@ -59,10 +59,11 @@ export type WorldState = {
 };
 
 export interface World {
-    update(viewerInput: Viewer.ViewerRenderInput, guiState: GuiState): void;
+    update(viewerInput: Viewer.ViewerRenderInput): void;
     prepareToRender(ctx: RenderContext): void;
     getTextureCache(): TextureCache;
     getClearColor(): Color;
+    getGuiState(): GuiState,
     setMaterialHacks(hacks: GX_Material.GXMaterialHacks): void;
     destroy(device: GfxDevice): void;
 }
@@ -71,8 +72,9 @@ export class StageWorld implements World {
     private worldState: WorldState;
     private animGroups: AnimGroup[];
     private background: Background;
+    private guiState = new GuiState();
 
-    constructor(device: GfxDevice, renderCache: GfxRenderCache, private stageData: StageData, guiState: GuiState) {
+    constructor(device: GfxDevice, renderCache: GfxRenderCache, private stageData: StageData) {
         this.worldState = {
             modelCache: new ModelCache(device, renderCache, stageData),
             time: new MkbTime(60), // TODO(complexplane): Per-stage time limit
@@ -92,7 +94,7 @@ export class StageWorld implements World {
         this.background = new stageData.stageInfo.bgInfo.bgConstructor(this.worldState, bgObjects);
     }
 
-    public update(viewerInput: Viewer.ViewerRenderInput, guiState: GuiState): void {
+    public update(viewerInput: Viewer.ViewerRenderInput): void {
         this.worldState.time.updateDeltaTimeSeconds(viewerInput.deltaTime / 1000);
         for (let i = 0; i < this.animGroups.length; i++) {
             this.animGroups[i].update(this.worldState);
@@ -116,6 +118,10 @@ export class StageWorld implements World {
         return this.stageData.stageInfo.bgInfo.clearColor;
     }
 
+    public getGuiState(): GuiState {
+        return this.guiState;
+    }
+
     public setMaterialHacks(hacks: GX_Material.GXMaterialHacks): void {
         this.worldState.modelCache.setMaterialHacks(hacks);
     }
@@ -126,12 +132,16 @@ export class StageWorld implements World {
 }
 
 // Just render all models in a single GMA or NaomiLib object, not a stage+bg and all
+// TODO(complexplane): Maybe we should have a single world representing a "stage" 
+// irrespective of whether it was filedropped or not?
 export class FileDropWorld implements World {
     private lighting: Lighting;
     private models: ModelInterface[] = [];
     private textureCache: TextureCache;
+    private gui: Gui;
 
-    constructor(device: GfxDevice, renderCache: GfxRenderCache, private worldData: GmaData | NlData, guiState: GuiState) {
+    constructor(device: GfxDevice, renderCache: GfxRenderCache, private worldData: GmaData | NlData) {
+        const guiState = new GuiState();
         this.textureCache = new TextureCache();
         if (worldData.kind === "Gma") {
             for (const model of worldData.gma.idMap.values()) {
@@ -144,15 +154,19 @@ export class FileDropWorld implements World {
                 guiState.models.set(modelInst.modelData.name, guiModel);
                 this.models.push(modelInst);
             }
+            this.gui = new Gui(guiState, worldData.gma, this.textureCache);
         } else {
             for (const nlModel of worldData.obj.values()) {
                 this.models.push(new Nl.ModelInst(device, renderCache, nlModel, this.textureCache));
             }
+            // Empty gui
+            this.gui = new Gui(guiState, {nameMap: new Map(), idMap: new Map()}, this.textureCache);
         }
         this.lighting = new Lighting(BgInfos.Jungle); // Just assume Jungle's lighting, it's used in a few other BGs
     }
 
-    public update(viewerInput: Viewer.ViewerRenderInput, guiState: GuiState): void {
+    public update(viewerInput: Viewer.ViewerRenderInput): void {
+        this.gui.render();
         this.lighting.update(viewerInput);
     }
 
@@ -172,6 +186,10 @@ export class FileDropWorld implements World {
 
     public getClearColor(): Color {
         return TransparentBlack;
+    }
+
+    public getGuiState(): GuiState {
+        return this.gui.getGuiState();
     }
 
     public setMaterialHacks(hacks: GX_Material.GXMaterialHacks): void {

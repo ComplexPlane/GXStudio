@@ -1,7 +1,10 @@
-import { ImGui, ImGuiImplWeb, ImVec2, ImVec4 } from "@mori2003/jsimgui";
+import { ImGui, ImGuiID, ImGuiImplWeb, ImTextureID, ImTextureRef, ImVec2, ImVec4 } from "@mori2003/jsimgui";
 
 import * as GX from '../gx/gx_enum.js';
 import { LoadedTexture } from "../TextureHolder.js";
+import { TextureCache } from "./ModelCache.js";
+import { Gma } from "./Gma.js";
+import { calcMipChain, decodeTexture, TextureInputGX } from "../gx/gx_texture.js";
 
 type ColorSel = {
     id: GX.CC,
@@ -53,6 +56,11 @@ const ALPHA_SEL_MAP = new Map<GX.CA, AlphaSel>(
     ALPHA_SELS.map(sel => [sel.id, sel])
 );
 
+type Texture = {
+    imguiTextureIds: ImTextureRef[], // Loaded imgui textures, one per mip level
+    gxTexture: TextureInputGX, // Original GX texture for passing to TextureCache
+}
+
 export class Gui {
     private canvasElem: HTMLCanvasElement;
     private imguiSize = new ImVec2();
@@ -63,10 +71,54 @@ export class Gui {
     private tmpName: string[] | null = null;
     private blue = new ImVec4(0, 0.9, 1, 1);
 
-    constructor(private guiState: GuiState) {
-        this.canvasElem = document.getElementById("imguiCanvas") as HTMLCanvasElement;
+    private textures: Texture[] = [];
 
-        ImGuiImplWeb.LoadTexture()
+    constructor(private guiState: GuiState, gma: Gma, private textureCache: TextureCache) {
+        this.canvasElem = document.getElementById("imguiCanvas") as HTMLCanvasElement;
+        this.loadTextures(gma);
+    }
+
+    private loadTextures(gma: Gma) {
+        // Gather list of unique textures
+        const uniqueTextures = new Map<string, TextureInputGX>();
+        for (let modelData of gma.idMap.values()) {
+            for (let layerData of modelData.tevLayers) {
+                uniqueTextures.set(layerData.gxTexture.name, layerData.gxTexture);
+            }
+        }
+
+        const texturePromises = [];
+
+        for (let gxTexture of uniqueTextures.values()) {
+            const mipChain = calcMipChain(gxTexture, gxTexture.mipCount);
+            const mipPromises = [];
+            for (let mipLevel of mipChain.mipLevels) {
+                mipPromises.push(decodeTexture(mipLevel).then((decoded) => {
+                    const array = new Uint8Array(
+                        decoded.pixels.buffer, 
+                        decoded.pixels.byteOffset, 
+                        decoded.pixels.byteLength,
+                    );
+                    const id = ImGuiImplWeb.LoadTexture(array, {
+                        width: mipLevel.width,
+                        height: mipLevel.height,
+                    });
+                    return new ImTextureRef(id);
+                }));
+            }
+            texturePromises.push(Promise.all(mipPromises).then((imguiTexIds) => {
+                const texture: Texture = {
+                    imguiTextureIds: imguiTexIds,
+                    gxTexture: gxTexture,
+                };
+                return texture;
+            }));
+        }
+
+        Promise.all(texturePromises).then((textures) => { 
+            textures.sort((a, b) => a.gxTexture.name.localeCompare(b.gxTexture.name));
+            this.textures = textures;
+        });
     }
 
     public getGuiState(): GuiState {
@@ -91,6 +143,10 @@ export class Gui {
             }
             if (ImGui.BeginTabItem("Materials")) {
                 this.renderMaterialsGui();
+                ImGui.EndTabItem();
+            }
+            if (ImGui.BeginTabItem("Textures")) {
+                this.renderTexturesTab();
                 ImGui.EndTabItem();
             }
             ImGui.EndTabBar();
@@ -392,6 +448,12 @@ export class Gui {
         }
 
         return ca;
+    }
+
+    private renderTexturesTab() {
+        for (let texture of this.textures) {
+            ImGui.ImageWithBg(texture.imguiTextureIds[0], new ImVec2(200, 200));
+        }
     }
 }
 

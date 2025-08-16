@@ -34,17 +34,15 @@ export class Renderer implements Viewer.SceneGfx {
     private gui: Gui;
 
     constructor(device: GfxDevice, private worldData: WorldData) {
-        const guiState = new GuiState();
         this.renderHelper = new GXRenderHelperGfx(device);
         if (worldData.kind === "Stage") {
-            this.world = new StageWorld(device, this.renderHelper.renderCache, worldData, guiState);
+            this.world = new StageWorld(device, this.renderHelper.renderCache, worldData);
         } else if (worldData.kind === "Gma" || worldData.kind === "Nl") {
-            this.world = new FileDropWorld(device, this.renderHelper.renderCache, worldData, guiState);
+            this.world = new FileDropWorld(device, this.renderHelper.renderCache, worldData);
         }
         const textureCache = this.world.getTextureCache();
         this.textureCache = textureCache;
         textureCache.updateViewerTextures();
-        this.gui = new Gui(guiState);
     }
 
     public createPanels(): UI.Panel[] {
@@ -78,9 +76,7 @@ export class Renderer implements Viewer.SceneGfx {
         opaqueInstList: GfxRenderInstList,
         translucentInstList: GfxRenderInstList
     ): void {
-        this.gui.render();
-        const guiState = this.gui.getGuiState();
-        this.world.update(viewerInput, guiState);
+        this.world.update(viewerInput);
 
         viewerInput.camera.setClipPlanes(0.1);
         // The GXRenderHelper's pushTemplateRenderInst() sets some stuff on the template inst for
@@ -94,7 +90,7 @@ export class Renderer implements Viewer.SceneGfx {
             viewerInput,
             opaqueInstList,
             translucentInstList,
-            guiState,
+            guiState: this.world.getGuiState(),
         };
         this.world.prepareToRender(renderCtx);
         this.renderHelper.prepareToRender();
