@@ -62,10 +62,11 @@ type Texture = {
 }
 
 export class Gui {
+    private guiState: GuiState;
+
     private canvasElem: HTMLCanvasElement;
     private imguiSize = new ImVec2();
     private imguiPos = new ImVec2(0, 0);
-    private textureDisplaySize = new ImVec2(200, 200);
 
     private selMaterial: number = 0;
     private materials: Material[] = [];
@@ -74,9 +75,28 @@ export class Gui {
 
     private textures: Texture[] = [];
 
-    constructor(private guiState: GuiState, gma: Gma, private textureCache: TextureCache) {
+    constructor(gma: Gma, private textureCache: TextureCache) {
         this.canvasElem = document.getElementById("imguiCanvas") as HTMLCanvasElement;
         this.loadTextures(gma);
+
+        const guiModels = new Map<string, GuiModel>();
+        for (let model of gma.idMap.values()) {
+            const guiMeshes: GuiMesh[] = [];
+            for (let mesh of model.shapes) {
+                guiMeshes.push({
+                    material: null,
+                });
+            }
+            guiModels.set(model.name, {
+                name: model.name,
+                visible: true,
+                hover: false,
+                meshes: guiMeshes,
+            });
+        }
+        this.guiState = {
+            models: guiModels,
+        };
     }
 
     private loadTextures(gma: Gma) {
@@ -205,11 +225,29 @@ export class Gui {
 
         if (ImGui.BeginChild("Models List Child")) {
             const a = [false];
+            const maybeMaterials = [null, ...this.materials];
             for (let [name, model] of this.guiState.models.entries()) {
-                a[0] = model.visible;
-                ImGui.Checkbox(name, a);
-                model.visible = a[0];
-                model.hover = ImGui.IsItemHovered();
+                ImGui.PushID(name);
+                if (ImGui.TreeNodeEx(name)) {
+                    model.hover = ImGui.IsItemHovered();
+
+                    a[0] = model.visible;
+                    ImGui.Checkbox("Visible", a);
+                    model.visible = a[0];
+
+                    for (let meshIdx = 0; meshIdx < model.meshes.length; meshIdx++) {
+                        const mesh = model.meshes[meshIdx];
+                        if (ImGui.TreeNodeEx(`Mesh ${meshIdx}`, ImGui.TreeNodeFlags.DefaultOpen)) {
+                            mesh.material = renderCombo("Material", maybeMaterials, mesh.material, (m) => 
+                                m === null ? "<default>" : m.name
+                            );
+                            ImGui.TreePop();
+                        }
+                    }
+
+                    ImGui.TreePop();
+                }
+                ImGui.PopID();
             }
             ImGui.EndChild();
         }
@@ -479,48 +517,14 @@ export class Gui {
         return null;
     }
 
-    private renderColorSelDropdown(label: string, cc: GX.CC) {
+    private renderColorSelDropdown(label: string, cc: GX.CC): GX.CC {
         const currColorSel = COLOR_SEL_MAP.get(cc)!;
-
-        if (ImGui.BeginCombo(label, currColorSel.label)) {
-            for (let colorSelIdx = 0; colorSelIdx < COLOR_SELS.length; colorSelIdx++) {
-                let colorSel = COLOR_SELS[colorSelIdx];
-                const isSelected = cc == colorSel.id;
-                if (ImGui.Selectable(colorSel.label, isSelected)) {
-                    cc = colorSel.id;
-                }
-                ImGui.SetItemTooltip(colorSel.help);
-                if (isSelected) {
-                    ImGui.SetItemDefaultFocus();
-                }
-            }
-
-            ImGui.EndCombo();
-        }
-
-        return cc;
+        return renderCombo(label, COLOR_SELS, currColorSel, (s) => s.label, (s) => s.help).id;
     }
 
-    private renderAlphaSelDropdown(label: string, ca: GX.CA) {
+    private renderAlphaSelDropdown(label: string, ca: GX.CA): GX.CA {
         const currAlphaSel = ALPHA_SEL_MAP.get(ca)!;
-
-        if (ImGui.BeginCombo(label, currAlphaSel.label)) {
-            for (let alphaSelIdx = 0; alphaSelIdx < ALPHA_SELS.length; alphaSelIdx++) {
-                let alphaSel = ALPHA_SELS[alphaSelIdx];
-                const isSelected = ca == alphaSel.id;
-                if (ImGui.Selectable(alphaSel.label, isSelected)) {
-                    ca = alphaSel.id;
-                }
-                ImGui.SetItemTooltip(alphaSel.help);
-                if (isSelected) {
-                    ImGui.SetItemDefaultFocus();
-                }
-            }
-
-            ImGui.EndCombo();
-        }
-
-        return ca;
+        return renderCombo(label, ALPHA_SELS, currAlphaSel, (s) => s.label, (s) => s.help).id;
     }
 
     private renderTexturesTab() {
@@ -550,6 +554,11 @@ export type GuiModel = {
     name: string,
     visible: boolean,
     hover: boolean,
+    meshes: GuiMesh[],
+}
+
+export type GuiMesh = {
+    material: Material | null, // Null is default SMB material built from GMA
 }
 
 type TevStage = {
@@ -625,4 +634,26 @@ function showTextureTooltip(texture: Texture) {
         ImGui.Text(`${dims}, ${mips}`);
         ImGui.EndTooltip();
     }
+}
+
+function renderCombo<T>(label: string, items: T[], selectedItem: T, formatFunc: (v: T) => string, helpFunc?: (v: T) => string): T {
+    let newSelectedItem = selectedItem;
+    if (ImGui.BeginCombo(label, formatFunc(selectedItem))) {
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i];
+            const isSelected = item === selectedItem;
+            if (ImGui.Selectable(formatFunc(item), isSelected)) {
+                newSelectedItem = item;
+            }
+            if (helpFunc !== undefined) {
+                ImGui.SetItemTooltip(helpFunc(item));
+            }
+            if (isSelected) {
+                ImGui.SetItemDefaultFocus();
+            }
+        }
+
+        ImGui.EndCombo();
+    }
+    return newSelectedItem;
 }

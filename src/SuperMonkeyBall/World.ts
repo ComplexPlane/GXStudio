@@ -72,7 +72,6 @@ export class StageWorld implements World {
     private worldState: WorldState;
     private animGroups: AnimGroup[];
     private background: Background;
-    private guiState = new GuiState();
 
     constructor(device: GfxDevice, renderCache: GfxRenderCache, private stageData: StageData) {
         this.worldState = {
@@ -119,7 +118,7 @@ export class StageWorld implements World {
     }
 
     public getGuiState(): GuiState {
-        return this.guiState;
+        return null as any as GuiState; // TODO(complexplane)
     }
 
     public setMaterialHacks(hacks: GX_Material.GXMaterialHacks): void {
@@ -141,26 +140,19 @@ export class FileDropWorld implements World {
     private gui: Gui;
 
     constructor(device: GfxDevice, renderCache: GfxRenderCache, private worldData: GmaData | NlData) {
-        const guiState = new GuiState();
         this.textureCache = new TextureCache();
         if (worldData.kind === "Gma") {
             for (const model of worldData.gma.idMap.values()) {
                 const modelInst = new ModelInst(device, renderCache, model, this.textureCache);
-                const guiModel: GuiModel = {
-                    name: model.name,
-                    visible: true,
-                    hover: false,
-                };
-                guiState.models.set(modelInst.modelData.name, guiModel);
                 this.models.push(modelInst);
             }
-            this.gui = new Gui(guiState, worldData.gma, this.textureCache);
+            this.gui = new Gui(worldData.gma, this.textureCache);
         } else {
             for (const nlModel of worldData.obj.values()) {
                 this.models.push(new Nl.ModelInst(device, renderCache, nlModel, this.textureCache));
             }
             // Empty gui
-            this.gui = new Gui(guiState, {nameMap: new Map(), idMap: new Map()}, this.textureCache);
+            this.gui = new Gui({nameMap: new Map(), idMap: new Map()}, this.textureCache);
         }
         this.lighting = new Lighting(BgInfos.Jungle); // Just assume Jungle's lighting, it's used in a few other BGs
     }
