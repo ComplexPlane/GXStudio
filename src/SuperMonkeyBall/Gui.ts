@@ -23,9 +23,9 @@ const COLOR_SELS: ColorSel[] = [
     { id: GX.CC.RASC, label: "Lighting Color", help: "Color value from rasterizer" },
     { id: GX.CC.RASA, label: "Lighting Alpha", help: "Alpha value from rasterizer" },
     { id: GX.CC.KONST, label: "Constant", help: "Constant color" },
-    { id: GX.CC.ONE, label: "1.0", help: "Constant value 1.0" },
+    { id: GX.CC.ZERO, label: "0.0", help: "Constant value 0.0" },
     { id: GX.CC.HALF, label: "0.5", help: "Constant value 0.5" },
-    { id: GX.CC.ZERO, label: "0.0", help: "Constant value 0.0" }
+    { id: GX.CC.ONE, label: "1.0", help: "Constant value 1.0" },
 ];
 
 const COLOR_SEL_MAP = new Map<GX.CC, ColorSel>(
@@ -65,6 +65,8 @@ export class Gui {
 
     constructor(private guiState: GuiState) {
         this.canvasElem = document.getElementById("imguiCanvas") as HTMLCanvasElement;
+
+        ImGuiImplWeb.LoadTexture()
     }
 
     public getGuiState(): GuiState {
@@ -162,7 +164,7 @@ export class Gui {
         ImGui.SeparatorText("Materials List");
         if (ImGui.BeginListBox("Materials")) {
             for (let i = 0; i < this.materials.length; i++) {
-                const isSelected = i == this.selMaterial;
+                const isSelected = i == this.selMaterial
                 if (ImGui.Selectable(this.materials[i].name, isSelected)) {
                     this.selMaterial = i;
                 }
@@ -298,12 +300,14 @@ export class Gui {
                 colorInB: GX.CC.CPREV,
                 colorInC: GX.CC.CPREV,
                 colorInD: GX.CC.CPREV,
+                colorDest: GX.CC.CPREV,
                 colorOp: GX.TevOp.ADD,
 
                 alphaInA: GX.CA.APREV,
                 alphaInB: GX.CA.APREV,
                 alphaInC: GX.CA.APREV,
                 alphaInD: GX.CA.APREV,
+                alphaDest: GX.CA.APREV,
                 alphaOp: GX.TevOp.ADD,
 
                 // TODO
@@ -327,11 +331,13 @@ export class Gui {
             tevStage.colorInB = this.renderColorSelDropdown(`${tevStageIdx}: Color B Source`, tevStage.colorInB);
             tevStage.colorInC = this.renderColorSelDropdown(`${tevStageIdx}: Color C Source`, tevStage.colorInC);
             tevStage.colorInD = this.renderColorSelDropdown(`${tevStageIdx}: Color D Source`, tevStage.colorInD);
+            tevStage.colorDest = this.renderColorSelDropdown(`${tevStageIdx}: Color Dest`, tevStage.colorDest);
             ImGui.Spacing();
             tevStage.alphaInA = this.renderAlphaSelDropdown(`${tevStageIdx}: Alpha A Source`, tevStage.alphaInA);
             tevStage.alphaInB = this.renderAlphaSelDropdown(`${tevStageIdx}: Alpha B Source`, tevStage.alphaInB);
             tevStage.alphaInC = this.renderAlphaSelDropdown(`${tevStageIdx}: Alpha C Source`, tevStage.alphaInC);
             tevStage.alphaInD = this.renderAlphaSelDropdown(`${tevStageIdx}: Alpha D Source`, tevStage.alphaInD);
+            tevStage.alphaDest = this.renderAlphaSelDropdown(`${tevStageIdx}: Alpha Dest`, tevStage.alphaDest);
             ImGui.Spacing();
 
             if (ImGui.Button("Delete TEV Stage " + tevStageIdx)) {
@@ -408,12 +414,14 @@ type TevStage = {
     colorInB: GX.CC;
     colorInC: GX.CC;
     colorInD: GX.CC;
+    colorDest: GX.CC;
     colorOp: GX.TevOp;
 
     alphaInA: GX.CA;
     alphaInB: GX.CA;
     alphaInC: GX.CA;
     alphaInD: GX.CA;
+    alphaDest: GX.CA;
     alphaOp: GX.TevOp;
 
     // SetTevOrder
