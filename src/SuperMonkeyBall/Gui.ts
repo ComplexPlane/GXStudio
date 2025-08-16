@@ -420,23 +420,30 @@ export class Gui {
     }
 
     private renderTextureSelDropdown(label: string, tevStage: TevStage) {
-        if (ImGui.Button("Choose Texture")) {
-            ImGui.OpenPopup("Choose Texture");
-        }
-        this.texturePicker();
+        this.texturePicker((texture) => { tevStage.texture = texture; });
 
-        // if (tevStage.texture !== null) {
-        //     ImGui.ImageWithBg(
-        //         tevStage.texture.imguiTextureIds[0], 
-        //         new ImVec2(100, 100 / (tevStage.texture.gxTexture.width / tevStage.texture.gxTexture.height)),
-        //     );
-        // }
+        if (tevStage.texture !== null) {
+            if (ImGui.ImageButton(
+                "",
+                tevStage.texture.imguiTextureIds[0], 
+                new ImVec2(80, 80),
+            )) {
+                ImGui.OpenPopup("Choose Texture");
+            }
+        } else {
+            if (ImGui.Button("<none>", new ImVec2(80, 80))) {
+                ImGui.OpenPopup("Choose Texture");
+            }
+        }
+        ImGui.SameLine();
+        ImGui.Text("Input Texture");
     }
 
-    private texturePicker(): Texture | null {
+    private texturePicker(setFunc: (texture: Texture | null) => void) {
         if (ImGui.BeginPopup("Choose Texture", ImGui.WindowFlags.AlwaysAutoResize)) {
             ImGui.Text("Choose Texture");
             if (ImGui.Button("None")) {
+                setFunc(null);
                 ImGui.CloseCurrentPopup();
             }
             ImGui.SameLine();
@@ -446,14 +453,15 @@ export class Gui {
             for (let i = 0; i < this.textures.length; i++) {
                 const texture = this.textures[i];
                 ImGui.PushID(i.toString());
-                if (i % 3 !== 0) {
+                if (i % 2 !== 0) {
                     ImGui.SameLine();
                 }
                 if (ImGui.ImageButton(
                     "",
                     texture.imguiTextureIds[0], 
-                    new ImVec2(80, 80 / (texture.gxTexture.width / texture.gxTexture.height),
-                ))) {
+                    new ImVec2(120, 120),
+                )) {
+                    setFunc(texture);
                     ImGui.CloseCurrentPopup();
                 }
                 if (ImGui.BeginItemTooltip()) {
