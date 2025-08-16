@@ -203,18 +203,24 @@ export class Gui {
             }
         }
 
-        const a = [false];
-        for (let [name, model] of this.guiState.models.entries()) {
-            a[0] = model.visible;
-            ImGui.Checkbox(name, a);
-            model.visible = a[0];
-            model.hover = ImGui.IsItemHovered();
+        if (ImGui.BeginChild("Models List Child")) {
+            const a = [false];
+            for (let [name, model] of this.guiState.models.entries()) {
+                a[0] = model.visible;
+                ImGui.Checkbox(name, a);
+                model.visible = a[0];
+                model.hover = ImGui.IsItemHovered();
+            }
+            ImGui.EndChild();
         }
     }
 
     private renderMaterialsGui() {
-        this.renderMaterialsList();
-        this.renderMaterialEditor();
+        if (ImGui.BeginChild("Materials Child")) {
+            this.renderMaterialsList();
+            this.renderMaterialEditor();
+            ImGui.EndChild();
+        }
     }
 
     private renderMaterialsList() {
@@ -376,7 +382,7 @@ export class Gui {
 
         let tevStageToDelete: number | null = null;
         for (let tevStageIdx = 0; tevStageIdx < material.tevStages.length; tevStageIdx++) {
-            ImGui.PushID(`tevstage${tevStageIdx}`);
+            ImGui.PushID(tevStageIdx.toString());
 
             const tevStage = material.tevStages[tevStageIdx];
 
@@ -414,39 +420,55 @@ export class Gui {
     }
 
     private renderTextureSelDropdown(label: string, tevStage: TevStage) {
-        const maybeTextures = [null, ...this.textures];
-        const noneTextureLabel = "<none>";
-        const previewLabel = tevStage.texture === null ? noneTextureLabel : tevStage.texture.gxTexture.name;
-        if (ImGui.BeginCombo(label, previewLabel)) {
-            for (let textureIdx = 0; textureIdx < maybeTextures.length; textureIdx++) {
-                let texture = maybeTextures[textureIdx];
-                const isSelected = texture == tevStage.texture;
-                const textureLabel = texture === null ? noneTextureLabel : texture.gxTexture.name;
-                if (ImGui.Selectable(textureLabel, isSelected)) {
-                    tevStage.texture = texture;
-                }
+        if (ImGui.Button("Choose Texture")) {
+            ImGui.OpenPopup("Choose Texture");
+        }
+        this.texturePicker();
 
-                if (texture !== null && ImGui.IsItemHovered(ImGui.HoveredFlags.DelayNone) && ImGui.BeginItemTooltip()) {
+        // if (tevStage.texture !== null) {
+        //     ImGui.ImageWithBg(
+        //         tevStage.texture.imguiTextureIds[0], 
+        //         new ImVec2(100, 100 / (tevStage.texture.gxTexture.width / tevStage.texture.gxTexture.height)),
+        //     );
+        // }
+    }
+
+    private texturePicker(): Texture | null {
+        if (ImGui.BeginPopup("Choose Texture", ImGui.WindowFlags.AlwaysAutoResize)) {
+            ImGui.Text("Choose Texture");
+            if (ImGui.Button("None")) {
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel")) {
+                ImGui.CloseCurrentPopup();
+            }
+            for (let i = 0; i < this.textures.length; i++) {
+                const texture = this.textures[i];
+                ImGui.PushID(i.toString());
+                if (i % 3 !== 0) {
+                    ImGui.SameLine();
+                }
+                if (ImGui.ImageButton(
+                    "",
+                    texture.imguiTextureIds[0], 
+                    new ImVec2(80, 80 / (texture.gxTexture.width / texture.gxTexture.height),
+                ))) {
+                    ImGui.CloseCurrentPopup();
+                }
+                if (ImGui.BeginItemTooltip()) {
                     const dims = `${texture.gxTexture.width}x${texture.gxTexture.height}`;
                     const mips = `${texture.gxTexture.mipCount} mip level(s)`;
+                    ImGui.Text(texture.gxTexture.name);
                     ImGui.Text(`${dims}, ${mips}`);
-                    ImGui.ImageWithBg(texture.imguiTextureIds[0], new ImVec2(200, 200 / (texture.gxTexture.width / texture.gxTexture.height)));
                     ImGui.EndTooltip();
                 }
 
-                if (isSelected) {
-                    ImGui.SetItemDefaultFocus();
-                }
+                ImGui.PopID();
             }
-            ImGui.EndCombo();
+            ImGui.EndPopup();
         }
-
-        if (tevStage.texture !== null) {
-            ImGui.ImageWithBg(
-                tevStage.texture.imguiTextureIds[0], 
-                new ImVec2(100, 100 / (tevStage.texture.gxTexture.width / tevStage.texture.gxTexture.height)),
-            );
-        }
+        return null;
     }
 
     private renderColorSelDropdown(label: string, cc: GX.CC) {
@@ -494,13 +516,16 @@ export class Gui {
     }
 
     private renderTexturesTab() {
-        for (let texture of this.textures) {
-            const name = texture.gxTexture.name;
-            const dims = `${texture.gxTexture.width}x${texture.gxTexture.height}`;
-            const mips = `${texture.gxTexture.mipCount} mip level(s)`;
-            ImGui.Text(`${name}: ${dims}, ${mips}`);
-            ImGui.ImageWithBg(texture.imguiTextureIds[0], new ImVec2(200, 200 / (texture.gxTexture.width / texture.gxTexture.height)));
-            ImGui.Spacing();
+        if (ImGui.BeginChild("Textures Child")) {
+            for (let texture of this.textures) {
+                const name = texture.gxTexture.name;
+                const dims = `${texture.gxTexture.width}x${texture.gxTexture.height}`;
+                const mips = `${texture.gxTexture.mipCount} mip level(s)`;
+                ImGui.Text(`${name}: ${dims}, ${mips}`);
+                ImGui.ImageWithBg(texture.imguiTextureIds[0], new ImVec2(200, 200 / (texture.gxTexture.width / texture.gxTexture.height)));
+                ImGui.Spacing();
+            }
+            ImGui.EndChild();
         }
     }
 }
