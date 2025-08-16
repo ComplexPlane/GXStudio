@@ -65,6 +65,7 @@ export class Gui {
     private canvasElem: HTMLCanvasElement;
     private imguiSize = new ImVec2();
     private imguiPos = new ImVec2(0, 0);
+    private textureDisplaySize = new ImVec2(200, 200);
 
     private selMaterial: number = 0;
     private materials: Material[] = [];
@@ -452,7 +453,12 @@ export class Gui {
 
     private renderTexturesTab() {
         for (let texture of this.textures) {
-            ImGui.ImageWithBg(texture.imguiTextureIds[0], new ImVec2(200, 200));
+            const name = texture.gxTexture.name;
+            const dims = `${texture.gxTexture.width}x${texture.gxTexture.height}`;
+            const mips = `${texture.gxTexture.mipCount} mip level(s)`;
+            ImGui.Text(`${name}: ${dims}, ${mips}`);
+            ImGui.ImageWithBg(texture.imguiTextureIds[0], new ImVec2(200, 200 / (texture.gxTexture.width / texture.gxTexture.height));
+            ImGui.Spacing();
         }
     }
 }
