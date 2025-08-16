@@ -853,7 +853,7 @@ class Main {
         });
 
         // Set window title.
-        document.title = `${sceneDesc.name} - ${sceneGroup.name} - noclip`;
+        document.title = `${sceneDesc.name} - ${sceneGroup.name} - GX Studio`;
     }
 
     private _loadSceneGroups() {
