@@ -430,6 +430,7 @@ export class Gui {
             )) {
                 ImGui.OpenPopup("Choose Texture");
             }
+            showTextureTooltip(tevStage.texture);
         } else {
             if (ImGui.Button("<none>", getImageButtonSize(new ImVec2(80, 80)))) {
                 ImGui.OpenPopup("Choose Texture");
@@ -468,13 +469,7 @@ export class Gui {
                         setFunc(texture);
                         ImGui.CloseCurrentPopup();
                     }
-                    if (ImGui.BeginItemTooltip()) {
-                        const dims = `${texture.gxTexture.width}x${texture.gxTexture.height}`;
-                        const mips = `${texture.gxTexture.mipCount} mip level(s)`;
-                        ImGui.Text(texture.gxTexture.name);
-                        ImGui.Text(`${dims}, ${mips}`);
-                        ImGui.EndTooltip();
-                    }
+                    showTextureTooltip(texture);
                 }
 
                 ImGui.PopID();
@@ -620,4 +615,14 @@ function getImageButtonSize(imageButtonSize: ImVec2): ImVec2 {
         imageButtonSize.x + framePadding.x * 2,
         imageButtonSize.y + framePadding.y * 2,
     );
+}
+
+function showTextureTooltip(texture: Texture) {
+    if (ImGui.BeginItemTooltip()) {
+        const dims = `${texture.gxTexture.width}x${texture.gxTexture.height}`;
+        const mips = `${texture.gxTexture.mipCount} mip level(s)`;
+        ImGui.Text(texture.gxTexture.name);
+        ImGui.Text(`${dims}, ${mips}`);
+        ImGui.EndTooltip();
+    }
 }
