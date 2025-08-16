@@ -3,5 +3,6 @@
     "files.exclude": {
         "**/*.js.map": true
     },
-    "npm.packageManager": "yarn"
+    "npm.packageManager": "yarn",
+    "editor.formatOnSave": false
 }
