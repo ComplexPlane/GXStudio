@@ -367,8 +367,7 @@ export class Gui {
                 alphaDest: GX.CA.APREV,
                 alphaOp: GX.TevOp.ADD,
 
-                // TODO
-                texture: "TODO" as any as LoadedTexture,
+                texture: null,
             });
         }
         if (stagesFull) {
@@ -385,6 +384,9 @@ export class Gui {
             ImGui.Separator();
             ImGui.Spacing();
             ImGui.TextColored(this.blue, `TEV Stage ${tevStageIdx}`);
+
+            this.renderTextureSelDropdown("Texture", tevStage);
+            ImGui.Spacing();
 
             tevStage.colorInA = this.renderColorSelDropdown(`Color A Source`, tevStage.colorInA);
             tevStage.colorInB = this.renderColorSelDropdown(`Color B Source`, tevStage.colorInB);
@@ -411,6 +413,36 @@ export class Gui {
         }
     }
 
+    private renderTextureSelDropdown(label: string, tevStage: TevStage) {
+        const maybeTextures = [null, ...this.textures];
+        const noneTextureLabel = "<none>";
+        const previewLabel = tevStage.texture === null ? noneTextureLabel : tevStage.texture.gxTexture.name;
+        if (ImGui.BeginCombo(label, previewLabel)) {
+            for (let textureIdx = 0; textureIdx < maybeTextures.length; textureIdx++) {
+                let texture = maybeTextures[textureIdx];
+                const isSelected = texture == tevStage.texture;
+                const textureLabel = texture === null ? noneTextureLabel : texture.gxTexture.name;
+                if (ImGui.Selectable(textureLabel, isSelected)) {
+                    tevStage.texture = texture;
+                }
+
+                if (texture !== null && ImGui.IsItemHovered(ImGui.HoveredFlags.DelayNone) && ImGui.BeginItemTooltip()) {
+                    const name = texture.gxTexture.name;
+                    const dims = `${texture.gxTexture.width}x${texture.gxTexture.height}`;
+                    const mips = `${texture.gxTexture.mipCount} mip level(s)`;
+                    ImGui.Text(`${name}: ${dims}, ${mips}`);
+                    ImGui.ImageWithBg(texture.imguiTextureIds[0], new ImVec2(200, 200 / (texture.gxTexture.width / texture.gxTexture.height)));
+                    ImGui.EndTooltip();
+                }
+
+                if (isSelected) {
+                    ImGui.SetItemDefaultFocus();
+                }
+            }
+            ImGui.EndCombo();
+        }
+    }
+
     private renderColorSelDropdown(label: string, cc: GX.CC) {
         const currColorSel = COLOR_SEL_MAP.get(cc)!;
 
@@ -434,9 +466,9 @@ export class Gui {
     }
 
     private renderAlphaSelDropdown(label: string, ca: GX.CA) {
-        const currColorSel = ALPHA_SEL_MAP.get(ca)!;
+        const currAlphaSel = ALPHA_SEL_MAP.get(ca)!;
 
-        if (ImGui.BeginCombo(label, currColorSel.label)) {
+        if (ImGui.BeginCombo(label, currAlphaSel.label)) {
             for (let alphaSelIdx = 0; alphaSelIdx < ALPHA_SELS.length; alphaSelIdx++) {
                 let alphaSel = ALPHA_SELS[alphaSelIdx];
                 const isSelected = ca == alphaSel.id;
@@ -461,7 +493,7 @@ export class Gui {
             const dims = `${texture.gxTexture.width}x${texture.gxTexture.height}`;
             const mips = `${texture.gxTexture.mipCount} mip level(s)`;
             ImGui.Text(`${name}: ${dims}, ${mips}`);
-            ImGui.ImageWithBg(texture.imguiTextureIds[0], new ImVec2(200, 200 / (texture.gxTexture.width / texture.gxTexture.height));
+            ImGui.ImageWithBg(texture.imguiTextureIds[0], new ImVec2(200, 200 / (texture.gxTexture.width / texture.gxTexture.height)));
             ImGui.Spacing();
         }
     }
@@ -502,7 +534,7 @@ type TevStage = {
     // texCoordId: GX.TexCoordID;
     // texMap: GX.TexMapID;
 
-    texture: LoadedTexture,
+    texture: Texture | null,
 }
 
 type Material = {
