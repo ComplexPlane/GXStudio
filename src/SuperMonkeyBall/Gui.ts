@@ -427,10 +427,9 @@ export class Gui {
                 }
 
                 if (texture !== null && ImGui.IsItemHovered(ImGui.HoveredFlags.DelayNone) && ImGui.BeginItemTooltip()) {
-                    const name = texture.gxTexture.name;
                     const dims = `${texture.gxTexture.width}x${texture.gxTexture.height}`;
                     const mips = `${texture.gxTexture.mipCount} mip level(s)`;
-                    ImGui.Text(`${name}: ${dims}, ${mips}`);
+                    ImGui.Text(`${dims}, ${mips}`);
                     ImGui.ImageWithBg(texture.imguiTextureIds[0], new ImVec2(200, 200 / (texture.gxTexture.width / texture.gxTexture.height)));
                     ImGui.EndTooltip();
                 }
@@ -440,6 +439,13 @@ export class Gui {
                 }
             }
             ImGui.EndCombo();
+        }
+
+        if (tevStage.texture !== null) {
+            ImGui.ImageWithBg(
+                tevStage.texture.imguiTextureIds[0], 
+                new ImVec2(100, 100 / (tevStage.texture.gxTexture.width / tevStage.texture.gxTexture.height)),
+            );
         }
     }
 
