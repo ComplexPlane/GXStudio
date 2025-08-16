@@ -303,7 +303,7 @@ export class Gui {
         if (ImGui.BeginPopup("Duplicate Material")) {
             this.tmpName = this.tmpName ?? [this.materials[this.selMaterial].name];
 
-            ImGui.Text(`Duplicate material '${this.materials[this.selMaterial]}':`);
+            ImGui.Text(`Duplicate material '${this.materials[this.selMaterial].name}':`);
             ImGui.InputText("New Name", this.tmpName, 256);
             if (ImGui.Button("OK")) {
                 const copy = copyMaterial(this.materials[this.selMaterial]);
@@ -322,7 +322,7 @@ export class Gui {
         }
 
         if (ImGui.BeginPopup("Delete Material")) {
-            ImGui.Text(`Delete material '${this.materials[this.selMaterial]}'?`);
+            ImGui.Text(`Delete material '${this.materials[this.selMaterial].name}'?`);
             if (ImGui.Button("OK")) {
                 this.materials.splice(this.selMaterial, 1);
                 if (this.selMaterial >= this.materials.length) {
@@ -377,6 +377,8 @@ export class Gui {
 
         let tevStageToDelete: number | null = null;
         for (let tevStageIdx = 0; tevStageIdx < material.tevStages.length; tevStageIdx++) {
+            ImGui.PushID(`tevstage${tevStageIdx}`);
+
             const tevStage = material.tevStages[tevStageIdx];
 
             ImGui.Spacing();
@@ -384,22 +386,24 @@ export class Gui {
             ImGui.Spacing();
             ImGui.TextColored(this.blue, `TEV Stage ${tevStageIdx}`);
 
-            tevStage.colorInA = this.renderColorSelDropdown(`${tevStageIdx}: Color A Source`, tevStage.colorInA);
-            tevStage.colorInB = this.renderColorSelDropdown(`${tevStageIdx}: Color B Source`, tevStage.colorInB);
-            tevStage.colorInC = this.renderColorSelDropdown(`${tevStageIdx}: Color C Source`, tevStage.colorInC);
-            tevStage.colorInD = this.renderColorSelDropdown(`${tevStageIdx}: Color D Source`, tevStage.colorInD);
-            tevStage.colorDest = this.renderColorSelDropdown(`${tevStageIdx}: Color Dest`, tevStage.colorDest);
+            tevStage.colorInA = this.renderColorSelDropdown(`Color A Source`, tevStage.colorInA);
+            tevStage.colorInB = this.renderColorSelDropdown(`Color B Source`, tevStage.colorInB);
+            tevStage.colorInC = this.renderColorSelDropdown(`Color C Source`, tevStage.colorInC);
+            tevStage.colorInD = this.renderColorSelDropdown(`Color D Source`, tevStage.colorInD);
+            tevStage.colorDest = this.renderColorSelDropdown(`Color Dest`, tevStage.colorDest);
             ImGui.Spacing();
-            tevStage.alphaInA = this.renderAlphaSelDropdown(`${tevStageIdx}: Alpha A Source`, tevStage.alphaInA);
-            tevStage.alphaInB = this.renderAlphaSelDropdown(`${tevStageIdx}: Alpha B Source`, tevStage.alphaInB);
-            tevStage.alphaInC = this.renderAlphaSelDropdown(`${tevStageIdx}: Alpha C Source`, tevStage.alphaInC);
-            tevStage.alphaInD = this.renderAlphaSelDropdown(`${tevStageIdx}: Alpha D Source`, tevStage.alphaInD);
-            tevStage.alphaDest = this.renderAlphaSelDropdown(`${tevStageIdx}: Alpha Dest`, tevStage.alphaDest);
+            tevStage.alphaInA = this.renderAlphaSelDropdown(`Alpha A Source`, tevStage.alphaInA);
+            tevStage.alphaInB = this.renderAlphaSelDropdown(`Alpha B Source`, tevStage.alphaInB);
+            tevStage.alphaInC = this.renderAlphaSelDropdown(`Alpha C Source`, tevStage.alphaInC);
+            tevStage.alphaInD = this.renderAlphaSelDropdown(`Alpha D Source`, tevStage.alphaInD);
+            tevStage.alphaDest = this.renderAlphaSelDropdown(`Alpha Dest`, tevStage.alphaDest);
             ImGui.Spacing();
 
             if (ImGui.Button("Delete TEV Stage " + tevStageIdx)) {
                 tevStageToDelete = tevStageIdx;
             }
+
+            ImGui.PopID();
         }
 
         if (tevStageToDelete !== null) {
