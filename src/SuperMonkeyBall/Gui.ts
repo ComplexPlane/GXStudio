@@ -72,6 +72,7 @@ export class Gui {
     private materials: Material[] = [];
     private tmpName: string[] | null = null;
     private blue = new ImVec4(0, 0.9, 1, 1);
+    private errorColor = new ImVec4(1, 0.2, 0.2, 1);
 
     private textures: Texture[] = [];
 
@@ -309,7 +310,11 @@ export class Gui {
         }
 
         // New material
-        const materialName = this.nameSomethingPopup("New Material", "My New Material")
+        const materialName = this.nameSomethingPopup(
+            "New Material",
+            "My New Material",
+            (m) => this.materials.some((m2) => m2.name === m),
+        );
         if (materialName !== null) {
             this.materials.push(newBasicMaterial(materialName));
             this.selMaterial = this.materials.length - 1;
@@ -317,7 +322,11 @@ export class Gui {
 
         // Rename material
         if (this.materials.length > 0) {
-            const materialName = this.nameSomethingPopup("Rename Material", this.materials[this.selMaterial].name);
+            const materialName = this.nameSomethingPopup(
+                "Rename Material",
+                this.materials[this.selMaterial].name,
+                (m) => this.materials.some((m2) => m2.name === m),
+            );
             if (materialName !== null) {
                 this.materials[this.selMaterial].name = materialName;
             }
@@ -325,7 +334,11 @@ export class Gui {
 
         // Duplicate material
         if (this.materials.length > 0) {
-            const dupMaterialName = this.nameSomethingPopup("Duplicate Material", this.materials[this.selMaterial].name)
+            const dupMaterialName = this.nameSomethingPopup(
+                "Duplicate Material",
+                this.materials[this.selMaterial].name,
+                (m) => this.materials.some((m2) => m2.name === m),
+            )
             if (dupMaterialName !== null) {
                 const clone = cloneMaterial(this.materials[this.selMaterial]);
                 clone.name = dupMaterialName
@@ -518,17 +531,28 @@ export class Gui {
         }
     }
 
-    private nameSomethingPopup(label: string, defaultName: string): string | null {
+    private nameSomethingPopup(label: string, defaultName: string, conflictFunc: (name: string) => boolean): string | null {
         let ret = null;
         if (ImGui.BeginPopup(label)) {
             ImGui.Text(label);
+
             this.tmpName = this.tmpName ?? [defaultName];
             ImGui.InputText("Name", this.tmpName, 256);
+
+            const nameConflict = conflictFunc(this.tmpName[0]);
+            if (nameConflict) {
+                ImGui.TextColored(this.errorColor, "Error: Duplicate Name");
+                ImGui.BeginDisabled();
+            }
             if (ImGui.Button("OK")) {
                 ret = this.tmpName[0];
                 this.tmpName = null;
                 ImGui.CloseCurrentPopup();
             }
+            if (nameConflict) {
+                ImGui.EndDisabled();
+            }
+
             ImGui.SameLine();
             if (ImGui.Button("Cancel")) {
                 this.tmpName = null;
