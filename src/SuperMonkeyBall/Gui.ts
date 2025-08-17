@@ -313,7 +313,7 @@ export class Gui {
         const materialName = this.nameSomethingPopup(
             "New Material",
             "My New Material",
-            (m) => this.materials.some((m2) => m2.name === m),
+            this.materials.map((m) => m.name),
         );
         if (materialName !== null) {
             this.materials.push(newBasicMaterial(materialName));
@@ -325,7 +325,7 @@ export class Gui {
             const materialName = this.nameSomethingPopup(
                 "Rename Material",
                 this.materials[this.selMaterial].name,
-                (m) => this.materials.some((m2) => m2.name === m),
+                this.materials.filter((_, i) => i !== this.selMaterial).map((m) => m.name),
             );
             if (materialName !== null) {
                 this.materials[this.selMaterial].name = materialName;
@@ -337,7 +337,7 @@ export class Gui {
             const dupMaterialName = this.nameSomethingPopup(
                 "Duplicate Material",
                 this.materials[this.selMaterial].name,
-                (m) => this.materials.some((m2) => m2.name === m),
+                this.materials.map((m) => m.name),
             )
             if (dupMaterialName !== null) {
                 const clone = cloneMaterial(this.materials[this.selMaterial]);
@@ -531,7 +531,7 @@ export class Gui {
         }
     }
 
-    private nameSomethingPopup(label: string, defaultName: string, conflictFunc: (name: string) => boolean): string | null {
+    private nameSomethingPopup(label: string, defaultName: string, existingNames: string[]): string | null {
         let ret = null;
         if (ImGui.BeginPopup(label)) {
             ImGui.Text(label);
@@ -539,7 +539,7 @@ export class Gui {
             this.tmpName = this.tmpName ?? [defaultName];
             ImGui.InputText("Name", this.tmpName, 256);
 
-            const nameConflict = conflictFunc(this.tmpName[0]);
+            const nameConflict = existingNames.includes(this.tmpName[0]);
             if (nameConflict) {
                 ImGui.TextColored(this.errorColor, "Error: Duplicate Name");
                 ImGui.BeginDisabled();
