@@ -308,61 +308,30 @@ export class Gui {
             ImGui.EndDisabled();
         }
 
-        if (ImGui.BeginPopup("New Material")) {
-            this.tmpName = this.tmpName ?? ["My New Material"];
-
-            ImGui.Text("New Material:");
-            ImGui.InputText("Name", this.tmpName, 256);
-            if (ImGui.Button("OK")) {
-                this.materials.push(newBasicMaterial(this.tmpName[0]));
-                this.selMaterial = this.materials.length - 1;
-                this.tmpName = null;
-                ImGui.CloseCurrentPopup();
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Cancel")) {
-                this.tmpName = null;
-                ImGui.CloseCurrentPopup();
-            }
-            ImGui.EndPopup();
+        // New material
+        const materialName = this.nameSomethingPopup("New Material", "My New Material")
+        if (materialName !== null) {
+            this.materials.push(newBasicMaterial(materialName));
+            this.selMaterial = this.materials.length - 1;
         }
 
-        if (ImGui.BeginPopup("Rename Material")) {
-            this.tmpName = this.tmpName ?? [this.materials[this.selMaterial].name];
-
-            ImGui.InputText("Name", this.tmpName, 256);
-            if (ImGui.Button("OK")) {
-                this.materials[this.selMaterial].name = this.tmpName[0];
-                this.tmpName = null;
-                ImGui.CloseCurrentPopup();
+        // Rename material
+        if (this.materials.length > 0) {
+            const materialName = this.nameSomethingPopup("Rename Material", this.materials[this.selMaterial].name);
+            if (materialName !== null) {
+                this.materials[this.selMaterial].name = materialName;
             }
-            ImGui.SameLine();
-            if (ImGui.Button("Cancel")) {
-                this.tmpName = null;
-                ImGui.CloseCurrentPopup();
-            }
-            ImGui.EndPopup();
         }
 
-        if (ImGui.BeginPopup("Duplicate Material")) {
-            this.tmpName = this.tmpName ?? [this.materials[this.selMaterial].name];
-
-            ImGui.Text(`Duplicate material '${this.materials[this.selMaterial].name}':`);
-            ImGui.InputText("New Name", this.tmpName, 256);
-            if (ImGui.Button("OK")) {
-                const copy = copyMaterial(this.materials[this.selMaterial]);
-                copy.name = this.tmpName[0];
-                this.materials.splice(this.selMaterial + 1, 0, copy);
+        // Duplicate material
+        if (this.materials.length > 0) {
+            const dupMaterialName = this.nameSomethingPopup("Duplicate Material", this.materials[this.selMaterial].name)
+            if (dupMaterialName !== null) {
+                const clone = cloneMaterial(this.materials[this.selMaterial]);
+                clone.name = dupMaterialName
+                this.materials.splice(this.selMaterial + 1, 0, clone);
                 this.selMaterial++;
-                this.tmpName = null;
-                ImGui.CloseCurrentPopup();
             }
-            ImGui.SameLine();
-            if (ImGui.Button("Cancel")) {
-                this.tmpName = null;
-                ImGui.CloseCurrentPopup();
-            }
-            ImGui.EndPopup();
         }
 
         if (ImGui.BeginPopup("Delete Material")) {
@@ -377,7 +346,7 @@ export class Gui {
                 }
 
                 this.materials.splice(this.selMaterial, 1);
-                if (this.selMaterial >= this.materials.length) {
+                if (this.selMaterial === this.materials.length) {
                     this.selMaterial--;
                 }
                 ImGui.CloseCurrentPopup();
@@ -548,6 +517,27 @@ export class Gui {
             ImGui.EndChild();
         }
     }
+
+    private nameSomethingPopup(label: string, defaultName: string): string | null {
+        let ret = null;
+        if (ImGui.BeginPopup(label)) {
+            ImGui.Text(label);
+            this.tmpName = this.tmpName ?? [defaultName];
+            ImGui.InputText("Name", this.tmpName, 256);
+            if (ImGui.Button("OK")) {
+                ret = this.tmpName[0];
+                this.tmpName = null;
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel")) {
+                this.tmpName = null;
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.EndPopup();
+        }
+        return ret;
+    }
 }
 
 export class GuiState {
@@ -605,7 +595,7 @@ function newBasicMaterial(name: string): Material {
     };
 }
 
-function copyMaterial(orig: Material): Material {
+function cloneMaterial(orig: Material): Material {
     return {
         name: orig.name,
         tevStages: orig.tevStages.map((stage) => { return {...stage} }),
