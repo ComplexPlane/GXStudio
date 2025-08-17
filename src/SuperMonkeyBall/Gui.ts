@@ -368,6 +368,14 @@ export class Gui {
         if (ImGui.BeginPopup("Delete Material")) {
             ImGui.Text(`Delete material '${this.materials[this.selMaterial].name}'?`);
             if (ImGui.Button("OK")) {
+                for (let model of this.guiState.models.values()) {
+                    for (let mesh of model.meshes) {
+                        if (mesh.material === this.materials[this.selMaterial]) {
+                            mesh.material = null;
+                        }
+                    }
+                }
+
                 this.materials.splice(this.selMaterial, 1);
                 if (this.selMaterial >= this.materials.length) {
                     this.selMaterial--;
