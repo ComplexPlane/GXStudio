@@ -21,47 +21,92 @@ export type Texture = {
     gxTexture: TextureInputGX, // Original GX texture for passing to TextureCache
 }
 
-export class TevStage {
-    private uuid: string;
+export type TevStage = {
+    uuid: string,
 
-    public colorInA = GX.CC.ZERO;
-    public colorInB = GX.CC.ZERO;
-    public colorInC = GX.CC.ZERO;
-    public colorInD = GX.CC.ONE;
-    public colorDest = GX.Register.PREV;
-    public colorOp = GX.TevOp.ADD;
+    colorInA: GX.CC,
+    colorInB: GX.CC,
+    colorInC: GX.CC,
+    colorInD: GX.CC,
+    colorDest: GX.Register,
+    colorOp: GX.TevOp,
 
-    public alphaInA = GX.CA.ZERO;
-    public alphaInB = GX.CA.ZERO;
-    public alphaInC = GX.CA.ZERO;
-    public alphaInD = GX.CA.RASA;
-    public alphaDest = GX.Register.PREV;
-    public alphaOp = GX.TevOp.ADD;
+    alphaInA: GX.CA,
+    alphaInB: GX.CA,
+    alphaInC: GX.CA,
+    alphaInD: GX.CA,
+    alphaDest: GX.Register,
+    alphaOp: GX.TevOp,
 
-    public texture: Texture | null = null;
-    public textureWrapU = GX.WrapMode.REPEAT;
-    public textureWrapV = GX.WrapMode.REPEAT;
+    texture: Texture | null,
+    textureWrapU: GX.WrapMode,
+    textureWrapV: GX.WrapMode,
+}
 
-    constructor() {
-        this.uuid = crypto.randomUUID();
-    }
+export function newWhiteTevStage(): TevStage {
+    return {
+        uuid: crypto.randomUUID(),
 
-    public getUuid(): string {
-        return this.uuid;
-    }
+        colorInA: GX.CC.ZERO,
+        colorInB: GX.CC.ZERO,
+        colorInC: GX.CC.ZERO,
+        colorInD: GX.CC.ONE,
+        colorDest: GX.Register.PREV,
+        colorOp: GX.TevOp.ADD,
 
-    public clone(): TevStage {
-        return { ...this, uuid: crypto.randomUUID() };
+        alphaInA: GX.CA.ZERO,
+        alphaInB: GX.CA.ZERO,
+        alphaInC: GX.CA.ZERO,
+        alphaInD: GX.CA.RASA,
+        alphaDest: GX.Register.PREV,
+        alphaOp: GX.TevOp.ADD,
+
+        texture: null,
+        textureWrapU: GX.WrapMode.REPEAT,
+        textureWrapV: GX.WrapMode.REPEAT,
     }
 }
 
+export function newPassthroughTevStage(prevTevStage: TevStage): TevStage {
+    const tevStage = newWhiteTevStage();
+
+    tevStage.colorInA = GX.CC.ZERO;
+    tevStage.colorInB = GX.CC.ZERO;
+    tevStage.colorInC = GX.CC.ZERO;
+    if (prevTevStage.colorDest === GX.Register.PREV) {
+        tevStage.colorInD = GX.CC.CPREV;
+    } else if (prevTevStage.colorDest === GX.Register.REG0) {
+        tevStage.colorInD = GX.CC.C0;
+    } else if (prevTevStage.colorDest === GX.Register.REG1) {
+        tevStage.colorInD = GX.CC.C1;
+    } else if (prevTevStage.colorDest === GX.Register.REG2) {
+        tevStage.colorInD = GX.CC.C2;
+    }
+
+    tevStage.alphaInA = GX.CA.ZERO;
+    tevStage.alphaInB = GX.CA.ZERO;
+    tevStage.alphaInC = GX.CA.ZERO;
+    if (prevTevStage.alphaDest === GX.Register.PREV) {
+        tevStage.alphaInD = GX.CA.APREV;
+    } else if (prevTevStage.alphaDest === GX.Register.REG0) {
+        tevStage.alphaInD = GX.CA.A0;
+    } else if (prevTevStage.alphaDest === GX.Register.REG1) {
+        tevStage.alphaInD = GX.CA.A1;
+    } else if (prevTevStage.alphaDest === GX.Register.REG2) {
+        tevStage.alphaInD = GX.CA.A2;
+    }
+
+    return tevStage;
+}
+
+
 export class Material {
-    public tevStages = [new TevStage()];
+    public tevStages = [newWhiteTevStage()];
     public scalarAnims: ScalarAnim[] = [];
     public colorAnims: ColorAnim[] = [];
     public instances: Map<GX.CullMode, MaterialInst>;
 
-    private dummyTevStages = [new TevStage()];
+    private dummyTevStages = [newWhiteTevStage()];
 
     constructor(
         private device: GfxDevice,
@@ -99,7 +144,11 @@ export class Material {
 
     public clone(name: string): Material {
         const newMaterial = new Material(this.device, this.renderCache, this.textureCache, name);
-        newMaterial.tevStages = this.tevStages.map((t) => t.clone());
+        newMaterial.tevStages = this.tevStages.map((t) => { 
+            return { ...t, uuid: crypto.randomUUID() }; 
+        });
+        newMaterial.scalarAnims = structuredClone(this.scalarAnims);
+        newMaterial.colorAnims = structuredClone(this.colorAnims);
         newMaterial.rebuild();
         return newMaterial;
     }

@@ -53,7 +53,7 @@ export class Gui {
         this.modelsGui = new ModelsGui(device, renderCache, textureCache, this.models, this.materials, this.textures);
         this.materialListGui = new MaterialListGui(device, renderCache, textureCache, this.models, this.materials, this.textures);
         this.tevGui = new TevGui(device, renderCache, textureCache, this.models, this.materials, this.textures, this.materialListGui);
-        this.animationsGui = new AnimationsGui(device, renderCache, textureCache, this.models, this.materials, this.textures);
+        this.animationsGui = new AnimationsGui(device, renderCache, textureCache, this.models, this.materials, this.textures, this.materialListGui);
         this.texturesGui = new TexturesGui(device, renderCache, textureCache, this.models, this.materials, this.textures);
     }
 
@@ -122,7 +122,7 @@ export class Gui {
             }
             if (ImGui.BeginTabItem("Materials")) {
                 this.materialListGui.render();
-                this.tevGui.render();
+                this.renderMaterialEditorGui();
                 ImGui.EndTabItem();
             }
             if (ImGui.BeginTabItem("Textures")) {
@@ -134,6 +134,28 @@ export class Gui {
 
         ImGui.End();
         ImGuiImplWeb.EndRender();
+    }
+
+    private renderMaterialEditorGui() {
+        const selMaterial = this.materialListGui.getSelectedMaterialIdx();
+        if (selMaterial < 0) {
+            return;
+        }
+        const material = this.materials[selMaterial];
+
+        ImGui.SeparatorText(`Edit Material '${material.name}'`);
+
+        if (ImGui.BeginTabBar("Material Tabs")) {
+            if (ImGui.BeginTabItem("TEV Configuration")) {
+                this.tevGui.render();
+                ImGui.EndTabItem();
+            }
+            if (ImGui.BeginTabItem("Animations")) {
+                this.animationsGui.render();
+                ImGui.EndTabItem();
+            }
+            ImGui.EndTabBar();
+        }
     }
     
     private renderMenuBar() {

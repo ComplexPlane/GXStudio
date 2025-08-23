@@ -9,7 +9,7 @@ import * as gui_material from "./MaterialInst.js";
 import { GfxDevice } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
 import { assertExists } from "../../util.js";
-import { GuiScene, Material, Model, TevStage, Texture } from "./Scene.js";
+import { GuiScene, Material, Model, newPassthroughTevStage, newWhiteTevStage, TevStage, Texture } from "./Scene.js";
 import { MaterialListGui } from "./MaterialListGui.js";
 
 type ColorIn = {
@@ -118,14 +118,8 @@ export class TevGui {
     }
 
     public render() {
-        if (this.materials.length === 0) {
-            return;
-        }
         const selMaterial = this.materialListGui.getSelectedMaterialIdx();
         const material = this.materials[selMaterial];
-
-        ImGui.Spacing();
-        ImGui.SeparatorText(`Edit Material '${material.name}'`);
 
         const stagesFull = material.tevStages.length >= 8;
         if (stagesFull) {
@@ -133,38 +127,9 @@ export class TevGui {
         }
 
         if (ImGui.Button(`Add TEV Stage (${material.tevStages.length}/8)`)) {
-            const tevStage = new TevStage();
-            if (material.tevStages.length > 0) {
-                // Passthrough
-
-                const prevTevStage = material.tevStages[material.tevStages.length - 1];
-
-                tevStage.colorInA = GX.CC.ZERO;
-                tevStage.colorInB = GX.CC.ZERO;
-                tevStage.colorInC = GX.CC.ZERO;
-                if (prevTevStage.colorDest === GX.Register.PREV) {
-                    tevStage.colorInD = GX.CC.CPREV;
-                } else if (prevTevStage.colorDest === GX.Register.REG0) {
-                    tevStage.colorInD = GX.CC.C0;
-                } else if (prevTevStage.colorDest === GX.Register.REG1) {
-                    tevStage.colorInD = GX.CC.C1;
-                } else if (prevTevStage.colorDest === GX.Register.REG2) {
-                    tevStage.colorInD = GX.CC.C2;
-                }
-
-                tevStage.alphaInA = GX.CA.ZERO;
-                tevStage.alphaInB = GX.CA.ZERO;
-                tevStage.alphaInC = GX.CA.ZERO;
-                if (prevTevStage.alphaDest === GX.Register.PREV) {
-                    tevStage.alphaInD = GX.CA.APREV;
-                } else if (prevTevStage.alphaDest === GX.Register.REG0) {
-                    tevStage.alphaInD = GX.CA.A0;
-                } else if (prevTevStage.alphaDest === GX.Register.REG1) {
-                    tevStage.alphaInD = GX.CA.A1;
-                } else if (prevTevStage.alphaDest === GX.Register.REG2) {
-                    tevStage.alphaInD = GX.CA.A2;
-                }
-            }
+            const tevStage = material.tevStages.length === 0 
+                ? newWhiteTevStage()
+                : newPassthroughTevStage(material.tevStages[material.tevStages.length - 1]);
             material.tevStages.push(tevStage);
             material.rebuild();
         }
@@ -175,11 +140,11 @@ export class TevGui {
         let tevStageToDelete: number | null = null;
         for (let tevStageIdx = 0; tevStageIdx < material.tevStages.length; tevStageIdx++) {
             const tevStage = material.tevStages[tevStageIdx];
-            const prevTevStage = tevStage.clone();
+            const prevTevStage = { ...tevStage };
 
-            ImGui.PushID(tevStage.getUuid());
+            ImGui.PushID(tevStage.uuid);
 
-            if (ImGui.CollapsingHeader(`TEV Stage ${tevStageIdx}###${tevStage.getUuid()}`, ImGui.TreeNodeFlags.DefaultOpen)) {
+            if (ImGui.CollapsingHeader(`TEV Stage ${tevStageIdx}###${tevStage.uuid}`, ImGui.TreeNodeFlags.DefaultOpen)) {
                 if (ImGui.TreeNodeEx("Texture", ImGui.TreeNodeFlags.DefaultOpen)) {
                     this.renderTextureSelDropdown("Input Texture", tevStage);
                     ImGui.PushItemWidth(100);
