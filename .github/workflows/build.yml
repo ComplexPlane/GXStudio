@@ -1,9 +1,6 @@
 name: Build and deploy
 
 on:
-  push:
-    paths-ignore:
-      - '**.md'
   pull_request:
 
 jobs:
@@ -36,14 +33,3 @@ jobs:
 
     - name: Run build
       run: pnpm run build
-
-    - name: Deploy
-      if: github.ref == 'refs/heads/main'
-      uses: burnett01/rsync-deployments@7.0.2
-      with:
-        switches: -va --delete-after --exclude=data/ --exclude=priv/ --exclude=.well-known/
-        path: dist/
-        remote_path: noclip.website/
-        remote_host: iad1-shared-e1-29.dreamhost.com
-        remote_user: gznoclip
-        remote_key: ${{ secrets.DEPLOY_KEY }}
