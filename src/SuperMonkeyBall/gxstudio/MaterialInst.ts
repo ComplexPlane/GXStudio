@@ -14,7 +14,7 @@ import * as gui from "./Gui.js";
 import { LoadedTexture, TextureMapping } from "../../TextureHolder.js";
 import { TextureInputGX } from "../../gx/gx_texture.js";
 import { TextureCache } from "../ModelCache.js";
-import { TevStage } from "./Scene.js";
+import { ColorAnim, ScalarAnim, TevStage } from "./Scene.js";
 
 type BuildState = {
     stage: number;
@@ -83,6 +83,8 @@ export class MaterialInst {
     constructor(
         private tevStages: TevStage[],
         private textureInsts: TextureInst[],
+        private scalarAnims: ScalarAnim[],
+        private colorAnims: ColorAnim[],
         cullMode: GX.CullMode,
     ) {
         const mb = new GXMaterialBuilder();

@@ -56,9 +56,12 @@ export class TevStage {
 }
 
 export class Material {
-    public tevStages: TevStage[];
+    public tevStages = [new TevStage()];
+    public scalarAnims: ScalarAnim[] = [];
+    public colorAnims: ColorAnim[] = [];
     public instances: Map<GX.CullMode, MaterialInst>;
-    private dummyTevStages: TevStage[];
+
+    private dummyTevStages = [new TevStage()];
 
     constructor(
         private device: GfxDevice,
@@ -66,8 +69,6 @@ export class Material {
         private textureCache: TextureCache,
         public name: string,
     ) {
-        this.dummyTevStages = [new TevStage()];
-        this.tevStages = [new TevStage()];
         this.rebuild();
     }
 
@@ -91,12 +92,12 @@ export class Material {
 
         this.instances = new Map<GX.CullMode, MaterialInst>();
         for (let cullMode of [GX.CullMode.BACK, GX.CullMode.FRONT, GX.CullMode.ALL, GX.CullMode.NONE]) {
-            const materialInst = new MaterialInst(tevStages, textures, cullMode);
+            const materialInst = new MaterialInst(tevStages, textures, this.scalarAnims, this.colorAnims, cullMode);
             this.instances.set(cullMode, materialInst);
         }
     }
 
-    public clone(name: string) {
+    public clone(name: string): Material {
         const newMaterial = new Material(this.device, this.renderCache, this.textureCache, name);
         newMaterial.tevStages = this.tevStages.map((t) => t.clone());
         newMaterial.rebuild();
@@ -119,3 +120,63 @@ export type GuiScene = {
     models: Model[],
     materials: Material[],
 }
+
+export const enum ScalarChannel {
+    UV0_TranlateU,
+    UV0_TranlateV,
+    UV1_TranlateU,
+    UV1_TranlateV,
+    UV2_TranlateU,
+    UV2_TranlateV,
+    UV3_TranlateU,
+    UV3_TranlateV,
+    UV4_TranlateU,
+    UV4_TranlateV,
+    UV5_TranlateU,
+    UV5_TranlateV,
+    UV6_TranlateU,
+    UV6_TranlateV,
+    UV7_TranlateU,
+    UV7_TranlateV,
+
+    A0,
+    A1,
+    A2,
+    APREV,
+}
+
+export const enum ColorChannel {
+    C0,
+    C1,
+    C2,
+    CPREV,
+}
+
+export const enum InterpKind {
+    Linear,
+    Sine,
+    Saw,
+    Square,
+};
+
+export type Interp = {
+    kind: InterpKind,
+    offset: number,
+    scale: number,
+    speed: number,
+};
+
+export type ScalarAnim = {
+    channel: ScalarChannel,
+    start: number,
+    end: number,
+    interp: Interp,
+};
+
+export type ColorAnim = {
+    channel: ColorChannel,
+    start: Color,
+    end: Color,
+    interp: Interp,
+    interpSpace: "RGB" | "HSL",
+};
