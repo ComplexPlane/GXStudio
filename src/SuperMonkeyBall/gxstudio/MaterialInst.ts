@@ -1,5 +1,5 @@
 
-import { mat4, vec3 } from "gl-matrix";
+import { mat4 } from "gl-matrix";
 import { Color, colorCopy, colorMult, colorNewCopy, White } from "../../Color.js";
 import { GfxDevice, GfxMipFilterMode, GfxSampler, GfxTexFilterMode } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
@@ -33,8 +33,6 @@ const SWAP_TABLES: SwapTable[] = [
 const scratchMaterialParams = new MaterialParams();
 const scratchColor1: Color = colorNewCopy(White);
 const scratchColor2: Color = colorNewCopy(White);
-const scratchMat4a = mat4.create();
-const scratchVec3a = vec3.create();
 
 export class TextureInst {
     private loadedTex: LoadedTexture;
@@ -182,18 +180,13 @@ export class MaterialInst {
         colorCopy(materialColor, White);
         materialColor.a = renderParams.alpha;
 
-        const texTransform = scratchMat4a;
-        const texTranslate = scratchVec3a;
-        mat4.identity(texTransform);
-        vec3.set(texTranslate, )
-        mat4.translate(texTransform, texTransform)
-        mat4.copy(materialParams.u_TexMtx[0], 
-
         // TODO: SMB uses texmtx1, do we need to?
         mat4.copy(materialParams.u_TexMtx[1], renderParams.texMtx);
 
         colorCopy(materialParams.u_Color[ColorKind.MAT0], materialColor);
         colorCopy(materialParams.u_Color[ColorKind.AMB0], ambientColor);
+        // Game uses TEVREG0 instead of RASC when lighting and vertex colors are disabled
+        colorCopy(materialParams.u_Color[ColorKind.C0], materialColor);
 
         materialParams.u_Lights[0].copy(lighting.infLightViewSpace);
 
