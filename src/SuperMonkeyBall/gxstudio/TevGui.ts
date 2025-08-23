@@ -11,6 +11,7 @@ import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
 import { assertExists } from "../../util.js";
 import { GuiScene, Material, Model, newPassthroughTevStage, newWhiteTevStage, TevStage, Texture } from "./Scene.js";
 import { MaterialListGui } from "./MaterialListGui.js";
+import { createIdMap } from "./GuiUtils.js";
 
 type ColorIn = {
     id: GX.CC,
@@ -37,9 +38,7 @@ const COLOR_INS: ColorIn[] = [
     // { id: GX.CC.KONST, label: "Constant", help: "Constant color" }, // TODO
 ];
 
-const COLOR_IN_MAP = new Map<GX.CC, ColorIn>(
-    COLOR_INS.map(sel => [sel.id, sel])
-);
+const COLOR_IN_MAP = createIdMap(COLOR_INS);
 
 type AlphaIn = {
     id: GX.CA,
@@ -58,9 +57,7 @@ const ALPHA_INS: AlphaIn[] = [
     // { id: GX.CA.KONST, label: "Constant", help: "Constant alpha value" }, // TODO
 ];
 
-const ALPHA_IN_MAP = new Map<GX.CA, AlphaIn>(
-    ALPHA_INS.map(sel => [sel.id, sel])
-);
+const ALPHA_IN_MAP = createIdMap(ALPHA_INS);
 
 type OutReg = {
     id: GX.Register,
@@ -75,9 +72,7 @@ const COLOR_OUTS: OutReg[] = [
     { id: GX.Register.REG2, label: "Color 2", help: "Color register 2" },
 ];
 
-const COLOR_OUT_MAP = new Map<GX.Register, OutReg>(
-    COLOR_OUTS.map(out => [out.id, out])
-);
+const COLOR_OUT_MAP = createIdMap(COLOR_OUTS);
 
 const ALPHA_OUTS: OutReg[] = [
     { id: GX.Register.PREV, label: "Alpha PREV", help: "Alpha register 'PREV' (most common)" },
@@ -86,9 +81,7 @@ const ALPHA_OUTS: OutReg[] = [
     { id: GX.Register.REG2, label: "Alpha 2", help: "Alpha register 2" },
 ];
 
-const ALPHA_OUT_MAP = new Map<GX.Register, OutReg>(
-    ALPHA_OUTS.map(out => [out.id, out])
-);
+const ALPHA_OUT_MAP = createIdMap(ALPHA_OUTS);
 
 type WrapMode = {
     id: GX.WrapMode,
@@ -101,9 +94,7 @@ const WRAP_MODES: WrapMode[] = [
     { id: GX.WrapMode.CLAMP, label: "Clamp" },
 ];
 
-const WRAP_MODE_MAP = new Map<GX.WrapMode, WrapMode>(
-    WRAP_MODES.map(w => [w.id, w])
-)
+const WRAP_MODE_MAP = createIdMap(WRAP_MODES);
 
 export class TevGui {
     constructor(

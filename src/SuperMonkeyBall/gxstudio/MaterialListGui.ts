@@ -33,7 +33,7 @@ export class MaterialListGui {
 
     public render() {
         ImGui.SeparatorText("Materials List");
-        if (ImGui.BeginListBox("Materials")) {
+        if (ImGui.BeginListBox("Materials", new ImVec2(0, 100))) {
             for (let i = 0; i < this.materials.length; i++) {
                 const isSelected = i == this.selMaterial
                 if (ImGui.Selectable(this.materials[i].name, isSelected)) {

@@ -147,10 +147,12 @@ export class Gui {
 
         if (ImGui.BeginTabBar("Material Tabs")) {
             if (ImGui.BeginTabItem("TEV Configuration")) {
+                ImGui.Spacing();
                 this.tevGui.render();
                 ImGui.EndTabItem();
             }
             if (ImGui.BeginTabItem("Animations")) {
+                ImGui.Spacing();
                 this.animationsGui.render();
                 ImGui.EndTabItem();
             }

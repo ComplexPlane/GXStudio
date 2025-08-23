@@ -21,3 +21,7 @@ export function renderCombo<T>(label: string, items: T[], selectedItem: T, forma
     }
     return newSelectedItem;
 }
+
+export function createIdMap<T extends { id: K }, K = T['id']>(items: T[]): Map<K, T> {
+    return new Map(items.map(item => [item.id, item]));
+}

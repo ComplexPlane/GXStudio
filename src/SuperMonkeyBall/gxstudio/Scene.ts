@@ -147,8 +147,16 @@ export class Material {
         newMaterial.tevStages = this.tevStages.map((t) => { 
             return { ...t, uuid: crypto.randomUUID() }; 
         });
-        newMaterial.scalarAnims = structuredClone(this.scalarAnims);
-        newMaterial.colorAnims = structuredClone(this.colorAnims);
+        newMaterial.scalarAnims = this.scalarAnims.map((a) => {
+            const clone = structuredClone(a);
+            clone.uuid = crypto.randomUUID();
+            return clone;
+        });
+        newMaterial.colorAnims = this.colorAnims.map((a) => {
+            const clone = structuredClone(a);
+            clone.uuid = crypto.randomUUID();
+            return clone;
+        });
         newMaterial.rebuild();
         return newMaterial;
     }
@@ -202,6 +210,7 @@ export const enum ColorChannel {
 }
 
 export const enum InterpKind {
+    Constant,
     Linear,
     Sine,
     Saw,
@@ -216,6 +225,7 @@ export type Interp = {
 };
 
 export type ScalarAnim = {
+    uuid: string,
     channel: ScalarChannel,
     start: number,
     end: number,
@@ -223,6 +233,7 @@ export type ScalarAnim = {
 };
 
 export type ColorAnim = {
+    uuid: string,
     channel: ColorChannel,
     start: Color,
     end: Color,
