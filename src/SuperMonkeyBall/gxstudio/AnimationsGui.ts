@@ -99,26 +99,27 @@ export class AnimationsGui {
             material.colorAnims.push(anim);
         }
 
-        let idxToDelete: number | null = null;
+        let scalarAnimDeleteIdx: number | null = null;
         for (let i = 0; i < material.scalarAnims.length; i++) {
             const scalarAnim = material.scalarAnims[i];
             if (this.renderScalarAnim(scalarAnim)) {
-                idxToDelete = idxToDelete ?? i;
+                scalarAnimDeleteIdx = scalarAnimDeleteIdx ?? i;
             }
         }
-        if (idxToDelete !== null) {
-            material.scalarAnims.splice(idxToDelete, 1);
+        if (scalarAnimDeleteIdx !== null) {
+            material.scalarAnims.splice(scalarAnimDeleteIdx, 1);
         }
         ImGui.Spacing();
 
+        let colorAnimDeleteIdx: number | null = null;
         for (let i = 0; i < material.colorAnims.length; i++) {
             const colorAnim = material.colorAnims[i];
             if (this.renderColorAnim(colorAnim)) {
-                idxToDelete = idxToDelete ?? i;
+                colorAnimDeleteIdx = scalarAnimDeleteIdx ?? i;
             }
         }
-        if (idxToDelete !== null) {
-            material.colorAnims.splice(idxToDelete, 1);
+        if (colorAnimDeleteIdx !== null) {
+            material.colorAnims.splice(colorAnimDeleteIdx, 1);
         }
     }
 
