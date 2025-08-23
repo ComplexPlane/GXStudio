@@ -66,60 +66,65 @@ export class AnimationsGui {
     public render() {
         const selMaterial = this.materialListGui.getSelectedMaterialIdx();
         const material = this.materials[selMaterial];
-        if (ImGui.Button("Add Scalar Anim")) {
-            const anim: ScalarAnim = {
-                uuid: crypto.randomUUID(),
-                channel: ScalarChannel.UV0_TranlateU,
-                start: 0,
-                end: 0,
-                interp: {
-                    kind: InterpKind.Constant,
-                    offset: 0,
-                    scale: 1,
-                    speed: 0,
-                },
-            };
-            material.scalarAnims.push(anim);
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Add Color Anim")) {
-            const anim: ColorAnim = {
-                uuid: crypto.randomUUID(),
-                channel: ColorChannel.C0,
-                start: OpaqueBlack,
-                end: OpaqueBlack,
-                interp: {
-                    kind: InterpKind.Constant,
-                    offset: 0,
-                    scale: 1,
-                    speed: 0,
-                },
-                interpSpace: "RGB",
-            };
-            material.colorAnims.push(anim);
-        }
-
-        let scalarAnimDeleteIdx: number | null = null;
-        for (let i = 0; i < material.scalarAnims.length; i++) {
-            const scalarAnim = material.scalarAnims[i];
-            if (this.renderScalarAnim(scalarAnim)) {
-                scalarAnimDeleteIdx = scalarAnimDeleteIdx ?? i;
+       
+        if (ImGui.CollapsingHeader(`Scalar Channels`, ImGui.TreeNodeFlags.DefaultOpen)) {
+            if (ImGui.Button("Add Scalar Animation")) {
+                const anim: ScalarAnim = {
+                    uuid: crypto.randomUUID(),
+                    channel: ScalarChannel.UV0_TranlateU,
+                    start: 0,
+                    end: 0,
+                    interp: {
+                        kind: InterpKind.Constant,
+                        offset: 0,
+                        scale: 1,
+                        speed: 0,
+                    },
+                };
+                material.scalarAnims.push(anim);
             }
-        }
-        if (scalarAnimDeleteIdx !== null) {
-            material.scalarAnims.splice(scalarAnimDeleteIdx, 1);
+
+            let scalarAnimDeleteIdx: number | null = null;
+            for (let i = 0; i < material.scalarAnims.length; i++) {
+                const scalarAnim = material.scalarAnims[i];
+                if (this.renderScalarAnim(scalarAnim)) {
+                    scalarAnimDeleteIdx = scalarAnimDeleteIdx ?? i;
+                }
+            }
+            if (scalarAnimDeleteIdx !== null) {
+                material.scalarAnims.splice(scalarAnimDeleteIdx, 1);
+            }
         }
         ImGui.Spacing();
 
-        let colorAnimDeleteIdx: number | null = null;
-        for (let i = 0; i < material.colorAnims.length; i++) {
-            const colorAnim = material.colorAnims[i];
-            if (this.renderColorAnim(colorAnim)) {
-                colorAnimDeleteIdx = scalarAnimDeleteIdx ?? i;
+        if (ImGui.CollapsingHeader(`Color Channels`, ImGui.TreeNodeFlags.DefaultOpen)) {
+            if (ImGui.Button("Add Color Animation")) {
+                const anim: ColorAnim = {
+                    uuid: crypto.randomUUID(),
+                    channel: ColorChannel.C0,
+                    start: OpaqueBlack,
+                    end: OpaqueBlack,
+                    interp: {
+                        kind: InterpKind.Constant,
+                        offset: 0,
+                        scale: 1,
+                        speed: 0,
+                    },
+                    interpSpace: "RGB",
+                };
+                material.colorAnims.push(anim);
+            }       
+
+            let colorAnimDeleteIdx: number | null = null;
+            for (let i = 0; i < material.colorAnims.length; i++) {
+                const colorAnim = material.colorAnims[i];
+                if (this.renderColorAnim(colorAnim)) {
+                    colorAnimDeleteIdx = colorAnimDeleteIdx ?? i;
+                }
             }
-        }
-        if (colorAnimDeleteIdx !== null) {
-            material.colorAnims.splice(colorAnimDeleteIdx, 1);
+            if (colorAnimDeleteIdx !== null) {
+                material.colorAnims.splice(colorAnimDeleteIdx, 1);
+            }
         }
     }
 
