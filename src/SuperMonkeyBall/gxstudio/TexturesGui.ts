@@ -17,6 +17,7 @@ export class TexturesGui {
 
     public render() {
         if (ImGui.BeginChild("Textures Child")) {
+            ImGui.SeparatorText("Textures List");
             for (let texture of this.textures) {
                 const name = texture.gxTexture.name;
                 const dims = `${texture.gxTexture.width}x${texture.gxTexture.height}`;

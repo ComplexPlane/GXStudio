@@ -2,9 +2,9 @@ import { ImGui, ImVec2 } from "@mori2003/jsimgui";
 import { GfxDevice } from "../../gfx/platform/GfxPlatform";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache";
 import { TextureCache } from "../ModelCache";
-import { ColorAnim, ColorChannel, Interp, InterpKind, Material, Model, ScalarAnim, ScalarChannel, Texture } from "./Scene";
+import { ColorAnim, ColorChannel, InterpKind, Material, Model, ScalarAnim, ScalarChannel, Texture } from "./Scene";
 import { MaterialListGui } from "./MaterialListGui";
-import { OpaqueBlack } from "../../Color";
+import { colorCopy, colorFromRGBA, OpaqueBlack } from "../../Color";
 import { createIdMap, renderCombo } from "./GuiUtils";
 
 type ScalarChannelInfo = {
@@ -65,6 +65,7 @@ const COLOR_CHANNEL_MAP = createIdMap(COLOR_CHANNELS);
 const INTERP_KIND_MAP = createIdMap(INTERP_KINDS);
 
 const scratchNumberPtr = [0];
+const scratchArr3 = [0, 0, 0];
 
 export class AnimationsGui {
     constructor(
@@ -89,12 +90,9 @@ export class AnimationsGui {
                     channel: ScalarChannel.UV0_TranlateU,
                     start: 0,
                     end: 0,
-                    interp: {
-                        kind: InterpKind.Constant,
-                        offset: 0,
-                        scale: 1,
-                        speed: 0,
-                    },
+                    interpKind: InterpKind.Constant,
+                    phaseOffset: 0,
+                    speed: 1,
                 };
                 material.scalarAnims.push(anim);
             }
@@ -117,15 +115,12 @@ export class AnimationsGui {
                 const anim: ColorAnim = {
                     uuid: crypto.randomUUID(),
                     channel: ColorChannel.C0,
-                    start: OpaqueBlack,
-                    end: OpaqueBlack,
-                    interp: {
-                        kind: InterpKind.Constant,
-                        offset: 0,
-                        scale: 1,
-                        speed: 0,
-                    },
-                    interpSpace: "RGB",
+                    start: { r: 0, g: 0, b: 0, a: 1},
+                    end: { r: 0, g: 0, b: 0, a: 1},
+                    interpKind: InterpKind.Constant,
+                    phaseOffset: 0,
+                    speed: 1,
+                    space: "RGB",
                 };
                 material.colorAnims.push(anim);
             }       
@@ -156,14 +151,22 @@ export class AnimationsGui {
                 (c) => c.label,
             ).id;
 
-            anim.interp.kind = renderCombo(
-                "Interp",
-                INTERP_KINDS,
-                INTERP_KIND_MAP.get(anim.interp.kind)!,
-                (i) => i.label,
-            ).id;
+            this.renderInterp(anim);
 
-            this.renderInterp(anim.interp);
+            const n = scratchNumberPtr;
+            if (anim.interpKind === InterpKind.Constant) {
+                n[0] = anim.start;
+                ImGui.SliderFloat("Value", n, -5, 5);
+                anim.start = n[0];
+                anim.end = n[0]
+            } else {
+                n[0] = anim.start;
+                ImGui.SliderFloat("Start Value", n, -5, 5);
+                anim.start = n[0];
+                n[0] = anim.end;
+                ImGui.SliderFloat("End Value", n, -5, 5);
+                anim.end = n[0];
+            }
 
             if (ImGui.Button("Delete")) {
                 deleteMe = true;
@@ -188,14 +191,31 @@ export class AnimationsGui {
                 (c) => c.label,
             ).id;
 
-            anim.interp.kind = renderCombo(
-                "Interp",
-                INTERP_KINDS,
-                INTERP_KIND_MAP.get(anim.interp.kind)!,
-                (i) => i.label,
-            ).id;
+            this.renderInterp(anim);
 
-            this.renderInterp(anim.interp);
+            const arr3 = scratchArr3;
+            if (anim.interpKind === InterpKind.Constant) {
+                arr3[0] = anim.start.r;
+                arr3[1] = anim.start.g;
+                arr3[2] = anim.start.b;
+                ImGui.ColorEdit3("Color", arr3);
+                colorFromRGBA(anim.start, arr3[0], arr3[1], arr3[2]);
+                colorCopy(anim.end, anim.start);
+            } else {
+                anim.space = renderCombo("Interp Space", ["RGB", "HSL"], anim.space, (s) => s);
+
+                arr3[0] = anim.start.r;
+                arr3[1] = anim.start.g;
+                arr3[2] = anim.start.b;
+                ImGui.ColorEdit3("Start Color", arr3);
+                colorFromRGBA(anim.start, arr3[0], arr3[1], arr3[2]);
+
+                arr3[0] = anim.end.r;
+                arr3[1] = anim.end.g;
+                arr3[2] = anim.end.b;
+                ImGui.ColorEdit3("End Color", arr3);
+                colorFromRGBA(anim.end, arr3[0], arr3[1], arr3[2]);
+            }
 
             if (ImGui.Button("Delete")) {
                 deleteMe = true;
@@ -207,20 +227,23 @@ export class AnimationsGui {
         return deleteMe;
     }
 
-    private renderInterp(interp: Interp) {
-        const n = scratchNumberPtr;
-        if (interp.kind !== InterpKind.Constant) {
-            n[0] = interp.offset;
-            ImGui.SliderFloat("Offset", n, 0, 1);
-            interp.offset = n[0];
+    private renderInterp(anim: { interpKind: InterpKind, phaseOffset: number, speed: number }) {
+        anim.interpKind = renderCombo(
+            "Interp",
+            INTERP_KINDS,
+            INTERP_KIND_MAP.get(anim.interpKind)!,
+            (i) => i.label,
+        ).id;
 
-            n[0] = interp.scale;
-            ImGui.SliderFloat("Scale", n, -10, 10);
-            interp.scale = n[0];
-            
-            n[0] = interp.speed;
-            ImGui.SliderFloat("Speed", n, -10, 10);
-            interp.speed = n[0];
+        const n = scratchNumberPtr;
+        if (anim.interpKind !== InterpKind.Constant) {
+            n[0] = anim.phaseOffset;
+            ImGui.SliderFloat("Phase Offset", n, 0, 1);
+            anim.phaseOffset = n[0];
+
+            n[0] = anim.speed;
+            ImGui.SliderFloat("Speed", n, -5, 5, undefined);
+            anim.speed = n[0];
         }
     }
 }

@@ -217,26 +217,27 @@ export const enum InterpKind {
     Square,
 };
 
-export type Interp = {
-    kind: InterpKind,
-    offset: number,
-    scale: number,
-    speed: number,
-};
-
 export type ScalarAnim = {
     uuid: string,
     channel: ScalarChannel,
+
+    interpKind: InterpKind,
+    phaseOffset: number,
+    speed: number,
+
     start: number,
     end: number,
-    interp: Interp,
 };
 
 export type ColorAnim = {
     uuid: string,
     channel: ColorChannel,
+
+    interpKind: InterpKind,
+    phaseOffset: number,
+    speed: number,
+    space: "RGB" | "HSL",
+
     start: Color,
     end: Color,
-    interp: Interp,
-    interpSpace: "RGB" | "HSL",
 };
