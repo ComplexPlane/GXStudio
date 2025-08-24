@@ -29,14 +29,14 @@ const SWAP_TABLES: SwapTable[] = [
 ];
 
 const TEXMTX_UV_CHANNELS = [
-    { u: ScalarChannel.UV0_TranlateU, v: ScalarChannel.UV0_TranlateV },
-    { u: ScalarChannel.UV1_TranlateU, v: ScalarChannel.UV1_TranlateV },
-    { u: ScalarChannel.UV2_TranlateU, v: ScalarChannel.UV2_TranlateV },
-    { u: ScalarChannel.UV3_TranlateU, v: ScalarChannel.UV3_TranlateV },
-    { u: ScalarChannel.UV4_TranlateU, v: ScalarChannel.UV4_TranlateV },
-    { u: ScalarChannel.UV5_TranlateU, v: ScalarChannel.UV5_TranlateV },
-    { u: ScalarChannel.UV6_TranlateU, v: ScalarChannel.UV6_TranlateV },
-    { u: ScalarChannel.UV7_TranlateU, v: ScalarChannel.UV7_TranlateV },
+    { u: ScalarChannel.UV0_TranslateU, v: ScalarChannel.UV0_TranslateV },
+    { u: ScalarChannel.UV1_TranslateU, v: ScalarChannel.UV1_TranslateV },
+    { u: ScalarChannel.UV2_TranslateU, v: ScalarChannel.UV2_TranslateV },
+    { u: ScalarChannel.UV3_TranslateU, v: ScalarChannel.UV3_TranslateV },
+    { u: ScalarChannel.UV4_TranslateU, v: ScalarChannel.UV4_TranslateV },
+    { u: ScalarChannel.UV5_TranslateU, v: ScalarChannel.UV5_TranslateV },
+    { u: ScalarChannel.UV6_TranslateU, v: ScalarChannel.UV6_TranslateV },
+    { u: ScalarChannel.UV7_TranslateU, v: ScalarChannel.UV7_TranslateV },
 ];
 
 const COLOR_CHANNELS = [
