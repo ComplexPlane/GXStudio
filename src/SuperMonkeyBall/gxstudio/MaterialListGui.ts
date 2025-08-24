@@ -13,6 +13,7 @@ export class MaterialListGui {
     private selMaterial: number = -1;
     private tmpName: string[] | null = null;
     private errorColor = new ImVec4(1, 0.2, 0.2, 1);
+    private size = new ImVec2(0, 100);
 
     constructor(
         private device: GfxDevice,
@@ -29,7 +30,7 @@ export class MaterialListGui {
 
     public render() {
         ImGui.SeparatorText("Materials List");
-        if (ImGui.BeginListBox("Materials", new ImVec2(0, 100))) {
+        if (ImGui.BeginListBox("Materials", this.size)) {
             for (let i = 0; i < this.materials.length; i++) {
                 const isSelected = i === this.selMaterial;
                 if (ImGui.Selectable(this.materials[i].name, isSelected)) {

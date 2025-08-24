@@ -4,7 +4,10 @@ import { GfxRenderCache } from "../../gfx/render/GfxRenderCache";
 import { TextureCache } from "../ModelCache";
 import { Material, Model, Texture } from "./Scene";
 
+
 export class TexturesGui {
+    private scratchImVec2a = new ImVec2();
+
     constructor(
         private device: GfxDevice,
         private renderCache: GfxRenderCache,
@@ -22,10 +25,12 @@ export class TexturesGui {
                 const dims = `${texture.gxTexture.width}x${texture.gxTexture.height}`;
                 const mips = `${texture.gxTexture.mipCount} mip level(s)`;
                 ImGui.Text(`${name}: ${dims}, ${mips}`);
-                ImGui.ImageWithBg(
-                    texture.imguiTextureIds[0],
-                    new ImVec2(200, 200 / (texture.gxTexture.width / texture.gxTexture.height))
-                );
+
+                const displaySize = this.scratchImVec2a;
+                displaySize.x = 200;
+                displaySize.y = 200 / (texture.gxTexture.width / texture.gxTexture.height);
+                ImGui.ImageWithBg(texture.imguiTextureIds[0], displaySize);
+
                 ImGui.Spacing();
             }
             ImGui.EndChild();

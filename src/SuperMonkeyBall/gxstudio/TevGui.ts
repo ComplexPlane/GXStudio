@@ -1,7 +1,4 @@
-import {
-    ImGui,
-    ImVec2
-} from "@mori2003/jsimgui";
+import { ImGui, ImVec2 } from "@mori2003/jsimgui";
 
 import { GfxDevice } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
@@ -15,7 +12,7 @@ import {
     newPassthroughTevStage,
     newWhiteTevStage,
     TevStage,
-    Texture
+    Texture,
 } from "./Scene.js";
 
 type ColorConst = {
@@ -126,7 +123,17 @@ const WRAP_MODES: WrapMode[] = [
 
 const WRAP_MODE_MAP = createIdMap(WRAP_MODES);
 
+const scratchTevStagea = newWhiteTevStage();
+
+function objEqual<T extends object>(a: T, b: T): boolean {
+    return Object.keys(a).every((key) => a[key as keyof T] === b[key as keyof T]);
+}
+
 export class TevGui {
+    private smallImageButtonSize = new ImVec2(80, 80);
+    private largeImageButtonSize = new ImVec2(120, 120);
+    private scratchImVec2a = new ImVec2();
+
     constructor(
         private device: GfxDevice,
         private renderCache: GfxRenderCache,
@@ -161,7 +168,8 @@ export class TevGui {
         let tevStageToDelete: number | null = null;
         for (let tevStageIdx = 0; tevStageIdx < material.tevStages.length; tevStageIdx++) {
             const tevStage = material.tevStages[tevStageIdx];
-            const prevTevStage = { ...tevStage };
+            const prevTevStage = scratchTevStagea;
+            Object.assign(prevTevStage, tevStage);
 
             ImGui.PushID(tevStage.uuid);
 
@@ -230,15 +238,8 @@ export class TevGui {
                 }
                 ImGui.Spacing();
 
-                // Rebuild material if any TEV params changed...
-                // We may eventually have some params that don't require rebuilding.
-                // Note: this still works even though cloned TevStages will have
-                // different UUIDs, because uuid is a private field
-                for (const key of Object.keys(tevStage) as Array<keyof typeof tevStage>) {
-                    if (tevStage[key] !== prevTevStage[key]) {
-                        material.rebuild();
-                        break;
-                    }
+                if (!objEqual(tevStage, prevTevStage)) {
+                    material.rebuild();
                 }
             }
 
@@ -261,14 +262,16 @@ export class TevGui {
                 ImGui.ImageButton(
                     "##textureButtonId",
                     tevStage.texture.imguiTextureIds[0],
-                    new ImVec2(80, 80)
+                    this.smallImageButtonSize
                 )
             ) {
                 ImGui.OpenPopup("Choose Texture");
             }
             showTextureTooltip(tevStage.texture);
         } else {
-            if (ImGui.Button("<none>", getImageButtonSize(new ImVec2(80, 80)))) {
+            const buttonSize = this.scratchImVec2a;
+            getImageButtonSize(buttonSize, this.smallImageButtonSize);
+            if (ImGui.Button("<none>", buttonSize)) {
                 ImGui.OpenPopup("Choose Texture");
             }
         }
@@ -291,13 +294,16 @@ export class TevGui {
                 }
 
                 if (texture === null) {
-                    const buttonSize = getImageButtonSize(new ImVec2(120, 120));
+                    const buttonSize = this.scratchImVec2a;
+                    getImageButtonSize(buttonSize, this.largeImageButtonSize);
                     if (ImGui.Button("<none>", buttonSize)) {
                         setFunc(null);
                         ImGui.CloseCurrentPopup();
                     }
                 } else {
-                    if (ImGui.ImageButton("", texture.imguiTextureIds[0], new ImVec2(120, 120))) {
+                    if (
+                        ImGui.ImageButton("", texture.imguiTextureIds[0], this.largeImageButtonSize)
+                    ) {
                         setFunc(texture);
                         ImGui.CloseCurrentPopup();
                     }
@@ -356,12 +362,10 @@ export class TevGui {
     }
 }
 
-function getImageButtonSize(imageButtonSize: ImVec2): ImVec2 {
+function getImageButtonSize(out: ImVec2, imageButtonSize: ImVec2) {
     const framePadding = ImGui.GetStyle().FramePadding;
-    return new ImVec2(
-        imageButtonSize.x + framePadding.x * 2,
-        imageButtonSize.y + framePadding.y * 2
-    );
+    out.x = imageButtonSize.x + framePadding.x * 2;
+    out.y = imageButtonSize.y + framePadding.y * 2;
 }
 
 function showTextureTooltip(texture: Texture) {
