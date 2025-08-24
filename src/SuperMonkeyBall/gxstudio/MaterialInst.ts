@@ -218,8 +218,6 @@ export class MaterialInst {
 
         colorCopy(materialParams.u_Color[ColorKind.MAT0], materialColor);
         colorCopy(materialParams.u_Color[ColorKind.AMB0], ambientColor);
-        // Game uses TEVREG0 instead of RASC when lighting and vertex colors are disabled
-        colorCopy(materialParams.u_Color[ColorKind.C0], materialColor);
 
         materialParams.u_Lights[0].copy(lighting.infLightViewSpace);
 

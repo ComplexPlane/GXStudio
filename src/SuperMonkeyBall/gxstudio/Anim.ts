@@ -92,7 +92,7 @@ function animateCurve(curveKind: CurveKind, phaseOffset: number, speed: number, 
     } else if (curveKind === CurveKind.Linear) {
         return t;
     } else if (curveKind === CurveKind.Sine) {
-        return Math.sin(t * 2 * Math.PI) * 2 + 1;
+        return (Math.sin(t * 2 * Math.PI) + 1) * 0.5;
     } else if (curveKind === CurveKind.Saw) {
         return t > 0.5 ? (1 - t) * 2 : t * 2;
     } else if (curveKind === CurveKind.Square) {
@@ -130,13 +130,13 @@ export function animateScalars(dstScalarState: ScalarState, anims: ScalarAnim[],
 
 const scratchColor1 = colorNewCopy(OpaqueBlack);
 
-export function animateColors(dstScalarState: ColorState, anims: ColorAnim[], t: number) {
+export function animateColors(dstColorState: ColorState, anims: ColorAnim[], t: number) {
     const tmpColor = scratchColor1;
-    for (let color of dstScalarState.values()) {
+    for (let color of dstColorState.values()) {
         colorCopy(color, OpaqueBlack);
     }
     for (let anim of anims) {
-        const curr = dstScalarState.get(anim.channel)!;
+        const curr = dstColorState.get(anim.channel)!;
         animateColor(anim, t, tmpColor);
         colorAdd(curr, curr, tmpColor);
     }
