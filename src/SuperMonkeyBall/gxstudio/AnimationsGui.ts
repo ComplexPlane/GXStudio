@@ -72,9 +72,15 @@ const COLOR_CHANNEL_MAP = createIdMap(COLOR_CHANNELS);
 const INTERP_KIND_MAP = createIdMap(INTERP_KINDS);
 
 const scratchNumberPtr = [0];
+const scratchBoolPtr = [false];
 const scratchArr3 = [0, 0, 0];
 
 const BIG_RANGE = 4;
+
+const enum AnimAction {
+    Duplicate,
+    Delete,
+}
 
 export class AnimationsGui {
     constructor(
@@ -84,7 +90,7 @@ export class AnimationsGui {
         private models: Model[],
         private materials: Material[],
         private textures: Texture[],
-        private materialListGui: MaterialListGui
+        private materialListGui: MaterialListGui,
     ) {}
 
     public render() {
@@ -95,6 +101,7 @@ export class AnimationsGui {
             if (ImGui.Button("Add Scalar Animation")) {
                 const anim: ScalarAnim = {
                     uuid: crypto.randomUUID(),
+                    enabled: true,
                     channel: ScalarChannel.UV0_TranlateU,
                     start: 0,
                     end: 1,
@@ -105,15 +112,26 @@ export class AnimationsGui {
                 material.scalarAnims.push(anim);
             }
 
-            let scalarAnimDeleteIdx: number | null = null;
+            let dupIdx: number | null = null;
+            let delIdx: number | null = null;
             for (let i = 0; i < material.scalarAnims.length; i++) {
                 const scalarAnim = material.scalarAnims[i];
-                if (this.renderScalarAnim(scalarAnim)) {
-                    scalarAnimDeleteIdx = scalarAnimDeleteIdx ?? i;
+                const action = this.renderScalarAnim(scalarAnim);
+                if (action === AnimAction.Duplicate) {
+                    dupIdx = dupIdx ?? i;
+                }
+                if (action === AnimAction.Delete) {
+                    delIdx = delIdx ?? i;
                 }
             }
-            if (scalarAnimDeleteIdx !== null) {
-                material.scalarAnims.splice(scalarAnimDeleteIdx, 1);
+            if (dupIdx !== null) {
+                const animClone = {
+                    ...material.scalarAnims[dupIdx],
+                    uuid: crypto.randomUUID(),
+                };
+                material.scalarAnims.splice(dupIdx + 1, 0, animClone);
+            } else if (delIdx !== null) {
+                material.scalarAnims.splice(delIdx, 1);
             }
         }
         ImGui.Spacing();
@@ -122,6 +140,7 @@ export class AnimationsGui {
             if (ImGui.Button("Add Color Animation")) {
                 const anim: ColorAnim = {
                     uuid: crypto.randomUUID(),
+                    enabled: true,
                     channel: ColorChannel.C0,
                     start: { r: 0, g: 0, b: 0, a: 1 },
                     end: { r: 0, g: 0, b: 0, a: 1 },
@@ -132,30 +151,34 @@ export class AnimationsGui {
                 material.colorAnims.push(anim);
             }
 
-            let colorAnimDeleteIdx: number | null = null;
+            let delIdx: number | null = null;
             for (let i = 0; i < material.colorAnims.length; i++) {
                 const colorAnim = material.colorAnims[i];
                 if (this.renderColorAnim(colorAnim)) {
-                    colorAnimDeleteIdx = colorAnimDeleteIdx ?? i;
+                    delIdx = delIdx ?? i;
                 }
             }
-            if (colorAnimDeleteIdx !== null) {
-                material.colorAnims.splice(colorAnimDeleteIdx, 1);
+            if (delIdx !== null) {
+                material.colorAnims.splice(delIdx, 1);
             }
         }
     }
 
-    private renderScalarAnim(anim: ScalarAnim): boolean {
-        let deleteMe = false;
+    private renderScalarAnim(anim: ScalarAnim): AnimAction | null {
+        let action: AnimAction | null = null;
 
         const selectedChannel = SCALAR_CHANNEL_MAP.get(anim.channel)!;
         const treeName = `${selectedChannel.label}###${anim.uuid}`;
         if (ImGui.TreeNodeEx(treeName, ImGui.TreeNodeFlags.DefaultOpen)) {
+            const b = scratchBoolPtr;
+            b[0] = anim.enabled;
+            ImGui.Checkbox("Enabled", b);
+            anim.enabled = b[0];
             anim.channel = renderCombo(
                 "Scalar Channel",
                 SCALAR_CHANNELS,
                 selectedChannel,
-                (c) => c.label
+                (c) => c.label,
             ).id;
 
             this.renderInterp(anim);
@@ -174,14 +197,18 @@ export class AnimationsGui {
                 anim.end = n[0];
             }
 
+            if (ImGui.Button("Duplicate")) {
+                action = AnimAction.Duplicate;
+            }
+            ImGui.SameLine();
             if (ImGui.Button("Delete")) {
-                deleteMe = true;
+                action = AnimAction.Delete;
             }
 
             ImGui.TreePop();
         }
 
-        return deleteMe;
+        return action;
     }
 
     private renderColorAnim(anim: ColorAnim): boolean {
@@ -194,7 +221,7 @@ export class AnimationsGui {
                 "Color Channel",
                 COLOR_CHANNELS,
                 selectedChannel,
-                (c) => c.label
+                (c) => c.label,
             ).id;
 
             this.renderInterp(anim);
@@ -236,7 +263,7 @@ export class AnimationsGui {
             "Curve",
             INTERP_KINDS,
             INTERP_KIND_MAP.get(anim.curveKind)!,
-            (i) => i.label
+            (i) => i.label,
         ).id;
 
         const n = scratchNumberPtr;

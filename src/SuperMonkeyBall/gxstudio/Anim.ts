@@ -47,6 +47,7 @@ export const enum CurveKind {
 
 export type ScalarAnim = {
     uuid: string;
+    enabled: boolean;
     channel: ScalarChannel;
 
     curveKind: CurveKind;
@@ -59,6 +60,7 @@ export type ScalarAnim = {
 
 export type ColorAnim = {
     uuid: string;
+    enabled: boolean;
     channel: ColorChannel;
 
     curveKind: CurveKind;
@@ -100,11 +102,18 @@ function animateCurve(curveKind: CurveKind, phaseOffset: number, speed: number, 
 }
 
 function animateScalar(anim: ScalarAnim, t: number): number {
+    if (!anim.enabled) {
+        return 0;
+    }
     t = animateCurve(anim.curveKind, anim.phaseOffset, anim.speed, t);
     return (1 - t) * anim.start + t * anim.end;
 }
 
 function animateColor(anim: ColorAnim, t: number, outColor: Color) {
+    if (!anim.enabled) {
+        colorCopy(outColor, OpaqueBlack);
+        return;
+    }
     t = animateCurve(anim.curveKind, anim.phaseOffset, anim.speed, t);
     colorLerp(outColor, anim.start, anim.end, t);
 }
