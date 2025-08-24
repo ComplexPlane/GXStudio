@@ -1,6 +1,20 @@
-import { ImGui, ImGuiID, ImGuiImplWeb, ImTextureID, ImTextureRef, ImVec2, ImVec4 } from "@mori2003/jsimgui";
+import {
+    ImGui,
+    ImGuiID,
+    ImGuiImplWeb,
+    ImTextureID,
+    ImTextureRef,
+    ImVec2,
+    ImVec4,
+} from "@mori2003/jsimgui";
 
-export function renderCombo<T>(label: string, items: T[], selectedItem: T, formatFunc: (v: T) => string, helpFunc?: (v: T) => string): T {
+export function renderCombo<T>(
+    label: string,
+    items: T[],
+    selectedItem: T,
+    formatFunc: (v: T) => string,
+    helpFunc?: (v: T) => string
+): T {
     let newSelectedItem = selectedItem;
     if (ImGui.BeginCombo(label, formatFunc(selectedItem), ImGui.ComboFlags.HeightLarge)) {
         for (let i = 0; i < items.length; i++) {
@@ -22,6 +36,6 @@ export function renderCombo<T>(label: string, items: T[], selectedItem: T, forma
     return newSelectedItem;
 }
 
-export function createIdMap<T extends { id: K }, K = T['id']>(items: T[]): Map<K, T> {
-    return new Map(items.map(item => [item.id, item]));
+export function createIdMap<T extends { id: K }, K = T["id"]>(items: T[]): Map<K, T> {
+    return new Map(items.map((item) => [item.id, item]));
 }

@@ -2,25 +2,34 @@ import { ImGui, ImVec2 } from "@mori2003/jsimgui";
 import { GfxDevice } from "../../gfx/platform/GfxPlatform";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache";
 import { TextureCache } from "../ModelCache";
-import { ColorAnim, ColorChannel, InterpKind as CurveKind, Material, Model, ScalarAnim, ScalarChannel, Texture } from "./Scene";
+import {
+    ColorAnim,
+    ColorChannel,
+    InterpKind as CurveKind,
+    Material,
+    Model,
+    ScalarAnim,
+    ScalarChannel,
+    Texture,
+} from "./Scene";
 import { MaterialListGui } from "./MaterialListGui";
 import { colorCopy, colorFromRGBA, OpaqueBlack } from "../../Color";
 import { createIdMap, renderCombo } from "./GuiUtils";
 
 type ScalarChannelInfo = {
-    id: ScalarChannel,
-    label: string,
+    id: ScalarChannel;
+    label: string;
 };
 
 type ColorChannelInfo = {
-    id: ColorChannel,
-    label: string,
+    id: ColorChannel;
+    label: string;
 };
 
 type InterpKindInfo = {
-    id: CurveKind,
-    label: string,
-}
+    id: CurveKind;
+    label: string;
+};
 
 const SCALAR_CHANNELS: ScalarChannelInfo[] = [
     { id: ScalarChannel.UV0_TranlateU, label: "TexCoord0 Translate U" },
@@ -76,19 +85,18 @@ const scratchArr3 = [0, 0, 0];
 export class AnimationsGui {
     constructor(
         private device: GfxDevice,
-        private renderCache: GfxRenderCache, 
+        private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
         private models: Model[],
         private materials: Material[],
         private textures: Texture[],
-        private materialListGui: MaterialListGui,
-    ) {
-    }
+        private materialListGui: MaterialListGui
+    ) {}
 
     public render() {
         const selMaterial = this.materialListGui.getSelectedMaterialIdx();
         const material = this.materials[selMaterial];
-       
+
         if (ImGui.CollapsingHeader(`Scalar Channels`, ImGui.TreeNodeFlags.DefaultOpen)) {
             if (ImGui.Button("Add Scalar Animation")) {
                 const anim: ScalarAnim = {
@@ -121,15 +129,15 @@ export class AnimationsGui {
                 const anim: ColorAnim = {
                     uuid: crypto.randomUUID(),
                     channel: ColorChannel.C0,
-                    start: { r: 0, g: 0, b: 0, a: 1},
-                    end: { r: 0, g: 0, b: 0, a: 1},
+                    start: { r: 0, g: 0, b: 0, a: 1 },
+                    end: { r: 0, g: 0, b: 0, a: 1 },
                     curveKind: CurveKind.Constant,
                     phaseOffset: 0,
                     speed: 1,
                     space: "RGB",
                 };
                 material.colorAnims.push(anim);
-            }       
+            }
 
             let colorAnimDeleteIdx: number | null = null;
             for (let i = 0; i < material.colorAnims.length; i++) {
@@ -151,10 +159,10 @@ export class AnimationsGui {
         const treeName = `${selectedChannel.label}###${anim.uuid}`;
         if (ImGui.TreeNodeEx(treeName, ImGui.TreeNodeFlags.DefaultOpen)) {
             anim.channel = renderCombo(
-                "Scalar Channel", 
-                SCALAR_CHANNELS, 
+                "Scalar Channel",
+                SCALAR_CHANNELS,
                 selectedChannel,
-                (c) => c.label,
+                (c) => c.label
             ).id;
 
             this.renderInterp(anim);
@@ -164,7 +172,7 @@ export class AnimationsGui {
                 n[0] = anim.start;
                 ImGui.SliderFloat("Value", n, -5, 5);
                 anim.start = n[0];
-                anim.end = n[0]
+                anim.end = n[0];
             } else {
                 n[0] = anim.start;
                 ImGui.SliderFloat("Start Value", n, -5, 5);
@@ -180,7 +188,7 @@ export class AnimationsGui {
 
             ImGui.TreePop();
         }
-       
+
         return deleteMe;
     }
 
@@ -191,10 +199,10 @@ export class AnimationsGui {
         const treeName = `${selectedChannel.label}###${anim.uuid}`;
         if (ImGui.TreeNodeEx(treeName, ImGui.TreeNodeFlags.DefaultOpen)) {
             anim.channel = renderCombo(
-                "Color Channel", 
-                COLOR_CHANNELS, 
+                "Color Channel",
+                COLOR_CHANNELS,
                 selectedChannel,
-                (c) => c.label,
+                (c) => c.label
             ).id;
 
             this.renderInterp(anim);
@@ -229,16 +237,16 @@ export class AnimationsGui {
 
             ImGui.TreePop();
         }
-       
+
         return deleteMe;
     }
 
-    private renderInterp(anim: { curveKind: CurveKind, phaseOffset: number, speed: number }) {
+    private renderInterp(anim: { curveKind: CurveKind; phaseOffset: number; speed: number }) {
         anim.curveKind = renderCombo(
             "Curve",
             INTERP_KINDS,
             INTERP_KIND_MAP.get(anim.curveKind)!,
-            (i) => i.label,
+            (i) => i.label
         ).id;
 
         const n = scratchNumberPtr;

@@ -1,6 +1,14 @@
-import { ImGui, ImGuiID, ImGuiImplWeb, ImTextureID, ImTextureRef, ImVec2, ImVec4 } from "@mori2003/jsimgui";
+import {
+    ImGui,
+    ImGuiID,
+    ImGuiImplWeb,
+    ImTextureID,
+    ImTextureRef,
+    ImVec2,
+    ImVec4,
+} from "@mori2003/jsimgui";
 
-import * as GX from '../../gx/gx_enum.js';
+import * as GX from "../../gx/gx_enum.js";
 import { LoadedTexture } from "../../TextureHolder.js";
 import { TextureCache } from "../ModelCache.js";
 import { Gma } from "../Gma.js";
@@ -9,15 +17,23 @@ import * as gui_material from "./MaterialInst.js";
 import { GfxDevice } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
 import { assertExists } from "../../util.js";
-import { GuiScene, Material, Model, newPassthroughTevStage, newWhiteTevStage, TevStage, Texture } from "./Scene.js";
+import {
+    GuiScene,
+    Material,
+    Model,
+    newPassthroughTevStage,
+    newWhiteTevStage,
+    TevStage,
+    Texture,
+} from "./Scene.js";
 import { MaterialListGui } from "./MaterialListGui.js";
 import { createIdMap } from "./GuiUtils.js";
 
 type ColorConst = {
-    id: GX.KonstColorSel,
-    label: string,
-    help: string,
-}
+    id: GX.KonstColorSel;
+    label: string;
+    help: string;
+};
 
 const COLOR_CONSTS: ColorConst[] = [
     { id: GX.KonstColorSel.KCSEL_K0, label: "K0", help: "Color value from color constant 0" },
@@ -31,9 +47,9 @@ const COLOR_CONST_MAP = createIdMap(COLOR_CONSTS);
 // Going to ignore alpha constants for now, think we'll be alright w/o them
 
 type ColorIn = {
-    id: GX.CC,
-    label: string,
-    help: string,
+    id: GX.CC;
+    label: string;
+    help: string;
 };
 
 const COLOR_INS: ColorIn[] = [
@@ -43,11 +59,19 @@ const COLOR_INS: ColorIn[] = [
     { id: GX.CC.RASC, label: "Lighting Color", help: "Color value from rasterizer" },
     { id: GX.CC.TEXC, label: "Texture Color", help: "Color value from texture" },
     { id: GX.CC.TEXA, label: "Texture Alpha", help: "Alpha value from texture" },
-    { id: GX.CC.CPREV, label: "Color Register PREV", help: "Color value from color register 'PREV'" },
+    {
+        id: GX.CC.CPREV,
+        label: "Color Register PREV",
+        help: "Color value from color register 'PREV'",
+    },
     { id: GX.CC.C0, label: "Color Register 0", help: "Color value from color register 0" },
     { id: GX.CC.C1, label: "Color Register 1", help: "Color value from color register 1" },
     { id: GX.CC.C2, label: "Color Register 2", help: "Color value from color register 2" },
-    { id: GX.CC.APREV, label: "Alpha Register PREV", help: "Alpha value from alpha register 'PREV'" },
+    {
+        id: GX.CC.APREV,
+        label: "Alpha Register PREV",
+        help: "Alpha value from alpha register 'PREV'",
+    },
     { id: GX.CC.A0, label: "Alpha Register 0", help: "Alpha value from alpha register 0" },
     { id: GX.CC.A1, label: "Alpha Register 1", help: "Alpha value from alpha register 1" },
     { id: GX.CC.A2, label: "Alpha Register 2", help: "Alpha value from alpha register 2" },
@@ -58,9 +82,9 @@ const COLOR_INS: ColorIn[] = [
 const COLOR_IN_MAP = createIdMap(COLOR_INS);
 
 type AlphaIn = {
-    id: GX.CA,
-    label: string,
-    help: string,
+    id: GX.CA;
+    label: string;
+    help: string;
 };
 
 const ALPHA_INS: AlphaIn[] = [
@@ -77,9 +101,9 @@ const ALPHA_INS: AlphaIn[] = [
 const ALPHA_IN_MAP = createIdMap(ALPHA_INS);
 
 type OutReg = {
-    id: GX.Register,
-    label: string,
-    help: string,
+    id: GX.Register;
+    label: string;
+    help: string;
 };
 
 const COLOR_OUTS: OutReg[] = [
@@ -101,8 +125,8 @@ const ALPHA_OUTS: OutReg[] = [
 const ALPHA_OUT_MAP = createIdMap(ALPHA_OUTS);
 
 type WrapMode = {
-    id: GX.WrapMode,
-    label: string,
+    id: GX.WrapMode;
+    label: string;
 };
 
 const WRAP_MODES: WrapMode[] = [
@@ -116,14 +140,13 @@ const WRAP_MODE_MAP = createIdMap(WRAP_MODES);
 export class TevGui {
     constructor(
         private device: GfxDevice,
-        private renderCache: GfxRenderCache, 
+        private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
         private models: Model[],
         private materials: Material[],
         private textures: Texture[],
-        private materialListGui: MaterialListGui,
-    ) {
-    }
+        private materialListGui: MaterialListGui
+    ) {}
 
     public render() {
         const selMaterial = this.materialListGui.getSelectedMaterialIdx();
@@ -135,9 +158,10 @@ export class TevGui {
         }
 
         if (ImGui.Button(`Add TEV Stage (${material.tevStages.length}/8)`)) {
-            const tevStage = material.tevStages.length === 0 
-                ? newWhiteTevStage()
-                : newPassthroughTevStage(material.tevStages[material.tevStages.length - 1]);
+            const tevStage =
+                material.tevStages.length === 0
+                    ? newWhiteTevStage()
+                    : newPassthroughTevStage(material.tevStages[material.tevStages.length - 1]);
             material.tevStages.push(tevStage);
             material.rebuild();
         }
@@ -152,22 +176,27 @@ export class TevGui {
 
             ImGui.PushID(tevStage.uuid);
 
-            if (ImGui.CollapsingHeader(`TEV Stage ${tevStageIdx}###${tevStage.uuid}`, ImGui.TreeNodeFlags.DefaultOpen)) {
+            if (
+                ImGui.CollapsingHeader(
+                    `TEV Stage ${tevStageIdx}###${tevStage.uuid}`,
+                    ImGui.TreeNodeFlags.DefaultOpen
+                )
+            ) {
                 if (ImGui.TreeNodeEx("Texture", ImGui.TreeNodeFlags.DefaultOpen)) {
                     this.renderTextureSelDropdown("Input Texture", tevStage);
                     ImGui.PushItemWidth(100);
                     tevStage.textureWrapU = renderCombo(
-                        "U Wrap", 
-                        WRAP_MODES, 
-                        WRAP_MODE_MAP.get(tevStage.textureWrapU)!, 
-                        (w) => w.label,
+                        "U Wrap",
+                        WRAP_MODES,
+                        WRAP_MODE_MAP.get(tevStage.textureWrapU)!,
+                        (w) => w.label
                     ).id;
                     ImGui.SameLine();
                     tevStage.textureWrapV = renderCombo(
                         "V Wrap",
                         WRAP_MODES,
                         WRAP_MODE_MAP.get(tevStage.textureWrapV)!,
-                        (w) => w.label,
+                        (w) => w.label
                     ).id;
                     ImGui.PopItemWidth();
                     ImGui.TreePop();
@@ -179,8 +208,19 @@ export class TevGui {
                     tevStage.colorInB = this.renderColorSelDropdown(`B Source`, tevStage.colorInB);
                     tevStage.colorInC = this.renderColorSelDropdown(`C Source`, tevStage.colorInC);
                     tevStage.colorInD = this.renderColorSelDropdown(`D Source`, tevStage.colorInD);
-                    if (tevStage.colorInA === GX.CC.KONST || tevStage.colorInB === GX.CC.KONST || tevStage.colorInC === GX.CC.KONST || tevStage.colorInD === GX.CC.KONST) {
-                        tevStage.kcsel = renderCombo("Color Const", COLOR_CONSTS, COLOR_CONST_MAP.get(tevStage.kcsel)!, (c) => c.label, (c) => c.help).id;
+                    if (
+                        tevStage.colorInA === GX.CC.KONST ||
+                        tevStage.colorInB === GX.CC.KONST ||
+                        tevStage.colorInC === GX.CC.KONST ||
+                        tevStage.colorInD === GX.CC.KONST
+                    ) {
+                        tevStage.kcsel = renderCombo(
+                            "Color Const",
+                            COLOR_CONSTS,
+                            COLOR_CONST_MAP.get(tevStage.kcsel)!,
+                            (c) => c.label,
+                            (c) => c.help
+                        ).id;
                     }
                     tevStage.colorDest = this.renderColorOutDropdown(`Dest`, tevStage.colorDest);
                     ImGui.TreePop();
@@ -217,20 +257,24 @@ export class TevGui {
         }
 
         if (tevStageToDelete !== null) {
-            material.tevStages.splice(tevStageToDelete, 1)
+            material.tevStages.splice(tevStageToDelete, 1);
             material.rebuild();
         }
     }
 
     private renderTextureSelDropdown(label: string, tevStage: TevStage) {
-        this.texturePicker((texture) => { tevStage.texture = texture; });
+        this.texturePicker((texture) => {
+            tevStage.texture = texture;
+        });
 
         if (tevStage.texture !== null) {
-            if (ImGui.ImageButton(
-                "##textureButtonId",
-                tevStage.texture.imguiTextureIds[0], 
-                new ImVec2(80, 80),
-            )) {
+            if (
+                ImGui.ImageButton(
+                    "##textureButtonId",
+                    tevStage.texture.imguiTextureIds[0],
+                    new ImVec2(80, 80)
+                )
+            ) {
                 ImGui.OpenPopup("Choose Texture");
             }
             showTextureTooltip(tevStage.texture);
@@ -264,11 +308,7 @@ export class TevGui {
                         ImGui.CloseCurrentPopup();
                     }
                 } else {
-                    if (ImGui.ImageButton(
-                        "",
-                        texture.imguiTextureIds[0], 
-                        new ImVec2(120, 120),
-                    )) {
+                    if (ImGui.ImageButton("", texture.imguiTextureIds[0], new ImVec2(120, 120))) {
                         setFunc(texture);
                         ImGui.CloseCurrentPopup();
                     }
@@ -284,22 +324,46 @@ export class TevGui {
 
     private renderColorSelDropdown(label: string, cc: GX.CC): GX.CC {
         const currColorSel = COLOR_IN_MAP.get(cc)!;
-        return renderCombo(label, COLOR_INS, currColorSel, (s) => s.label, (s) => s.help).id;
+        return renderCombo(
+            label,
+            COLOR_INS,
+            currColorSel,
+            (s) => s.label,
+            (s) => s.help
+        ).id;
     }
 
     private renderAlphaSelDropdown(label: string, ca: GX.CA): GX.CA {
         const currAlphaSel = ALPHA_IN_MAP.get(ca)!;
-        return renderCombo(label, ALPHA_INS, currAlphaSel, (s) => s.label, (s) => s.help).id;
+        return renderCombo(
+            label,
+            ALPHA_INS,
+            currAlphaSel,
+            (s) => s.label,
+            (s) => s.help
+        ).id;
     }
 
     private renderColorOutDropdown(label: string, cc: GX.Register): GX.Register {
         const currColorSel = COLOR_OUT_MAP.get(cc)!;
-        return renderCombo(label, COLOR_OUTS, currColorSel, (s) => s.label, (s) => s.help).id;
+        return renderCombo(
+            label,
+            COLOR_OUTS,
+            currColorSel,
+            (s) => s.label,
+            (s) => s.help
+        ).id;
     }
 
     private renderAlphaOutDropdown(label: string, ca: GX.Register): GX.Register {
         const currAlphaSel = ALPHA_OUT_MAP.get(ca)!;
-        return renderCombo(label, ALPHA_OUTS, currAlphaSel, (s) => s.label, (s) => s.help).id;
+        return renderCombo(
+            label,
+            ALPHA_OUTS,
+            currAlphaSel,
+            (s) => s.label,
+            (s) => s.help
+        ).id;
     }
 }
 
@@ -307,7 +371,7 @@ function getImageButtonSize(imageButtonSize: ImVec2): ImVec2 {
     const framePadding = ImGui.GetStyle().FramePadding;
     return new ImVec2(
         imageButtonSize.x + framePadding.x * 2,
-        imageButtonSize.y + framePadding.y * 2,
+        imageButtonSize.y + framePadding.y * 2
     );
 }
 
@@ -321,7 +385,13 @@ function showTextureTooltip(texture: Texture) {
     }
 }
 
-function renderCombo<T>(label: string, items: T[], selectedItem: T, formatFunc: (v: T) => string, helpFunc?: (v: T) => string): T {
+function renderCombo<T>(
+    label: string,
+    items: T[],
+    selectedItem: T,
+    formatFunc: (v: T) => string,
+    helpFunc?: (v: T) => string
+): T {
     let newSelectedItem = selectedItem;
     if (ImGui.BeginCombo(label, formatFunc(selectedItem), ImGui.ComboFlags.HeightLarge)) {
         for (let i = 0; i < items.length; i++) {

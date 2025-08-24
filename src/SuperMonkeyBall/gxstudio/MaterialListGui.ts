@@ -1,7 +1,14 @@
+import {
+    ImGui,
+    ImGuiID,
+    ImGuiImplWeb,
+    ImTextureID,
+    ImTextureRef,
+    ImVec2,
+    ImVec4,
+} from "@mori2003/jsimgui";
 
-import { ImGui, ImGuiID, ImGuiImplWeb, ImTextureID, ImTextureRef, ImVec2, ImVec4 } from "@mori2003/jsimgui";
-
-import * as GX from '../../gx/gx_enum.js';
+import * as GX from "../../gx/gx_enum.js";
 import { LoadedTexture } from "../../TextureHolder.js";
 import { TextureCache } from "../ModelCache.js";
 import { Gma } from "../Gma.js";
@@ -19,13 +26,12 @@ export class MaterialListGui {
 
     constructor(
         private device: GfxDevice,
-        private renderCache: GfxRenderCache, 
+        private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
         private models: Model[],
         private materials: Material[],
-        private textures: Texture[],
-    ) {
-    }
+        private textures: Texture[]
+    ) {}
 
     public getSelectedMaterialIdx(): number {
         return this.selMaterial;
@@ -35,7 +41,7 @@ export class MaterialListGui {
         ImGui.SeparatorText("Materials List");
         if (ImGui.BeginListBox("Materials", new ImVec2(0, 100))) {
             for (let i = 0; i < this.materials.length; i++) {
-                const isSelected = i === this.selMaterial
+                const isSelected = i === this.selMaterial;
                 if (ImGui.Selectable(this.materials[i].name, isSelected)) {
                     this.selMaterial = i;
                 }
@@ -82,10 +88,15 @@ export class MaterialListGui {
         const materialName = this.nameSomethingPopup(
             "New Material",
             "My New Material",
-            this.materials.map((m) => m.name),
+            this.materials.map((m) => m.name)
         );
         if (materialName !== null) {
-            const material = new Material(this.device, this.renderCache, this.textureCache, materialName);
+            const material = new Material(
+                this.device,
+                this.renderCache,
+                this.textureCache,
+                materialName
+            );
             this.selMaterial++;
             this.materials.splice(this.selMaterial, 0, material);
         }
@@ -95,7 +106,7 @@ export class MaterialListGui {
             const newName = this.nameSomethingPopup(
                 "Rename Material",
                 this.materials[this.selMaterial].name,
-                this.materials.filter((_, i) => i !== this.selMaterial).map((m) => m.name),
+                this.materials.filter((_, i) => i !== this.selMaterial).map((m) => m.name)
             );
             if (newName !== null) {
                 this.materials[this.selMaterial].name = newName;
@@ -107,8 +118,8 @@ export class MaterialListGui {
             const newName = this.nameSomethingPopup(
                 "Duplicate Material",
                 this.materials[this.selMaterial].name,
-                this.materials.map((m) => m.name),
-            )
+                this.materials.map((m) => m.name)
+            );
             if (newName !== null) {
                 const clone = this.materials[this.selMaterial].clone(newName);
                 this.selMaterial++;
@@ -145,7 +156,11 @@ export class MaterialListGui {
         }
     }
 
-    private nameSomethingPopup(label: string, defaultName: string, existingNames: string[]): string | null {
+    private nameSomethingPopup(
+        label: string,
+        defaultName: string,
+        existingNames: string[]
+    ): string | null {
         let ret = null;
         if (ImGui.BeginPopup(label)) {
             ImGui.Text(label);

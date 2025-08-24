@@ -7,13 +7,12 @@ import { Material, Model, Texture } from "./Scene";
 export class TexturesGui {
     constructor(
         private device: GfxDevice,
-        private renderCache: GfxRenderCache, 
+        private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
         private models: Model[],
         private materials: Material[],
-        private textures: Texture[],
-    ) {
-    }
+        private textures: Texture[]
+    ) {}
 
     public render() {
         if (ImGui.BeginChild("Textures Child")) {
@@ -23,7 +22,10 @@ export class TexturesGui {
                 const dims = `${texture.gxTexture.width}x${texture.gxTexture.height}`;
                 const mips = `${texture.gxTexture.mipCount} mip level(s)`;
                 ImGui.Text(`${name}: ${dims}, ${mips}`);
-                ImGui.ImageWithBg(texture.imguiTextureIds[0], new ImVec2(200, 200 / (texture.gxTexture.width / texture.gxTexture.height)));
+                ImGui.ImageWithBg(
+                    texture.imguiTextureIds[0],
+                    new ImVec2(200, 200 / (texture.gxTexture.width / texture.gxTexture.height))
+                );
                 ImGui.Spacing();
             }
             ImGui.EndChild();

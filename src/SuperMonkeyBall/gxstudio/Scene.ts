@@ -1,12 +1,23 @@
 import { mat4 } from "gl-matrix";
 import { Color, colorCopy, colorMult, colorNewCopy, White } from "../../Color.js";
-import { GfxDevice, GfxMipFilterMode, GfxSampler, GfxTexFilterMode } from "../../gfx/platform/GfxPlatform.js";
+import {
+    GfxDevice,
+    GfxMipFilterMode,
+    GfxSampler,
+    GfxTexFilterMode,
+} from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
 import { GfxRenderInst } from "../../gfx/render/GfxRenderInstManager.js";
 import { GXMaterialBuilder } from "../../gx/GXMaterialBuilder.js";
 import * as GX from "../../gx/gx_enum.js";
 import { GXMaterialHacks, SwapTable } from "../../gx/gx_material.js";
-import { ColorKind, DrawParams, GXMaterialHelperGfx, MaterialParams, translateWrapModeGfx } from "../../gx/gx_render.js";
+import {
+    ColorKind,
+    DrawParams,
+    GXMaterialHelperGfx,
+    MaterialParams,
+    translateWrapModeGfx,
+} from "../../gx/gx_render.js";
 import { assertExists } from "../../util.js";
 import { RenderParams } from "../Model.js";
 import * as gui from "./Gui.js";
@@ -17,33 +28,32 @@ import { ImTextureRef } from "@mori2003/jsimgui";
 import { MaterialInst, TextureInst } from "./MaterialInst.js";
 
 export type Texture = {
-    imguiTextureIds: ImTextureRef[], // Loaded imgui textures, one per mip level
-    gxTexture: TextureInputGX, // Original GX texture for passing to TextureCache
-}
+    imguiTextureIds: ImTextureRef[]; // Loaded imgui textures, one per mip level
+    gxTexture: TextureInputGX; // Original GX texture for passing to TextureCache
+};
 
 export type TevStage = {
-    uuid: string,
+    uuid: string;
 
     kcsel: GX.KonstColorSel; // Dummy if GX.CC.KONST unused
-    colorInA: GX.CC,
-    colorInB: GX.CC,
-    colorInC: GX.CC,
-    colorInD: GX.CC,
-    colorDest: GX.Register,
-    colorOp: GX.TevOp,
+    colorInA: GX.CC;
+    colorInB: GX.CC;
+    colorInC: GX.CC;
+    colorInD: GX.CC;
+    colorDest: GX.Register;
+    colorOp: GX.TevOp;
 
-    alphaInA: GX.CA,
-    alphaInB: GX.CA,
-    alphaInC: GX.CA,
-    alphaInD: GX.CA,
-    alphaDest: GX.Register,
-    alphaOp: GX.TevOp,
-    
+    alphaInA: GX.CA;
+    alphaInB: GX.CA;
+    alphaInC: GX.CA;
+    alphaInD: GX.CA;
+    alphaDest: GX.Register;
+    alphaOp: GX.TevOp;
 
-    texture: Texture | null,
-    textureWrapU: GX.WrapMode,
-    textureWrapV: GX.WrapMode,
-}
+    texture: Texture | null;
+    textureWrapU: GX.WrapMode;
+    textureWrapV: GX.WrapMode;
+};
 
 export function newWhiteTevStage(): TevStage {
     return {
@@ -67,7 +77,7 @@ export function newWhiteTevStage(): TevStage {
         texture: null,
         textureWrapU: GX.WrapMode.REPEAT,
         textureWrapV: GX.WrapMode.REPEAT,
-    }
+    };
 }
 
 export function newPassthroughTevStage(prevTevStage: TevStage): TevStage {
@@ -102,7 +112,6 @@ export function newPassthroughTevStage(prevTevStage: TevStage): TevStage {
     return tevStage;
 }
 
-
 export class Material {
     public tevStages = [newWhiteTevStage()];
     public scalarAnims: ScalarAnim[] = [];
@@ -115,7 +124,7 @@ export class Material {
         private device: GfxDevice,
         private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
-        public name: string,
+        public name: string
     ) {
         this.rebuild();
     }
@@ -127,28 +136,41 @@ export class Material {
         const textures = [];
         for (let tevStage of tevStages) {
             if (tevStage.texture !== null) {
-                textures.push(new TextureInst(
-                    this.device,
-                    this.renderCache,
-                    this.textureCache,
-                    tevStage.texture.gxTexture,
-                    tevStage.textureWrapU,
-                    tevStage.textureWrapV,
-                ));
+                textures.push(
+                    new TextureInst(
+                        this.device,
+                        this.renderCache,
+                        this.textureCache,
+                        tevStage.texture.gxTexture,
+                        tevStage.textureWrapU,
+                        tevStage.textureWrapV
+                    )
+                );
             }
         }
 
         this.instances = new Map<GX.CullMode, MaterialInst>();
-        for (let cullMode of [GX.CullMode.BACK, GX.CullMode.FRONT, GX.CullMode.ALL, GX.CullMode.NONE]) {
-            const materialInst = new MaterialInst(tevStages, textures, this.scalarAnims, this.colorAnims, cullMode);
+        for (let cullMode of [
+            GX.CullMode.BACK,
+            GX.CullMode.FRONT,
+            GX.CullMode.ALL,
+            GX.CullMode.NONE,
+        ]) {
+            const materialInst = new MaterialInst(
+                tevStages,
+                textures,
+                this.scalarAnims,
+                this.colorAnims,
+                cullMode
+            );
             this.instances.set(cullMode, materialInst);
         }
     }
 
     public clone(name: string): Material {
         const newMaterial = new Material(this.device, this.renderCache, this.textureCache, name);
-        newMaterial.tevStages = this.tevStages.map((t) => { 
-            return { ...t, uuid: crypto.randomUUID() }; 
+        newMaterial.tevStages = this.tevStages.map((t) => {
+            return { ...t, uuid: crypto.randomUUID() };
         });
         newMaterial.scalarAnims = this.scalarAnims.map((a) => {
             const clone = structuredClone(a);
@@ -166,20 +188,20 @@ export class Material {
 }
 
 export type Mesh = {
-    material: Material | null,
-}
+    material: Material | null;
+};
 
 export type Model = {
-    name: string,
-    visible: boolean,
-    hover: boolean,
-    meshes: Mesh[],
-}
+    name: string;
+    visible: boolean;
+    hover: boolean;
+    meshes: Mesh[];
+};
 
 export type GuiScene = {
-    models: Model[],
-    materials: Material[],
-}
+    models: Model[];
+    materials: Material[];
+};
 
 export const enum ScalarChannel {
     UV0_TranlateU,
@@ -222,29 +244,29 @@ export const enum InterpKind {
     Sine,
     Saw,
     Square,
-};
+}
 
 export type ScalarAnim = {
-    uuid: string,
-    channel: ScalarChannel,
+    uuid: string;
+    channel: ScalarChannel;
 
-    curveKind: InterpKind,
-    phaseOffset: number,
-    speed: number,
+    curveKind: InterpKind;
+    phaseOffset: number;
+    speed: number;
 
-    start: number,
-    end: number,
+    start: number;
+    end: number;
 };
 
 export type ColorAnim = {
-    uuid: string,
-    channel: ColorChannel,
+    uuid: string;
+    channel: ColorChannel;
 
-    curveKind: InterpKind,
-    phaseOffset: number,
-    speed: number,
-    space: "RGB" | "HSL",
+    curveKind: InterpKind;
+    phaseOffset: number;
+    speed: number;
+    space: "RGB" | "HSL";
 
-    start: Color,
-    end: Color,
+    start: Color;
+    end: Color;
 };

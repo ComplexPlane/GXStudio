@@ -1,6 +1,14 @@
-import { ImGui, ImGuiID, ImGuiImplWeb, ImTextureID, ImTextureRef, ImVec2, ImVec4 } from "@mori2003/jsimgui";
+import {
+    ImGui,
+    ImGuiID,
+    ImGuiImplWeb,
+    ImTextureID,
+    ImTextureRef,
+    ImVec2,
+    ImVec4,
+} from "@mori2003/jsimgui";
 
-import * as GX from '../../gx/gx_enum.js';
+import * as GX from "../../gx/gx_enum.js";
 import { LoadedTexture } from "../../TextureHolder.js";
 import { TextureCache } from "../ModelCache.js";
 import { Gma } from "../Gma.js";
@@ -15,7 +23,6 @@ import { MaterialListGui } from "./MaterialListGui.js";
 import { TevGui } from "./TevGui.js";
 import { TexturesGui } from "./TexturesGui.js";
 import { AnimationsGui } from "./AnimationsGui.js";
-
 
 export class Gui {
     private modelsGui: ModelsGui;
@@ -34,9 +41,9 @@ export class Gui {
 
     constructor(
         device: GfxDevice,
-        renderCache: GfxRenderCache, 
+        renderCache: GfxRenderCache,
         textureCache: TextureCache,
-        gma: Gma,
+        gma: Gma
     ) {
         this.canvasElem = document.getElementById("imguiCanvas") as HTMLCanvasElement;
         this.loadTextures(gma);
@@ -44,17 +51,56 @@ export class Gui {
         for (let model of gma.idMap.values()) {
             this.models.push({
                 name: model.name,
-                meshes: model.shapes.map((_) => { return { material: null }; }),
+                meshes: model.shapes.map((_) => {
+                    return { material: null };
+                }),
                 visible: true,
                 hover: false,
             });
         }
 
-        this.modelsGui = new ModelsGui(device, renderCache, textureCache, this.models, this.materials, this.textures);
-        this.materialListGui = new MaterialListGui(device, renderCache, textureCache, this.models, this.materials, this.textures);
-        this.tevGui = new TevGui(device, renderCache, textureCache, this.models, this.materials, this.textures, this.materialListGui);
-        this.animationsGui = new AnimationsGui(device, renderCache, textureCache, this.models, this.materials, this.textures, this.materialListGui);
-        this.texturesGui = new TexturesGui(device, renderCache, textureCache, this.models, this.materials, this.textures);
+        this.modelsGui = new ModelsGui(
+            device,
+            renderCache,
+            textureCache,
+            this.models,
+            this.materials,
+            this.textures
+        );
+        this.materialListGui = new MaterialListGui(
+            device,
+            renderCache,
+            textureCache,
+            this.models,
+            this.materials,
+            this.textures
+        );
+        this.tevGui = new TevGui(
+            device,
+            renderCache,
+            textureCache,
+            this.models,
+            this.materials,
+            this.textures,
+            this.materialListGui
+        );
+        this.animationsGui = new AnimationsGui(
+            device,
+            renderCache,
+            textureCache,
+            this.models,
+            this.materials,
+            this.textures,
+            this.materialListGui
+        );
+        this.texturesGui = new TexturesGui(
+            device,
+            renderCache,
+            textureCache,
+            this.models,
+            this.materials,
+            this.textures
+        );
     }
 
     public getGuiScene(): GuiScene {
@@ -76,29 +122,33 @@ export class Gui {
             const mipChain = calcMipChain(gxTexture, gxTexture.mipCount);
             const mipPromises = [];
             for (let mipLevel of mipChain.mipLevels) {
-                mipPromises.push(decodeTexture(mipLevel).then((decoded) => {
-                    const array = new Uint8Array(
-                        decoded.pixels.buffer, 
-                        decoded.pixels.byteOffset, 
-                        decoded.pixels.byteLength,
-                    );
-                    const id = ImGuiImplWeb.LoadTexture(array, {
-                        width: mipLevel.width,
-                        height: mipLevel.height,
-                    });
-                    return new ImTextureRef(id);
-                }));
+                mipPromises.push(
+                    decodeTexture(mipLevel).then((decoded) => {
+                        const array = new Uint8Array(
+                            decoded.pixels.buffer,
+                            decoded.pixels.byteOffset,
+                            decoded.pixels.byteLength
+                        );
+                        const id = ImGuiImplWeb.LoadTexture(array, {
+                            width: mipLevel.width,
+                            height: mipLevel.height,
+                        });
+                        return new ImTextureRef(id);
+                    })
+                );
             }
-            texturePromises.push(Promise.all(mipPromises).then((imguiTexIds) => {
-                const texture: Texture = {
-                    imguiTextureIds: imguiTexIds,
-                    gxTexture: gxTexture,
-                };
-                return texture;
-            }));
+            texturePromises.push(
+                Promise.all(mipPromises).then((imguiTexIds) => {
+                    const texture: Texture = {
+                        imguiTextureIds: imguiTexIds,
+                        gxTexture: gxTexture,
+                    };
+                    return texture;
+                })
+            );
         }
 
-        Promise.all(texturePromises).then((textures) => { 
+        Promise.all(texturePromises).then((textures) => {
             textures.sort((a, b) => a.gxTexture.name.localeCompare(b.gxTexture.name));
             this.textures.push(...textures);
         });
@@ -111,7 +161,11 @@ export class Gui {
         this.imguiSize.y = this.canvasElem.clientHeight;
         ImGui.SetNextWindowSize(this.imguiSize);
         ImGui.SetNextWindowPos(this.imguiPos);
-        ImGui.Begin("Root", [], ImGui.WindowFlags.NoTitleBar | ImGui.WindowFlags.NoResize | ImGui.WindowFlags.MenuBar);
+        ImGui.Begin(
+            "Root",
+            [],
+            ImGui.WindowFlags.NoTitleBar | ImGui.WindowFlags.NoResize | ImGui.WindowFlags.MenuBar
+        );
 
         this.renderMenuBar();
 
@@ -159,7 +213,7 @@ export class Gui {
             ImGui.EndTabBar();
         }
     }
-    
+
     private renderMenuBar() {
         // TODO(complexplane): broken
         if (ImGui.BeginMenuBar()) {
@@ -191,6 +245,4 @@ export class Gui {
             ImGui.EndMenuBar();
         }
     }
-
-   
 }

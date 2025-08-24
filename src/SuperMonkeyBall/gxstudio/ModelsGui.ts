@@ -1,7 +1,14 @@
+import {
+    ImGui,
+    ImGuiID,
+    ImGuiImplWeb,
+    ImTextureID,
+    ImTextureRef,
+    ImVec2,
+    ImVec4,
+} from "@mori2003/jsimgui";
 
-import { ImGui, ImGuiID, ImGuiImplWeb, ImTextureID, ImTextureRef, ImVec2, ImVec4 } from "@mori2003/jsimgui";
-
-import * as GX from '../../gx/gx_enum.js';
+import * as GX from "../../gx/gx_enum.js";
 import { LoadedTexture } from "../../TextureHolder.js";
 import { TextureCache } from "../ModelCache.js";
 import { Gma } from "../Gma.js";
@@ -16,13 +23,12 @@ import { renderCombo } from "./GuiUtils.js";
 export class ModelsGui {
     constructor(
         private device: GfxDevice,
-        private renderCache: GfxRenderCache, 
+        private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
         private models: Model[],
         private materials: Material[],
-        private textures: Texture[],
-    ) {
-    }
+        private textures: Texture[]
+    ) {}
 
     public render() {
         ImGui.SeparatorText("Models List");
@@ -53,8 +59,11 @@ export class ModelsGui {
                     for (let meshIdx = 0; meshIdx < model.meshes.length; meshIdx++) {
                         const mesh = model.meshes[meshIdx];
                         if (ImGui.TreeNodeEx(`Mesh ${meshIdx}`, ImGui.TreeNodeFlags.DefaultOpen)) {
-                            model.meshes[meshIdx].material = renderCombo("Material", maybeMaterials, mesh.material, (m) => 
-                                m === null ? "<default>" : m.name,
+                            model.meshes[meshIdx].material = renderCombo(
+                                "Material",
+                                maybeMaterials,
+                                mesh.material,
+                                (m) => (m === null ? "<default>" : m.name)
                             );
                             ImGui.TreePop();
                         }

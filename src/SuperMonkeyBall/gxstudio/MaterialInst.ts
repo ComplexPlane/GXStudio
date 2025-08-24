@@ -1,13 +1,23 @@
-
 import { mat4 } from "gl-matrix";
 import { Color, colorCopy, colorMult, colorNewCopy, White } from "../../Color.js";
-import { GfxDevice, GfxMipFilterMode, GfxSampler, GfxTexFilterMode } from "../../gfx/platform/GfxPlatform.js";
+import {
+    GfxDevice,
+    GfxMipFilterMode,
+    GfxSampler,
+    GfxTexFilterMode,
+} from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
 import { GfxRenderInst } from "../../gfx/render/GfxRenderInstManager.js";
 import { GXMaterialBuilder } from "../../gx/GXMaterialBuilder.js";
 import * as GX from "../../gx/gx_enum.js";
 import { GXMaterialHacks, SwapTable } from "../../gx/gx_material.js";
-import { ColorKind, DrawParams, GXMaterialHelperGfx, MaterialParams, translateWrapModeGfx } from "../../gx/gx_render.js";
+import {
+    ColorKind,
+    DrawParams,
+    GXMaterialHelperGfx,
+    MaterialParams,
+    translateWrapModeGfx,
+} from "../../gx/gx_render.js";
 import { assertExists } from "../../util.js";
 import { RenderParams } from "../Model.js";
 import * as gui from "./Gui.js";
@@ -44,7 +54,7 @@ export class TextureInst {
         textureCache: TextureCache,
         texture: TextureInputGX,
         wrapModeU: GX.WrapMode,
-        wrapModeV: GX.WrapMode,
+        wrapModeV: GX.WrapMode
     ) {
         this.loadedTex = textureCache.getTexture(device, texture);
 
@@ -85,7 +95,7 @@ export class MaterialInst {
         private textureInsts: TextureInst[],
         private scalarAnims: ScalarAnim[],
         private colorAnims: ColorAnim[],
-        cullMode: GX.CullMode,
+        cullMode: GX.CullMode
     ) {
         const mb = new GXMaterialBuilder();
 
@@ -121,14 +131,50 @@ export class MaterialInst {
             const tevStage = this.tevStages[tevStageIdx];
             mb.setTevDirect(tevStageIdx);
             mb.setTevSwapMode(buildState.stage, SWAP_TABLES[0], SWAP_TABLES[0]);
-            mb.setTexCoordGen(buildState.texCoord, GX.TexGenType.MTX2x4, buildState.texGenSrc, GX.TexGenMatrix.TEXMTX1);
+            mb.setTexCoordGen(
+                buildState.texCoord,
+                GX.TexGenType.MTX2x4,
+                buildState.texGenSrc,
+                GX.TexGenMatrix.TEXMTX1
+            );
             const texMap = tevStage.texture !== null ? buildState.texMap : GX.TexMapID.TEXMAP_NULL;
-            mb.setTevOrder(buildState.stage, buildState.texCoord, texMap, GX.RasColorChannelID.COLOR0A0);
+            mb.setTevOrder(
+                buildState.stage,
+                buildState.texCoord,
+                texMap,
+                GX.RasColorChannelID.COLOR0A0
+            );
 
-            mb.setTevColorIn(buildState.stage, tevStage.colorInA, tevStage.colorInB, tevStage.colorInC, tevStage.colorInD);
-            mb.setTevColorOp(buildState.stage, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, tevStage.colorDest);
-            mb.setTevAlphaIn(buildState.stage, tevStage.alphaInA, tevStage.alphaInB, tevStage.alphaInC, tevStage.alphaInD);
-            mb.setTevAlphaOp(buildState.stage, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, tevStage.alphaDest);
+            mb.setTevColorIn(
+                buildState.stage,
+                tevStage.colorInA,
+                tevStage.colorInB,
+                tevStage.colorInC,
+                tevStage.colorInD
+            );
+            mb.setTevColorOp(
+                buildState.stage,
+                GX.TevOp.ADD,
+                GX.TevBias.ZERO,
+                GX.TevScale.SCALE_1,
+                true,
+                tevStage.colorDest
+            );
+            mb.setTevAlphaIn(
+                buildState.stage,
+                tevStage.alphaInA,
+                tevStage.alphaInB,
+                tevStage.alphaInC,
+                tevStage.alphaInD
+            );
+            mb.setTevAlphaOp(
+                buildState.stage,
+                GX.TevOp.ADD,
+                GX.TevBias.ZERO,
+                GX.TevScale.SCALE_1,
+                true,
+                tevStage.alphaDest
+            );
 
             buildState.stage++;
             buildState.texCoord++;
