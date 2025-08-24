@@ -1,5 +1,5 @@
 import { mat4 } from "gl-matrix";
-import { Color, colorCopy, colorNewCopy, White } from "../../Color.js";
+import { Color, colorCopy, colorFromHSL, colorLerp, colorNewCopy, White } from "../../Color.js";
 import { LoadedTexture, TextureMapping } from "../../TextureHolder.js";
 import {
     GfxDevice,
@@ -23,7 +23,7 @@ import { TextureInputGX } from "../../gx/gx_texture.js";
 import { assertExists } from "../../util.js";
 import { RenderParams } from "../Model.js";
 import { TextureCache } from "../ModelCache.js";
-import { ColorAnim, ScalarAnim, TevStage } from "./Scene.js";
+import { ColorAnim, CurveKind, ScalarAnim, TevStage } from "./Scene.js";
 
 type BuildState = {
     stage: number;
@@ -42,6 +42,32 @@ const SWAP_TABLES: SwapTable[] = [
 const scratchMaterialParams = new MaterialParams();
 const scratchColor1: Color = colorNewCopy(White);
 const scratchColor2: Color = colorNewCopy(White);
+
+function animateCurve(curveKind: CurveKind, phaseOffset: number, speed: number, t: number): number {
+    t = ((t + phaseOffset) * speed) % 1;
+    if (curveKind === CurveKind.Constant) {
+        return 0;
+    } else if (curveKind === CurveKind.Linear) {
+        return t;
+    } else if (curveKind === CurveKind.Sine) {
+        return Math.sin(t * 2 * Math.PI) * 2 + 1;
+    } else if (curveKind === CurveKind.Saw) {
+        return t > 0.5 ? (1 - t) * 2 : t * 2;
+    } else if (curveKind === CurveKind.Square) {
+        return t > 0.5 ? 1 : 0;
+    }
+    throw "Unhandled curve kind";
+}
+
+function animateScalar(anim: ScalarAnim, t: number): number {
+    t = animateCurve(anim.curveKind, anim.phaseOffset, anim.speed, t);
+    return (1 - t) * anim.start + t * anim.end;
+}
+
+function animateColor(anim: ColorAnim, t: number, outColor: Color) {
+    t = animateCurve(anim.curveKind, anim.phaseOffset, anim.speed, t);
+    colorLerp(outColor, anim.start, anim.end, t);
+}
 
 export class TextureInst {
     private loadedTex: LoadedTexture;

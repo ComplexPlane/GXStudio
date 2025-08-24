@@ -220,7 +220,7 @@ export const enum ColorChannel {
     K3,
 }
 
-export const enum InterpKind {
+export const enum CurveKind {
     Constant,
     Linear,
     Sine,
@@ -232,7 +232,7 @@ export type ScalarAnim = {
     uuid: string;
     channel: ScalarChannel;
 
-    curveKind: InterpKind;
+    curveKind: CurveKind;
     phaseOffset: number;
     speed: number;
 
@@ -244,10 +244,9 @@ export type ColorAnim = {
     uuid: string;
     channel: ColorChannel;
 
-    curveKind: InterpKind;
+    curveKind: CurveKind;
     phaseOffset: number;
     speed: number;
-    space: "RGB" | "HSL";
 
     start: Color;
     end: Color;

@@ -8,7 +8,7 @@ import { MaterialListGui } from "./MaterialListGui";
 import {
     ColorAnim,
     ColorChannel,
-    InterpKind as CurveKind,
+    CurveKind as CurveKind,
     Material,
     Model,
     ScalarAnim,
@@ -134,7 +134,6 @@ export class AnimationsGui {
                     curveKind: CurveKind.Constant,
                     phaseOffset: 0,
                     speed: 1,
-                    space: "RGB",
                 };
                 material.colorAnims.push(anim);
             }
@@ -216,8 +215,6 @@ export class AnimationsGui {
                 colorFromRGBA(anim.start, arr3[0], arr3[1], arr3[2]);
                 colorCopy(anim.end, anim.start);
             } else {
-                anim.space = renderCombo("Interp Space", ["RGB", "HSL"], anim.space, (s) => s);
-
                 arr3[0] = anim.start.r;
                 arr3[1] = anim.start.g;
                 arr3[2] = anim.start.b;
