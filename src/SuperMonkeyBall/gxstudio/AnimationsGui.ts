@@ -51,6 +51,11 @@ const COLOR_CHANNELS: ColorChannelInfo[] = [
     { id: ColorChannel.C1, label: "Color Register 1" },
     { id: ColorChannel.C2, label: "Color Register 2" },
     { id: ColorChannel.CPREV, label: "Color Register 'PREV'" },
+
+    { id: ColorChannel.K0, label: "Color Constant K0" },
+    { id: ColorChannel.K1, label: "Color Constant K1" },
+    { id: ColorChannel.K2, label: "Color Constant K2" },
+    { id: ColorChannel.K3, label: "Color Constant K3" },
 ];
 
 const INTERP_KINDS: InterpKindInfo[] = [

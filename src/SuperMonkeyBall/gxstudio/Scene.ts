@@ -24,6 +24,7 @@ export type Texture = {
 export type TevStage = {
     uuid: string,
 
+    kcsel: GX.KonstColorSel; // Dummy if GX.CC.KONST unused
     colorInA: GX.CC,
     colorInB: GX.CC,
     colorInC: GX.CC,
@@ -37,6 +38,7 @@ export type TevStage = {
     alphaInD: GX.CA,
     alphaDest: GX.Register,
     alphaOp: GX.TevOp,
+    
 
     texture: Texture | null,
     textureWrapU: GX.WrapMode,
@@ -47,6 +49,7 @@ export function newWhiteTevStage(): TevStage {
     return {
         uuid: crypto.randomUUID(),
 
+        kcsel: GX.KonstColorSel.KCSEL_K0,
         colorInA: GX.CC.ZERO,
         colorInB: GX.CC.ZERO,
         colorInC: GX.CC.ZERO,
@@ -207,6 +210,10 @@ export const enum ColorChannel {
     C1,
     C2,
     CPREV,
+    K0,
+    K1,
+    K2,
+    K3,
 }
 
 export const enum InterpKind {

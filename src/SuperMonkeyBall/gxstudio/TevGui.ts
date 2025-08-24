@@ -13,6 +13,23 @@ import { GuiScene, Material, Model, newPassthroughTevStage, newWhiteTevStage, Te
 import { MaterialListGui } from "./MaterialListGui.js";
 import { createIdMap } from "./GuiUtils.js";
 
+type ColorConst = {
+    id: GX.KonstColorSel,
+    label: string,
+    help: string,
+}
+
+const COLOR_CONSTS: ColorConst[] = [
+    { id: GX.KonstColorSel.KCSEL_K0, label: "K0", help: "Color value from color constant 0" },
+    { id: GX.KonstColorSel.KCSEL_K1, label: "K1", help: "Color value from color constant 1" },
+    { id: GX.KonstColorSel.KCSEL_K2, label: "K2", help: "Color value from color constant 2" },
+    { id: GX.KonstColorSel.KCSEL_K3, label: "K3", help: "Color value from color constant 3" },
+];
+
+const COLOR_CONST_MAP = createIdMap(COLOR_CONSTS);
+
+// Going to ignore alpha constants for now, think we'll be alright w/o them
+
 type ColorIn = {
     id: GX.CC,
     label: string,
@@ -26,16 +43,16 @@ const COLOR_INS: ColorIn[] = [
     { id: GX.CC.RASC, label: "Lighting Color", help: "Color value from rasterizer" },
     { id: GX.CC.TEXC, label: "Texture Color", help: "Color value from texture" },
     { id: GX.CC.TEXA, label: "Texture Alpha", help: "Alpha value from texture" },
-    { id: GX.CC.CPREV, label: "Color PREV", help: "Color value from color register 'PREV'" },
-    { id: GX.CC.C0, label: "Color 0", help: "Color value from color register 0" },
-    { id: GX.CC.C1, label: "Color 1", help: "Color value from color register 1" },
-    { id: GX.CC.C2, label: "Color 2", help: "Color value from color register 2" },
-    { id: GX.CC.APREV, label: "Alpha PREV", help: "Alpha value from alpha register 'PREV'" },
-    { id: GX.CC.A0, label: "Alpha 0", help: "Alpha value from alpha register 0" },
-    { id: GX.CC.A1, label: "Alpha 1", help: "Alpha value from alpha register 1" },
-    { id: GX.CC.A2, label: "Alpha 2", help: "Alpha value from alpha register 2" },
+    { id: GX.CC.CPREV, label: "Color Register PREV", help: "Color value from color register 'PREV'" },
+    { id: GX.CC.C0, label: "Color Register 0", help: "Color value from color register 0" },
+    { id: GX.CC.C1, label: "Color Register 1", help: "Color value from color register 1" },
+    { id: GX.CC.C2, label: "Color Register 2", help: "Color value from color register 2" },
+    { id: GX.CC.APREV, label: "Alpha Register PREV", help: "Alpha value from alpha register 'PREV'" },
+    { id: GX.CC.A0, label: "Alpha Register 0", help: "Alpha value from alpha register 0" },
+    { id: GX.CC.A1, label: "Alpha Register 1", help: "Alpha value from alpha register 1" },
+    { id: GX.CC.A2, label: "Alpha Register 2", help: "Alpha value from alpha register 2" },
+    { id: GX.CC.KONST, label: "Color Constant", help: "Color value from either K0, K1, K2, or K3" },
     // { id: GX.CC.RASA, label: "Lighting Alpha", help: "Alpha value from rasterizer" },
-    // { id: GX.CC.KONST, label: "Constant", help: "Constant color" }, // TODO
 ];
 
 const COLOR_IN_MAP = createIdMap(COLOR_INS);
@@ -162,6 +179,9 @@ export class TevGui {
                     tevStage.colorInB = this.renderColorSelDropdown(`B Source`, tevStage.colorInB);
                     tevStage.colorInC = this.renderColorSelDropdown(`C Source`, tevStage.colorInC);
                     tevStage.colorInD = this.renderColorSelDropdown(`D Source`, tevStage.colorInD);
+                    if (tevStage.colorInA === GX.CC.KONST || tevStage.colorInB === GX.CC.KONST || tevStage.colorInC === GX.CC.KONST || tevStage.colorInD === GX.CC.KONST) {
+                        tevStage.kcsel = renderCombo("Color Const", COLOR_CONSTS, COLOR_CONST_MAP.get(tevStage.kcsel)!, (c) => c.label, (c) => c.help).id;
+                    }
                     tevStage.colorDest = this.renderColorOutDropdown(`Dest`, tevStage.colorDest);
                     ImGui.TreePop();
                 }
