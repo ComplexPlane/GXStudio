@@ -151,14 +151,25 @@ export class AnimationsGui {
                 material.colorAnims.push(anim);
             }
 
+            let dupIdx: number | null = null;
             let delIdx: number | null = null;
             for (let i = 0; i < material.colorAnims.length; i++) {
                 const colorAnim = material.colorAnims[i];
-                if (this.renderColorAnim(colorAnim)) {
+                const action = this.renderColorAnim(colorAnim);
+                if (action === AnimAction.Duplicate) {
+                    dupIdx = dupIdx ?? i;
+                }
+                if (action === AnimAction.Delete) {
                     delIdx = delIdx ?? i;
                 }
             }
-            if (delIdx !== null) {
+            if (dupIdx !== null) {
+                const animClone = {
+                    ...material.colorAnims[dupIdx],
+                    uuid: crypto.randomUUID(),
+                };
+                material.colorAnims.splice(dupIdx + 1, 0, animClone);
+            } else if (delIdx !== null) {
                 material.colorAnims.splice(delIdx, 1);
             }
         }
@@ -211,12 +222,16 @@ export class AnimationsGui {
         return action;
     }
 
-    private renderColorAnim(anim: ColorAnim): boolean {
-        let deleteMe = false;
+    private renderColorAnim(anim: ColorAnim): AnimAction | null {
+        let action: AnimAction | null = null;
 
         const selectedChannel = COLOR_CHANNEL_MAP.get(anim.channel)!;
         const treeName = `${selectedChannel.label}###${anim.uuid}`;
         if (ImGui.TreeNodeEx(treeName, ImGui.TreeNodeFlags.DefaultOpen)) {
+            const b = scratchBoolPtr;
+            b[0] = anim.enabled;
+            ImGui.Checkbox("Enabled", b);
+            anim.enabled = b[0];
             anim.channel = renderCombo(
                 "Color Channel",
                 COLOR_CHANNELS,
@@ -248,14 +263,18 @@ export class AnimationsGui {
                 colorFromRGBA(anim.end, arr3[0], arr3[1], arr3[2]);
             }
 
+            if (ImGui.Button("Duplicate")) {
+                action = AnimAction.Duplicate;
+            }
+            ImGui.SameLine();
             if (ImGui.Button("Delete")) {
-                deleteMe = true;
+                action = AnimAction.Delete;
             }
 
             ImGui.TreePop();
         }
 
-        return deleteMe;
+        return action;
     }
 
     private renderInterp(anim: { curveKind: CurveKind; phaseOffset: number; speed: number }) {
