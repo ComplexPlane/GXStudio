@@ -31,7 +31,7 @@ type InterpKindInfo = {
     label: string;
 };
 
-const SCALAR_CHANNELS: ScalarChannelInfo[] = [
+export const SCALAR_CHANNELS: ScalarChannelInfo[] = [
     { id: ScalarChannel.UV0_TranlateU, label: "TexCoord0 Translate U" },
     { id: ScalarChannel.UV0_TranlateV, label: "TexCoord0 Translate V" },
     { id: ScalarChannel.UV1_TranlateU, label: "TexCoord1 Translate U" },
@@ -55,7 +55,7 @@ const SCALAR_CHANNELS: ScalarChannelInfo[] = [
     { id: ScalarChannel.APREV, label: "Alpha Register 'PREV'" },
 ];
 
-const COLOR_CHANNELS: ColorChannelInfo[] = [
+export const COLOR_CHANNELS: ColorChannelInfo[] = [
     { id: ColorChannel.C0, label: "Color Register 0" },
     { id: ColorChannel.C1, label: "Color Register 1" },
     { id: ColorChannel.C2, label: "Color Register 2" },

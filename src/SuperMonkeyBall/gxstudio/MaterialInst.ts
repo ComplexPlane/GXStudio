@@ -1,11 +1,7 @@
 import { mat4 } from "gl-matrix";
-import { Color, colorCopy, colorFromHSL, colorLerp, colorNewCopy, White } from "../../Color.js";
-import { LoadedTexture, TextureMapping } from "../../TextureHolder.js";
+import { Color, colorCopy, colorLerp, colorNewCopy, White } from "../../Color.js";
 import {
-    GfxDevice,
-    GfxMipFilterMode,
-    GfxSampler,
-    GfxTexFilterMode,
+    GfxDevice
 } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
 import { GfxRenderInst } from "../../gfx/render/GfxRenderInstManager.js";
@@ -16,14 +12,12 @@ import {
     ColorKind,
     DrawParams,
     GXMaterialHelperGfx,
-    MaterialParams,
-    translateWrapModeGfx,
+    MaterialParams
 } from "../../gx/gx_render.js";
-import { TextureInputGX } from "../../gx/gx_texture.js";
 import { assertExists } from "../../util.js";
 import { RenderParams } from "../Model.js";
-import { TextureCache } from "../ModelCache.js";
 import { ColorAnim, CurveKind, ScalarAnim, TevStage } from "./Scene.js";
+import { TextureInst } from "./TextureInst.js";
 
 type BuildState = {
     stage: number;
@@ -43,73 +37,6 @@ const scratchMaterialParams = new MaterialParams();
 const scratchColor1: Color = colorNewCopy(White);
 const scratchColor2: Color = colorNewCopy(White);
 
-function animateCurve(curveKind: CurveKind, phaseOffset: number, speed: number, t: number): number {
-    t = ((t + phaseOffset) * speed) % 1;
-    if (curveKind === CurveKind.Constant) {
-        return 0;
-    } else if (curveKind === CurveKind.Linear) {
-        return t;
-    } else if (curveKind === CurveKind.Sine) {
-        return Math.sin(t * 2 * Math.PI) * 2 + 1;
-    } else if (curveKind === CurveKind.Saw) {
-        return t > 0.5 ? (1 - t) * 2 : t * 2;
-    } else if (curveKind === CurveKind.Square) {
-        return t > 0.5 ? 1 : 0;
-    }
-    throw "Unhandled curve kind";
-}
-
-function animateScalar(anim: ScalarAnim, t: number): number {
-    t = animateCurve(anim.curveKind, anim.phaseOffset, anim.speed, t);
-    return (1 - t) * anim.start + t * anim.end;
-}
-
-function animateColor(anim: ColorAnim, t: number, outColor: Color) {
-    t = animateCurve(anim.curveKind, anim.phaseOffset, anim.speed, t);
-    colorLerp(outColor, anim.start, anim.end, t);
-}
-
-export class TextureInst {
-    private loadedTex: LoadedTexture;
-    private gfxSampler: GfxSampler;
-
-    constructor(
-        device: GfxDevice,
-        renderCache: GfxRenderCache,
-        textureCache: TextureCache,
-        texture: TextureInputGX,
-        wrapModeU: GX.WrapMode,
-        wrapModeV: GX.WrapMode
-    ) {
-        this.loadedTex = textureCache.getTexture(device, texture);
-
-        const width = texture.width;
-        const height = texture.height;
-        let maxLod = 15; // TODO: configure?
-        if (width !== height) {
-            maxLod = 0;
-        } else if (maxLod === 15) {
-            // Use 16x16 as the max LOD
-            const minDim = Math.min(width, height);
-            maxLod = Math.max(0, Math.log2(minDim) - 4);
-        }
-
-        this.gfxSampler = renderCache.createSampler({
-            wrapS: translateWrapModeGfx(wrapModeU),
-            wrapT: translateWrapModeGfx(wrapModeV),
-            minFilter: GfxTexFilterMode.Bilinear,
-            magFilter: GfxTexFilterMode.Bilinear,
-            mipFilter: maxLod === 0 ? GfxMipFilterMode.Nearest : GfxMipFilterMode.Linear,
-            minLOD: 0,
-            maxLOD: maxLod,
-        });
-    }
-
-    public fillTextureMapping(mapping: TextureMapping): void {
-        mapping.gfxTexture = this.loadedTex.gfxTexture;
-        mapping.gfxSampler = this.gfxSampler;
-    }
-}
 
 export class MaterialInst {
     private materialHelper: GXMaterialHelperGfx;

@@ -7,7 +7,8 @@ import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
 import * as GX from "../../gx/gx_enum.js";
 import { TextureInputGX } from "../../gx/gx_texture.js";
 import { TextureCache } from "../ModelCache.js";
-import { MaterialInst, TextureInst } from "./MaterialInst.js";
+import { MaterialInst } from "./MaterialInst.js";
+import { TextureInst } from "./TextureInst.js";
 
 export type Texture = {
     imguiTextureIds: ImTextureRef[]; // Loaded imgui textures, one per mip level
