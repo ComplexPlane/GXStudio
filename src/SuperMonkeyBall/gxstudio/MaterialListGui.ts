@@ -35,7 +35,7 @@ export class MaterialListGui {
         ImGui.SeparatorText("Materials List");
         if (ImGui.BeginListBox("Materials", new ImVec2(0, 100))) {
             for (let i = 0; i < this.materials.length; i++) {
-                const isSelected = i == this.selMaterial
+                const isSelected = i === this.selMaterial
                 if (ImGui.Selectable(this.materials[i].name, isSelected)) {
                     this.selMaterial = i;
                 }
