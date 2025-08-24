@@ -9,6 +9,7 @@ import { MaterialListGui } from "./MaterialListGui.js";
 import {
     Material,
     Model,
+    newLitTextureTevStage,
     newPassthroughTevStage,
     newWhiteTevStage,
     TevStage,
@@ -156,7 +157,7 @@ export class TevGui {
         if (ImGui.Button(`Add TEV Stage (${material.tevStages.length}/8)`)) {
             const tevStage =
                 material.tevStages.length === 0
-                    ? newWhiteTevStage()
+                    ? newLitTextureTevStage()
                     : newPassthroughTevStage(material.tevStages[material.tevStages.length - 1]);
             material.tevStages.push(tevStage);
             material.rebuild();

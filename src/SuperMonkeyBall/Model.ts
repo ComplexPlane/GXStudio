@@ -28,6 +28,7 @@ export class RenderParams {
     public texMtx = mat4.create();
     public lighting: Lighting | null;
     public depthOffset: number;
+    public t: number;
 
     constructor() {
         this.reset();
@@ -40,6 +41,7 @@ export class RenderParams {
         mat4.identity(this.texMtx);
         this.lighting = null;
         this.depthOffset = 0;
+        this.t = 0;
     }
 }
 

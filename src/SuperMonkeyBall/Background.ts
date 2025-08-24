@@ -263,6 +263,7 @@ export class BgNight implements Background {
                 renderParams.reset();
                 renderParams.lighting = state.lighting;
                 renderParams.sort = RenderSort.None;
+                renderParams.t = state.time.getAnimTimeSeconds();
                 mat4.translate(renderParams.viewFromModel, ctx.viewerInput.camera.viewMatrix, windowAnim.pos);
                 mat4.rotateZ(
                     renderParams.viewFromModel,
@@ -501,6 +502,7 @@ export class BgStorm implements Background {
                 const renderParams = scratchRenderParams;
                 renderParams.reset();
                 renderParams.lighting = state.lighting;
+                renderParams.t = state.time.getAnimTimeSeconds();
                 mat4.translate(renderParams.viewFromModel, ctx.viewerInput.camera.viewMatrix, fireAnim.pos);
                 mat4.rotateY(renderParams.viewFromModel, renderParams.viewFromModel, cameraRotY);
                 fireModel.prepareToRender(ctx, renderParams);

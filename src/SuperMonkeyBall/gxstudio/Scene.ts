@@ -7,6 +7,7 @@ import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
 import * as GX from "../../gx/gx_enum.js";
 import { TextureInputGX } from "../../gx/gx_texture.js";
 import { TextureCache } from "../ModelCache.js";
+import { ColorAnim, ScalarAnim } from "./Anim.js";
 import { MaterialInst } from "./MaterialInst.js";
 import { TextureInst } from "./TextureInst.js";
 
@@ -63,6 +64,31 @@ export function newWhiteTevStage(): TevStage {
     };
 }
 
+export function newLitTextureTevStage(): TevStage {
+    return {
+        uuid: crypto.randomUUID(),
+
+        kcsel: GX.KonstColorSel.KCSEL_K0,
+        colorInA: GX.CC.ZERO,
+        colorInB: GX.CC.RASC,
+        colorInC: GX.CC.TEXC,
+        colorInD: GX.CC.ZERO,
+        colorDest: GX.Register.PREV,
+        colorOp: GX.TevOp.ADD,
+
+        alphaInA: GX.CA.ZERO,
+        alphaInB: GX.CA.ZERO,
+        alphaInC: GX.CA.ZERO,
+        alphaInD: GX.CA.RASA,
+        alphaDest: GX.Register.PREV,
+        alphaOp: GX.TevOp.ADD,
+
+        texture: null,
+        textureWrapU: GX.WrapMode.REPEAT,
+        textureWrapV: GX.WrapMode.REPEAT,
+    };
+}
+
 export function newPassthroughTevStage(prevTevStage: TevStage): TevStage {
     const tevStage = newWhiteTevStage();
 
@@ -96,7 +122,7 @@ export function newPassthroughTevStage(prevTevStage: TevStage): TevStage {
 }
 
 export class Material {
-    public tevStages = [newWhiteTevStage()];
+    public tevStages = [newLitTextureTevStage()];
     public scalarAnims: ScalarAnim[] = [];
     public colorAnims: ColorAnim[] = [];
     public instances: Map<GX.CullMode, MaterialInst>;
@@ -186,69 +212,3 @@ export type GuiScene = {
     materials: Material[];
 };
 
-export const enum ScalarChannel {
-    UV0_TranlateU,
-    UV0_TranlateV,
-    UV1_TranlateU,
-    UV1_TranlateV,
-    UV2_TranlateU,
-    UV2_TranlateV,
-    UV3_TranlateU,
-    UV3_TranlateV,
-    UV4_TranlateU,
-    UV4_TranlateV,
-    UV5_TranlateU,
-    UV5_TranlateV,
-    UV6_TranlateU,
-    UV6_TranlateV,
-    UV7_TranlateU,
-    UV7_TranlateV,
-
-    A0,
-    A1,
-    A2,
-    APREV,
-}
-
-export const enum ColorChannel {
-    C0,
-    C1,
-    C2,
-    CPREV,
-    K0,
-    K1,
-    K2,
-    K3,
-}
-
-export const enum CurveKind {
-    Constant,
-    Linear,
-    Sine,
-    Saw,
-    Square,
-}
-
-export type ScalarAnim = {
-    uuid: string;
-    channel: ScalarChannel;
-
-    curveKind: CurveKind;
-    phaseOffset: number;
-    speed: number;
-
-    start: number;
-    end: number;
-};
-
-export type ColorAnim = {
-    uuid: string;
-    channel: ColorChannel;
-
-    curveKind: CurveKind;
-    phaseOffset: number;
-    speed: number;
-
-    start: Color;
-    end: Color;
-};

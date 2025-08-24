@@ -113,6 +113,7 @@ export class BgObjectInst {
 
         renderParams.lighting = state.lighting;
         renderParams.depthOffset = 400;
+        renderParams.t = state.time.getAnimTimeSeconds();
 
         this.model.prepareToRender(ctx, renderParams);
     }

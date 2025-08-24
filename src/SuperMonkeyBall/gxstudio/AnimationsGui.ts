@@ -5,16 +5,8 @@ import { GfxRenderCache } from "../../gfx/render/GfxRenderCache";
 import { TextureCache } from "../ModelCache";
 import { createIdMap, renderCombo } from "./GuiUtils";
 import { MaterialListGui } from "./MaterialListGui";
-import {
-    ColorAnim,
-    ColorChannel,
-    CurveKind as CurveKind,
-    Material,
-    Model,
-    ScalarAnim,
-    ScalarChannel,
-    Texture,
-} from "./Scene";
+import { ColorAnim, ColorChannel, CurveKind, ScalarAnim, ScalarChannel } from "./Anim";
+import { Material, Model, Texture } from "./Scene";
 
 type ScalarChannelInfo = {
     id: ScalarChannel;
@@ -32,22 +24,22 @@ type InterpKindInfo = {
 };
 
 export const SCALAR_CHANNELS: ScalarChannelInfo[] = [
-    { id: ScalarChannel.UV0_TranlateU, label: "TexCoord0 Translate U" },
-    { id: ScalarChannel.UV0_TranlateV, label: "TexCoord0 Translate V" },
-    { id: ScalarChannel.UV1_TranlateU, label: "TexCoord1 Translate U" },
-    { id: ScalarChannel.UV1_TranlateV, label: "TexCoord1 Translate V" },
-    { id: ScalarChannel.UV2_TranlateU, label: "TexCoord2 Translate U" },
-    { id: ScalarChannel.UV2_TranlateV, label: "TexCoord2 Translate V" },
-    { id: ScalarChannel.UV3_TranlateU, label: "TexCoord3 Translate U" },
-    { id: ScalarChannel.UV3_TranlateV, label: "TexCoord3 Translate V" },
-    { id: ScalarChannel.UV4_TranlateU, label: "TexCoord4 Translate U" },
-    { id: ScalarChannel.UV4_TranlateV, label: "TexCoord4 Translate V" },
-    { id: ScalarChannel.UV5_TranlateU, label: "TexCoord5 Translate U" },
-    { id: ScalarChannel.UV5_TranlateV, label: "TexCoord5 Translate V" },
-    { id: ScalarChannel.UV6_TranlateU, label: "TexCoord6 Translate U" },
-    { id: ScalarChannel.UV6_TranlateV, label: "TexCoord6 Translate V" },
-    { id: ScalarChannel.UV7_TranlateU, label: "TexCoord7 Translate U" },
-    { id: ScalarChannel.UV7_TranlateV, label: "TexCoord7 Translate V" },
+    { id: ScalarChannel.UV0_TranlateU, label: "TexCoord0 U Translate" },
+    { id: ScalarChannel.UV0_TranlateV, label: "TexCoord0 V Translate" },
+    { id: ScalarChannel.UV1_TranlateU, label: "TexCoord1 U Translate" },
+    { id: ScalarChannel.UV1_TranlateV, label: "TexCoord1 V Translate" },
+    { id: ScalarChannel.UV2_TranlateU, label: "TexCoord2 U Translate" },
+    { id: ScalarChannel.UV2_TranlateV, label: "TexCoord2 V Translate" },
+    { id: ScalarChannel.UV3_TranlateU, label: "TexCoord3 U Translate" },
+    { id: ScalarChannel.UV3_TranlateV, label: "TexCoord3 V Translate" },
+    { id: ScalarChannel.UV4_TranlateU, label: "TexCoord4 U Translate" },
+    { id: ScalarChannel.UV4_TranlateV, label: "TexCoord4 V Translate" },
+    { id: ScalarChannel.UV5_TranlateU, label: "TexCoord5 U Translate" },
+    { id: ScalarChannel.UV5_TranlateV, label: "TexCoord5 V Translate" },
+    { id: ScalarChannel.UV6_TranlateU, label: "TexCoord6 U Translate" },
+    { id: ScalarChannel.UV6_TranlateV, label: "TexCoord6 V Translate" },
+    { id: ScalarChannel.UV7_TranlateU, label: "TexCoord7 U Translate" },
+    { id: ScalarChannel.UV7_TranlateV, label: "TexCoord7 V Translate" },
 
     { id: ScalarChannel.A0, label: "Alpha Register 0" },
     { id: ScalarChannel.A1, label: "Alpha Register 1" },
@@ -82,6 +74,8 @@ const INTERP_KIND_MAP = createIdMap(INTERP_KINDS);
 const scratchNumberPtr = [0];
 const scratchArr3 = [0, 0, 0];
 
+const BIG_RANGE = 4;
+
 export class AnimationsGui {
     constructor(
         private device: GfxDevice,
@@ -103,7 +97,7 @@ export class AnimationsGui {
                     uuid: crypto.randomUUID(),
                     channel: ScalarChannel.UV0_TranlateU,
                     start: 0,
-                    end: 0,
+                    end: 1,
                     curveKind: CurveKind.Constant,
                     phaseOffset: 0,
                     speed: 1,
@@ -169,15 +163,14 @@ export class AnimationsGui {
             const n = scratchNumberPtr;
             if (anim.curveKind === CurveKind.Constant) {
                 n[0] = anim.start;
-                ImGui.SliderFloat("Value", n, -5, 5);
+                ImGui.SliderFloat("Value", n, -BIG_RANGE, BIG_RANGE);
                 anim.start = n[0];
-                anim.end = n[0];
             } else {
                 n[0] = anim.start;
-                ImGui.SliderFloat("Start Value", n, -5, 5);
+                ImGui.SliderFloat("Start Value", n, -BIG_RANGE, BIG_RANGE);
                 anim.start = n[0];
                 n[0] = anim.end;
-                ImGui.SliderFloat("End Value", n, -5, 5);
+                ImGui.SliderFloat("End Value", n, -BIG_RANGE, BIG_RANGE);
                 anim.end = n[0];
             }
 
@@ -253,7 +246,7 @@ export class AnimationsGui {
             anim.phaseOffset = n[0];
 
             n[0] = anim.speed;
-            ImGui.SliderFloat("Speed", n, -5, 5, undefined);
+            ImGui.SliderFloat("Speed", n, 0, BIG_RANGE, undefined);
             anim.speed = n[0];
         }
     }
