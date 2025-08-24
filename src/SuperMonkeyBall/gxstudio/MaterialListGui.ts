@@ -153,17 +153,28 @@ export class MaterialListGui {
             this.tmpName = this.tmpName ?? [defaultName];
             ImGui.InputText("Name", this.tmpName, 256);
 
-            const nameConflict = existingNames.includes(this.tmpName[0]);
+            const trimmedName = this.tmpName[0].trim();
+
+            const nameEmpty = trimmedName.length === 0;
+            const nameConflict = existingNames.includes(trimmedName);
+            const disabled = nameEmpty || nameConflict;
+
+            if (nameEmpty) {
+                ImGui.TextColored(this.errorColor, "Error: Empty Name");
+            }
             if (nameConflict) {
                 ImGui.TextColored(this.errorColor, "Error: Duplicate Name");
+            }
+
+            if (disabled) {
                 ImGui.BeginDisabled();
             }
             if (ImGui.Button("OK")) {
-                ret = this.tmpName[0];
+                ret = trimmedName;
                 this.tmpName = null;
                 ImGui.CloseCurrentPopup();
             }
-            if (nameConflict) {
+            if (disabled) {
                 ImGui.EndDisabled();
             }
 
