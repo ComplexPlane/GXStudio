@@ -53,6 +53,20 @@ const KONST_CHANNELS = [
     { colorChannel: ColorChannel.K3, colorKind: ColorKind.K3 },
 ];
 
+const TEXGEN_MTXS = [
+    GX.TexGenMatrix.TEXMTX0,
+    GX.TexGenMatrix.TEXMTX1,
+    GX.TexGenMatrix.TEXMTX2,
+    GX.TexGenMatrix.TEXMTX3,
+    GX.TexGenMatrix.TEXMTX4,
+    GX.TexGenMatrix.TEXMTX5,
+    GX.TexGenMatrix.TEXMTX6,
+    GX.TexGenMatrix.TEXMTX7,
+    // Does Gamecube have these?
+    GX.TexGenMatrix.TEXMTX8,
+    GX.TexGenMatrix.TEXMTX9,
+]
+
 const scratchMaterialParams = new MaterialParams();
 const scratchColor1: Color = colorNewCopy(White);
 const scratchColor2: Color = colorNewCopy(White);
@@ -109,7 +123,7 @@ export class MaterialInst {
                 buildState.texCoord,
                 GX.TexGenType.MTX2x4,
                 buildState.texGenSrc,
-                GX.TexGenMatrix.TEXMTX1,
+                TEXGEN_MTXS[tevStageIdx],
             );
             const texMap = tevStage.texture !== null ? buildState.texMap : GX.TexMapID.TEXMAP_NULL;
             mb.setTevOrder(
