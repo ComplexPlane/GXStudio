@@ -1,5 +1,6 @@
 import { mat4 } from "gl-matrix";
-import { Color, colorCopy, colorMult, colorNewCopy, White } from "../../Color.js";
+import { Color, colorCopy, colorNewCopy, White } from "../../Color.js";
+import { LoadedTexture, TextureMapping } from "../../TextureHolder.js";
 import {
     GfxDevice,
     GfxMipFilterMode,
@@ -18,11 +19,9 @@ import {
     MaterialParams,
     translateWrapModeGfx,
 } from "../../gx/gx_render.js";
+import { TextureInputGX } from "../../gx/gx_texture.js";
 import { assertExists } from "../../util.js";
 import { RenderParams } from "../Model.js";
-import * as gui from "./Gui.js";
-import { LoadedTexture, TextureMapping } from "../../TextureHolder.js";
-import { TextureInputGX } from "../../gx/gx_texture.js";
 import { TextureCache } from "../ModelCache.js";
 import { ColorAnim, ScalarAnim, TevStage } from "./Scene.js";
 

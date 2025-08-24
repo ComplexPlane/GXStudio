@@ -1,33 +1,22 @@
 import {
     ImGui,
-    ImGuiID,
-    ImGuiImplWeb,
-    ImTextureID,
-    ImTextureRef,
-    ImVec2,
-    ImVec4,
+    ImVec2
 } from "@mori2003/jsimgui";
 
-import * as GX from "../../gx/gx_enum.js";
-import { LoadedTexture } from "../../TextureHolder.js";
-import { TextureCache } from "../ModelCache.js";
-import { Gma } from "../Gma.js";
-import { calcMipChain, decodeTexture, TextureInputGX } from "../../gx/gx_texture.js";
-import * as gui_material from "./MaterialInst.js";
 import { GfxDevice } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
-import { assertExists } from "../../util.js";
+import * as GX from "../../gx/gx_enum.js";
+import { TextureCache } from "../ModelCache.js";
+import { createIdMap } from "./GuiUtils.js";
+import { MaterialListGui } from "./MaterialListGui.js";
 import {
-    GuiScene,
     Material,
     Model,
     newPassthroughTevStage,
     newWhiteTevStage,
     TevStage,
-    Texture,
+    Texture
 } from "./Scene.js";
-import { MaterialListGui } from "./MaterialListGui.js";
-import { createIdMap } from "./GuiUtils.js";
 
 type ColorConst = {
     id: GX.KonstColorSel;

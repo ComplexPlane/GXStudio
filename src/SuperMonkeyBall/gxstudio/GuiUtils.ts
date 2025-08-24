@@ -1,11 +1,5 @@
 import {
-    ImGui,
-    ImGuiID,
-    ImGuiImplWeb,
-    ImTextureID,
-    ImTextureRef,
-    ImVec2,
-    ImVec4,
+    ImGui
 } from "@mori2003/jsimgui";
 
 export function renderCombo<T>(

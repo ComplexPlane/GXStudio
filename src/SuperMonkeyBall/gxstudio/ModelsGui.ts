@@ -1,24 +1,12 @@
 import {
-    ImGui,
-    ImGuiID,
-    ImGuiImplWeb,
-    ImTextureID,
-    ImTextureRef,
-    ImVec2,
-    ImVec4,
+    ImGui
 } from "@mori2003/jsimgui";
 
-import * as GX from "../../gx/gx_enum.js";
-import { LoadedTexture } from "../../TextureHolder.js";
-import { TextureCache } from "../ModelCache.js";
-import { Gma } from "../Gma.js";
-import { calcMipChain, decodeTexture, TextureInputGX } from "../../gx/gx_texture.js";
-import * as gui_material from "./MaterialInst.js";
 import { GfxDevice } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
-import { assertExists } from "../../util.js";
-import { GuiScene, Material, Model, TevStage, Texture } from "./Scene.js";
+import { TextureCache } from "../ModelCache.js";
 import { renderCombo } from "./GuiUtils.js";
+import { Material, Model, Texture } from "./Scene.js";
 
 export class ModelsGui {
     constructor(

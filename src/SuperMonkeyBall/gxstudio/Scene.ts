@@ -1,30 +1,12 @@
-import { mat4 } from "gl-matrix";
-import { Color, colorCopy, colorMult, colorNewCopy, White } from "../../Color.js";
+import { ImTextureRef } from "@mori2003/jsimgui";
+import { Color } from "../../Color.js";
 import {
-    GfxDevice,
-    GfxMipFilterMode,
-    GfxSampler,
-    GfxTexFilterMode,
+    GfxDevice
 } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
-import { GfxRenderInst } from "../../gfx/render/GfxRenderInstManager.js";
-import { GXMaterialBuilder } from "../../gx/GXMaterialBuilder.js";
 import * as GX from "../../gx/gx_enum.js";
-import { GXMaterialHacks, SwapTable } from "../../gx/gx_material.js";
-import {
-    ColorKind,
-    DrawParams,
-    GXMaterialHelperGfx,
-    MaterialParams,
-    translateWrapModeGfx,
-} from "../../gx/gx_render.js";
-import { assertExists } from "../../util.js";
-import { RenderParams } from "../Model.js";
-import * as gui from "./Gui.js";
-import { LoadedTexture, TextureMapping } from "../../TextureHolder.js";
 import { TextureInputGX } from "../../gx/gx_texture.js";
 import { TextureCache } from "../ModelCache.js";
-import { ImTextureRef } from "@mori2003/jsimgui";
 import { MaterialInst, TextureInst } from "./MaterialInst.js";
 
 export type Texture = {

@@ -1,7 +1,10 @@
-import { ImGui, ImVec2 } from "@mori2003/jsimgui";
+import { ImGui } from "@mori2003/jsimgui";
+import { colorCopy, colorFromRGBA } from "../../Color";
 import { GfxDevice } from "../../gfx/platform/GfxPlatform";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache";
 import { TextureCache } from "../ModelCache";
+import { createIdMap, renderCombo } from "./GuiUtils";
+import { MaterialListGui } from "./MaterialListGui";
 import {
     ColorAnim,
     ColorChannel,
@@ -12,9 +15,6 @@ import {
     ScalarChannel,
     Texture,
 } from "./Scene";
-import { MaterialListGui } from "./MaterialListGui";
-import { colorCopy, colorFromRGBA, OpaqueBlack } from "../../Color";
-import { createIdMap, renderCombo } from "./GuiUtils";
 
 type ScalarChannelInfo = {
     id: ScalarChannel;
