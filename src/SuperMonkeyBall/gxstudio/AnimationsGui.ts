@@ -2,7 +2,7 @@ import { ImGui, ImVec2 } from "@mori2003/jsimgui";
 import { GfxDevice } from "../../gfx/platform/GfxPlatform";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache";
 import { TextureCache } from "../ModelCache";
-import { ColorAnim, ColorChannel, InterpKind, Material, Model, ScalarAnim, ScalarChannel, Texture } from "./Scene";
+import { ColorAnim, ColorChannel, InterpKind as CurveKind, Material, Model, ScalarAnim, ScalarChannel, Texture } from "./Scene";
 import { MaterialListGui } from "./MaterialListGui";
 import { colorCopy, colorFromRGBA, OpaqueBlack } from "../../Color";
 import { createIdMap, renderCombo } from "./GuiUtils";
@@ -18,7 +18,7 @@ type ColorChannelInfo = {
 };
 
 type InterpKindInfo = {
-    id: InterpKind,
+    id: CurveKind,
     label: string,
 }
 
@@ -54,10 +54,11 @@ const COLOR_CHANNELS: ColorChannelInfo[] = [
 ];
 
 const INTERP_KINDS: InterpKindInfo[] = [
-    { id: InterpKind.Constant, label: "Constant" },
-    { id: InterpKind.Linear, label: "Linear" },
-    { id: InterpKind.Sine, label: "Sine" },
-    { id: InterpKind.Square, label: "Square" },
+    { id: CurveKind.Constant, label: "Constant" },
+    { id: CurveKind.Linear, label: "Linear" },
+    { id: CurveKind.Sine, label: "Sine" },
+    { id: CurveKind.Saw, label: "Saw" },
+    { id: CurveKind.Square, label: "Square" },
 ];
 
 const SCALAR_CHANNEL_MAP = createIdMap(SCALAR_CHANNELS);
@@ -90,7 +91,7 @@ export class AnimationsGui {
                     channel: ScalarChannel.UV0_TranlateU,
                     start: 0,
                     end: 0,
-                    interpKind: InterpKind.Constant,
+                    curveKind: CurveKind.Constant,
                     phaseOffset: 0,
                     speed: 1,
                 };
@@ -117,7 +118,7 @@ export class AnimationsGui {
                     channel: ColorChannel.C0,
                     start: { r: 0, g: 0, b: 0, a: 1},
                     end: { r: 0, g: 0, b: 0, a: 1},
-                    interpKind: InterpKind.Constant,
+                    curveKind: CurveKind.Constant,
                     phaseOffset: 0,
                     speed: 1,
                     space: "RGB",
@@ -154,7 +155,7 @@ export class AnimationsGui {
             this.renderInterp(anim);
 
             const n = scratchNumberPtr;
-            if (anim.interpKind === InterpKind.Constant) {
+            if (anim.curveKind === CurveKind.Constant) {
                 n[0] = anim.start;
                 ImGui.SliderFloat("Value", n, -5, 5);
                 anim.start = n[0];
@@ -194,7 +195,7 @@ export class AnimationsGui {
             this.renderInterp(anim);
 
             const arr3 = scratchArr3;
-            if (anim.interpKind === InterpKind.Constant) {
+            if (anim.curveKind === CurveKind.Constant) {
                 arr3[0] = anim.start.r;
                 arr3[1] = anim.start.g;
                 arr3[2] = anim.start.b;
@@ -227,16 +228,16 @@ export class AnimationsGui {
         return deleteMe;
     }
 
-    private renderInterp(anim: { interpKind: InterpKind, phaseOffset: number, speed: number }) {
-        anim.interpKind = renderCombo(
-            "Interp",
+    private renderInterp(anim: { curveKind: CurveKind, phaseOffset: number, speed: number }) {
+        anim.curveKind = renderCombo(
+            "Curve",
             INTERP_KINDS,
-            INTERP_KIND_MAP.get(anim.interpKind)!,
+            INTERP_KIND_MAP.get(anim.curveKind)!,
             (i) => i.label,
         ).id;
 
         const n = scratchNumberPtr;
-        if (anim.interpKind !== InterpKind.Constant) {
+        if (anim.curveKind !== CurveKind.Constant) {
             n[0] = anim.phaseOffset;
             ImGui.SliderFloat("Phase Offset", n, 0, 1);
             anim.phaseOffset = n[0];

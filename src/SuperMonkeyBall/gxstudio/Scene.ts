@@ -221,7 +221,7 @@ export type ScalarAnim = {
     uuid: string,
     channel: ScalarChannel,
 
-    interpKind: InterpKind,
+    curveKind: InterpKind,
     phaseOffset: number,
     speed: number,
 
@@ -233,7 +233,7 @@ export type ColorAnim = {
     uuid: string,
     channel: ColorChannel,
 
-    interpKind: InterpKind,
+    curveKind: InterpKind,
     phaseOffset: number,
     speed: number,
     space: "RGB" | "HSL",
