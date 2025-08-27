@@ -1,5 +1,5 @@
 {
-  "name": "@jstpierre/noclip.website",
+  "name": "@complexplane/gxstudio",
   "private": true,
   "license": "MIT",
   "devDependencies": {
@@ -20,7 +20,8 @@
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "wasm-pack": "^0.13.1",
-    "webm-muxer": "^5.1.4"
+    "webm-muxer": "^5.1.4",
+    "wrangler": "4"
   },
   "dependencies": {
     "@mori2003/jsimgui": "^0.8.0",
