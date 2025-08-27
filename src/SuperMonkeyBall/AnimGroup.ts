@@ -134,6 +134,7 @@ export class AnimGroup {
         const rp = scratchRenderParams;
         rp.reset();
         rp.lighting = state.lighting;
+        rp.t = state.time.getAnimTimeSeconds();
 
         const accordionPos = scratchVec3a;
         vec3.copy(accordionPos, this.translation);
@@ -159,6 +160,7 @@ export class AnimGroup {
         const rp = scratchRenderParams;
         rp.reset();
         rp.lighting = state.lighting;
+        rp.t = state.time.getAnimTimeSeconds();
 
         const viewFromAnimGroup = scratchMat4a;
         mat4.mul(viewFromAnimGroup, ctx.viewerInput.camera.viewMatrix, this.worldFromAg);
@@ -236,6 +238,7 @@ class Goal {
         const rp = scratchRenderParams;
         rp.reset();
         rp.lighting = state.lighting;
+        rp.t = state.time.getAnimTimeSeconds();
 
         mat4.translate(rp.viewFromModel, viewFromAnimGroup, this.goalData.pos);
         mat4.rotateZ(rp.viewFromModel, rp.viewFromModel, S16_TO_RADIANS * this.goalData.rot[2]);
@@ -264,6 +267,7 @@ class Bumper {
         const rp = scratchRenderParams;
         rp.reset();
         rp.lighting = state.lighting;
+        rp.t = state.time.getAnimTimeSeconds();
 
         mat4.translate(rp.viewFromModel, viewFromAnimGroup, this.bumperData.pos);
         mat4.rotateZ(rp.viewFromModel, rp.viewFromModel, S16_TO_RADIANS * this.bumperData.rot[2]);

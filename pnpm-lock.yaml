@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@mori2003/jsimgui':
+        specifier: ^0.8.0
+        version: 0.8.0
       crc-32:
         specifier: ^1.2.2
         version: 1.2.2
@@ -295,6 +298,9 @@ packages:
 
   '@module-federation/webpack-bundler-runtime@0.15.0':
     resolution: {integrity: sha512-i+3wu2Ljh2TmuUpsnjwZVupOVqV50jP0ndA8PSP4gwMKlgdGeaZ4VH5KkHAXGr2eiYUxYLMrJXz1+eILJqeGDg==}
+
+  '@mori2003/jsimgui@0.8.0':
+    resolution: {integrity: sha512-xdN03BcbQlXjs9VkkVSr5ykz7AovLxCW+7JqsbaJFaRTiuxYkRtX5oI0cy/7wwASw6cFoDMrhjtIereVX7IkWA==}
 
   '@napi-rs/wasm-runtime@0.2.11':
     resolution: {integrity: sha512-9DPkXtvHydrcOsopiYpUgPHpmj0HWZKMUnL2dZqpvC42lsratuBG06V5ipyno0fUek5VlFsNQ+AcFATSrJXgMA==}
@@ -961,6 +967,8 @@ snapshots:
     dependencies:
       '@module-federation/runtime': 0.15.0
       '@module-federation/sdk': 0.15.0
+
+  '@mori2003/jsimgui@0.8.0': {}
 
   '@napi-rs/wasm-runtime@0.2.11':
     dependencies:

@@ -1,6 +1,8 @@
 
 /* @preserve The source code to this website is under the MIT license and can be found at https://github.com/magcius/noclip.website */
 
+import { ImGui, ImGuiImplWeb } from "@mori2003/jsimgui";
+
 import { Viewer, SceneGfx, InitErrorCode, initializeViewer, makeErrorUI, resizeCanvas, ViewerUpdateInfo } from './viewer.js';
 
 import * as Scenes_BanjoKazooie from './BanjoKazooie/scenes.js';
@@ -330,7 +332,10 @@ type TimeState = { isPlaying: boolean, sceneTimeScale: number, sceneTime: number
 
 class Main {
     public toplevel: HTMLElement;
+    private canvasContainer: HTMLElement;
     public canvas: HTMLCanvasElement;
+    private imguiContainer: HTMLElement;
+    private imguiCanvas: HTMLCanvasElement;
     public viewer: Viewer;
     public ui: UI;
     public saveManager = GlobalSaveManager;
@@ -368,16 +373,49 @@ class Main {
         this.isEmbedMode = window.location.pathname === '/embed.html';
 
         this.toplevel = document.createElement('div');
+        this.toplevel.style.display = 'flex';
+        this.toplevel.style.width = '100%';
+        this.toplevel.style.height = '100vh';
         document.body.appendChild(this.toplevel);
+
+        // Create container for main canvas
+        this.canvasContainer = document.createElement('div');
+        this.canvasContainer.style.flex = '1';
+        this.canvasContainer.style.overflow = 'hidden';
 
         this.canvas = document.createElement('canvas');
         this.canvas.style.imageRendering = 'pixelated';
         this.canvas.style.outline = 'none';
         this.canvas.style.touchAction = 'none';
 
-        this.toplevel.appendChild(this.canvas);
+        this.canvasContainer.appendChild(this.canvas);
+        this.toplevel.appendChild(this.canvasContainer);
+
+        // Create container and canvas for ImGui
+        this.imguiContainer = document.createElement('div');
+        this.imguiContainer.style.width = '400px';
+        this.imguiContainer.style.height = '100vh';
+        this.imguiContainer.style.overflow = 'hidden';
+        this.imguiContainer.style.backgroundColor = '#2d2d2d';
+        this.imguiContainer.style.borderLeft = '1px solid #555';
+
+        this.imguiCanvas = document.createElement('canvas');
+        this.imguiCanvas.id = "imguiCanvas";
+        this.imguiCanvas.style.width = '100%';
+        this.imguiCanvas.style.height = '100%';
+        this.imguiCanvas.style.outline = 'none';
+
+        this.imguiContainer.appendChild(this.imguiCanvas);
+        this.toplevel.appendChild(this.imguiContainer);
         window.onresize = this._onResize.bind(this);
         this._onResize();
+
+        await ImGuiImplWeb.Init({
+            canvas: this.imguiCanvas,
+            backend: "webgl2",
+            // Use relative path as expected by jsimgui
+            loaderPath: "./jsimgui-webgl2-tt.js",
+        });
 
         await loadRustLib();
 
@@ -435,10 +473,10 @@ class Main {
         if (this.currentSceneDesc === null)
             this._loadInitialStateFromHash();
 
-        if (this.currentSceneDesc === null) {
-            // Make the user choose a scene if there's nothing loaded by default...
-            this.ui.sceneSelect.setExpanded(true);
-        }
+        // if (this.currentSceneDesc === null) {
+        //     // Make the user choose a scene if there's nothing loaded by default...
+        //     this.ui.sceneSelect.setExpanded(true);
+        // }
 
         this._onRequestAnimationFrameCanvas();
     }
@@ -613,7 +651,14 @@ class Main {
     }
 
     private _onResize() {
-        resizeCanvas(this.canvas, window.innerWidth, window.innerHeight, window.devicePixelRatio / this.pixelSize);
+        const mainCanvasWidth = window.innerWidth - 400; // Subtract ImGui panel width
+        resizeCanvas(this.canvas, mainCanvasWidth, window.innerHeight, window.devicePixelRatio / this.pixelSize);
+
+        // Resize ImGui canvas
+        this.imguiCanvas.width = 400 * window.devicePixelRatio;
+        this.imguiCanvas.height = window.innerHeight * window.devicePixelRatio;
+        this.imguiCanvas.style.width = '400px';
+        this.imguiCanvas.style.height = `${window.innerHeight}px`;
     }
 
     private _saveStateTmp = new Uint8Array(512);
@@ -916,11 +961,12 @@ class Main {
         });
 
         // Set window title.
-        document.title = `${sceneDesc.name} - ${sceneGroup.name} - noclip`;
+        document.title = `${sceneDesc.name} - ${sceneGroup.name} - GX Studio`;
     }
 
     private _makeUI() {
         this.ui = new UI(this.viewer);
+        this.ui.toggleUI(false);
         this.ui.setEmbedMode(this.isEmbedMode);
         this.toplevel.appendChild(this.ui.elem);
         this.ui.sceneSelect.onscenedescselected = this._onSceneDescSelected.bind(this);

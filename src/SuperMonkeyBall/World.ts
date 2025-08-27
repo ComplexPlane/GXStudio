@@ -16,6 +16,8 @@ import { BgInfos, StageInfo } from "./StageInfo.js";
 import { MkbTime } from "./Utils.js";
 import { AnimGroup } from "./AnimGroup.js";
 import { Lighting } from "./Lighting.js";
+import { GuiScene } from "./gxstudio/Scene.js";
+import { Gui } from "./gxstudio/Gui.js";
 
 // Immutable parsed stage definition
 export type StageData = {
@@ -47,6 +49,7 @@ export class World {
     private worldState: WorldState;
     private animGroups: AnimGroup[];
     private background: Background;
+    private gui: Gui;
 
     constructor(device: GfxDevice, renderCache: GfxRenderCache, private stageData: StageData) {
         this.worldState = {
@@ -66,9 +69,11 @@ export class World {
             bgObjects.push(new BgObjectInst(model, bgObject));
         }
         this.background = new stageData.stageInfo.bgInfo.bgConstructor(this.worldState, bgObjects);
+        this.gui = new Gui(device, renderCache, this.worldState.modelCache.getTextureCache(), stageData.bgGma);
     }
 
     public update(viewerInput: Viewer.ViewerRenderInput): void {
+        this.gui.render();
         this.worldState.time.updateDeltaTimeSeconds(viewerInput.deltaTime / 1000);
         for (let i = 0; i < this.animGroups.length; i++) {
             this.animGroups[i].update(this.worldState);
@@ -90,6 +95,10 @@ export class World {
 
     public getClearColor(): Color {
         return this.stageData.stageInfo.bgInfo.clearColor;
+    }
+
+    public getGuiScene(): GuiScene {
+        return this.gui.getGuiScene();
     }
 
     public setMaterialHacks(hacks: GX_Material.GXMaterialHacks): void {

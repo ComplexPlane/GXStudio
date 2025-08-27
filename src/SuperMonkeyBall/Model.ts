@@ -13,6 +13,7 @@ import { Color, colorNewFromRGBA } from "../Color.js";
 import { ModelInterface } from "./World.js";
 import { transformVec3Mat4w1 } from "../MathHelpers.js";
 import { Lighting } from "./Lighting.js";
+import { assertExists } from "../util.js";
 
 export const enum RenderSort {
     Translucent, // Depth sort "translucent" shapes only
@@ -27,6 +28,7 @@ export class RenderParams {
     public texMtx = mat4.create();
     public lighting: Lighting | null;
     public depthOffset: number;
+    public t: number;
 
     constructor() {
         this.reset();
@@ -39,6 +41,7 @@ export class RenderParams {
         mat4.identity(this.texMtx);
         this.lighting = null;
         this.depthOffset = 0;
+        this.t = 0;
     }
 }
 
@@ -58,8 +61,9 @@ export class ModelInst implements ModelInterface {
                     renderCache,
                     shapeData,
                     this.tevLayers,
-                    modelData.flags,
-                    i >= modelData.opaqueShapeCount
+                    modelData,
+                    i >= modelData.opaqueShapeCount,
+                    i,
                 )
         );
     }
@@ -71,6 +75,11 @@ export class ModelInst implements ModelInterface {
     }
 
     public prepareToRender(ctx: RenderContext, renderParams: RenderParams) {
+        const model = assertExists(ctx.guiScene.models.find((m) => m.name === this.modelData.name));
+        if (!model.visible) {
+            return;
+        }
+
         const scale = scratchVec3a;
         mat4.getScaling(scale, renderParams.viewFromModel);
         const maxScale = Math.max(...scale);
