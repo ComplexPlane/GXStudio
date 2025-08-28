@@ -12,9 +12,26 @@ import { MaterialInst } from "./MaterialInst.js";
 import { TextureInst } from "./TextureInst.js";
 
 export type Texture = {
+    idx: number,
     imguiTextureIds: ImTextureRef[]; // Loaded imgui textures, one per mip level
     gxTexture: TextureInputGX; // Original GX texture for passing to TextureCache
 };
+
+export type TextureRefResolved = {
+    kind: "resolved",
+    texture: Texture,
+}
+
+export type TextureRefStale = {
+    kind: "stale",
+    staleIdx: number,
+};
+
+export type TextureRefNone = {
+    kind: "none",
+};
+
+export type TextureRef = TextureRefResolved | TextureRefStale | TextureRefNone;
 
 export type TevStage = {
     uuid: string;
@@ -34,7 +51,7 @@ export type TevStage = {
     alphaDest: GX.Register;
     alphaOp: GX.TevOp;
 
-    texture: Texture | null;
+    texture: TextureRef,
     textureWrapU: GX.WrapMode;
     textureWrapV: GX.WrapMode;
 };
@@ -122,6 +139,7 @@ export function newPassthroughTevStage(prevTevStage: TevStage): TevStage {
 }
 
 export class Material {
+    public uuid: string;
     public tevStages = [newLitTextureTevStage()];
     public scalarAnims: ScalarAnim[] = [];
     public colorAnims: ColorAnim[] = [];
@@ -135,6 +153,7 @@ export class Material {
         private textureCache: TextureCache,
         public name: string
     ) {
+        this.uuid = crypto.randomUUID();
         this.rebuild();
     }
 
@@ -178,6 +197,7 @@ export class Material {
 
     public clone(name: string): Material {
         const newMaterial = new Material(this.device, this.renderCache, this.textureCache, name);
+        newMaterial.uuid = crypto.randomUUID();
         newMaterial.tevStages = this.tevStages.map((t) => {
             return { ...t, uuid: crypto.randomUUID() };
         });
