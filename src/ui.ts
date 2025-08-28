@@ -1978,29 +1978,19 @@ class About extends Panel {
 }
 </style>
 
-<h1> <img src="${logoURL}"> <span> noclip.website </span> </h1>
-<h2> A digital museum of video game levels </h2>
-
-<a href="#" class="FAQLink"> What is this? / FAQ </a>
+<h1> <img src="${logoURL}"> <span> GX Studio </span> </h1>
+<h2> A material editor for Super Monkey Ball 1 and 2, based on the <a href="https://noclip.website">noclip.website</a> engine. </h2>
 
 <p> <strong>CLICK AND DRAG</strong> to look around and use <strong>WASD</strong> to move the camera </p>
 <p> Hold <strong>SHIFT</strong> to go faster, and use <strong>MOUSE WHEEL</strong> to fine tune the speed
 <strong>Z</strong> toggles the UI. </p>
 
-<p><a href="https://discord.gg/bkJmKKv"><strong>JOIN THE DISCORD</strong> by clicking here</a></p>
-
-<p><strong>CODE PRIMARILY WRITTEN</strong> by Jasper</p>
-
-<p><strong>OPEN SOURCE</strong> at <a href="${GITHUB_URL}">GitHub</a></p>
+<p><strong>GX Studio</strong> by ComplexPlane</p>
+<p><strong>noclip.website</strong> by Jasper</p>
 
 <p class="BuildVersion"><a href="${GITHUB_REVISION_URL}">build ${GIT_SHORT_REVISION}</a></p>
 </div>
 `;
-        const faqLink = this.contents.querySelector('.FAQLink') as HTMLAnchorElement;
-        faqLink.onclick = () => {
-            if (this.onfaq !== null)
-                this.onfaq();
-        };
     }
 }
 
