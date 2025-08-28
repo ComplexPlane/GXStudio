@@ -41,17 +41,17 @@ export const SCALAR_CHANNELS: ScalarChannelInfo[] = [
     { id: ScalarChannel.UV7_TranslateU, label: "TexCoord7 U Translate" },
     { id: ScalarChannel.UV7_TranslateV, label: "TexCoord7 V Translate" },
 
-    { id: ScalarChannel.A0, label: "Alpha Register 0" },
-    { id: ScalarChannel.A1, label: "Alpha Register 1" },
-    { id: ScalarChannel.A2, label: "Alpha Register 2" },
-    { id: ScalarChannel.APREV, label: "Alpha Register 'PREV'" },
+    { id: ScalarChannel.A0, label: "Alpha Register C0" },
+    { id: ScalarChannel.A1, label: "Alpha Register C1" },
+    { id: ScalarChannel.A2, label: "Alpha Register C2" },
+    { id: ScalarChannel.APREV, label: "Alpha Register PREV" },
 ];
 
 export const COLOR_CHANNELS: ColorChannelInfo[] = [
-    { id: ColorChannel.C0, label: "Color Register 0" },
-    { id: ColorChannel.C1, label: "Color Register 1" },
-    { id: ColorChannel.C2, label: "Color Register 2" },
-    { id: ColorChannel.CPREV, label: "Color Register 'PREV'" },
+    { id: ColorChannel.C0, label: "Color Register C0" },
+    { id: ColorChannel.C1, label: "Color Register C1" },
+    { id: ColorChannel.C2, label: "Color Register C2" },
+    { id: ColorChannel.CPREV, label: "Color Register PREV" },
 
     { id: ColorChannel.K0, label: "Color Constant K0" },
     { id: ColorChannel.K1, label: "Color Constant K1" },
