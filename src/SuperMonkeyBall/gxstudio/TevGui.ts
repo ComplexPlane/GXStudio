@@ -49,19 +49,19 @@ const COLOR_INS: ColorIn[] = [
     {
         id: GX.CC.CPREV,
         label: "Color Register PREV",
-        help: "Color value from color register 'PREV'",
+        help: "Color value from color register PREV",
     },
-    { id: GX.CC.C0, label: "Color Register 0", help: "Color value from color register 0" },
-    { id: GX.CC.C1, label: "Color Register 1", help: "Color value from color register 1" },
-    { id: GX.CC.C2, label: "Color Register 2", help: "Color value from color register 2" },
+    { id: GX.CC.C0, label: "Color Register C0", help: "Color value from color register C0" },
+    { id: GX.CC.C1, label: "Color Register C1", help: "Color value from color register C1" },
+    { id: GX.CC.C2, label: "Color Register C2", help: "Color value from color register C2" },
     {
         id: GX.CC.APREV,
         label: "Alpha Register PREV",
-        help: "Alpha value from alpha register 'PREV'",
+        help: "Alpha value from alpha register PREV",
     },
-    { id: GX.CC.A0, label: "Alpha Register 0", help: "Alpha value from alpha register 0" },
-    { id: GX.CC.A1, label: "Alpha Register 1", help: "Alpha value from alpha register 1" },
-    { id: GX.CC.A2, label: "Alpha Register 2", help: "Alpha value from alpha register 2" },
+    { id: GX.CC.A0, label: "Alpha Register A0", help: "Alpha value from alpha register A0" },
+    { id: GX.CC.A1, label: "Alpha Register A1", help: "Alpha value from alpha register A1" },
+    { id: GX.CC.A2, label: "Alpha Register A2", help: "Alpha value from alpha register A2" },
     { id: GX.CC.KONST, label: "Color Constant", help: "Color value from either K0, K1, K2, or K3" },
     // { id: GX.CC.RASA, label: "Lighting Alpha", help: "Alpha value from rasterizer" },
 ];
@@ -78,10 +78,10 @@ const ALPHA_INS: AlphaIn[] = [
     { id: GX.CA.ZERO, label: "0.0", help: "Constant value 0.0" },
     { id: GX.CA.RASA, label: "1.0", help: "Constant value 1.0" },
     { id: GX.CA.TEXA, label: "Texture Alpha", help: "Alpha value from texture" },
-    { id: GX.CA.APREV, label: "Alpha PREV", help: "Alpha value from alpha register 'PREV'" },
-    { id: GX.CA.A0, label: "Alpha 0", help: "Alpha value from alpha register 0" },
-    { id: GX.CA.A1, label: "Alpha 1", help: "Alpha value from alpha register 1" },
-    { id: GX.CA.A2, label: "Alpha 2", help: "Alpha value from alpha register 2" },
+    { id: GX.CA.APREV, label: "Alpha Register PREV", help: "Alpha value from alpha register PREV" },
+    { id: GX.CA.A0, label: "Alpha Register A0", help: "Alpha value from alpha register A0" },
+    { id: GX.CA.A1, label: "Alpha Register A1", help: "Alpha value from alpha register A1" },
+    { id: GX.CA.A2, label: "Alpha Register A2", help: "Alpha value from alpha register A2" },
     // { id: GX.CA.KONST, label: "Constant", help: "Constant alpha value" }, // TODO
 ];
 
@@ -94,19 +94,19 @@ type OutReg = {
 };
 
 const COLOR_OUTS: OutReg[] = [
-    { id: GX.Register.PREV, label: "Color PREV", help: "Color register 'PREV' (most common)" },
-    { id: GX.Register.REG0, label: "Color 0", help: "Color register 0" },
-    { id: GX.Register.REG1, label: "Color 1", help: "Color register 1" },
-    { id: GX.Register.REG2, label: "Color 2", help: "Color register 2" },
+    { id: GX.Register.PREV, label: "Color Register PREV", help: "Color register PREV (most common)" },
+    { id: GX.Register.REG0, label: "Color Register C0", help: "Color register C0" },
+    { id: GX.Register.REG1, label: "Color Register C1", help: "Color register C1" },
+    { id: GX.Register.REG2, label: "Color Register C2", help: "Color register C2" },
 ];
 
 const COLOR_OUT_MAP = createIdMap(COLOR_OUTS);
 
 const ALPHA_OUTS: OutReg[] = [
-    { id: GX.Register.PREV, label: "Alpha PREV", help: "Alpha register 'PREV' (most common)" },
-    { id: GX.Register.REG0, label: "Alpha 0", help: "Alpha register 0" },
-    { id: GX.Register.REG1, label: "Alpha 1", help: "Alpha register 1" },
-    { id: GX.Register.REG2, label: "Alpha 2", help: "Alpha register 2" },
+    { id: GX.Register.PREV, label: "Alpha Register PREV", help: "Alpha register PREV (most common)" },
+    { id: GX.Register.REG0, label: "Alpha Register C0", help: "Alpha register C0" },
+    { id: GX.Register.REG1, label: "Alpha Register C1", help: "Alpha register C1" },
+    { id: GX.Register.REG2, label: "Alpha Register C2", help: "Alpha register C2" },
 ];
 
 const ALPHA_OUT_MAP = createIdMap(ALPHA_OUTS);
