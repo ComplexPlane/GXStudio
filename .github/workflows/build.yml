@@ -1,4 +1,4 @@
-name: Build and deploy
+name: Build
 
 on:
   pull_request:
@@ -28,8 +28,5 @@ jobs:
     - name: Install Node dependencies
       run: pnpm install
 
-    - name: Debug
-      run: echo "RUST_LOG=info" >> $GITHUB_ENV
-
-    - name: Run build
+    - name: Build project
       run: pnpm run build
