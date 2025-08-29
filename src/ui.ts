@@ -19,9 +19,9 @@ import { SceneDesc, SceneGroup } from './SceneBase.js';
 import logoURL from './assets/logo.png';
 import { AntialiasingMode } from './gfx/helpers/RenderGraphHelpers.js';
 
-export const HIGHLIGHT_COLOR = 'rgb(210, 30, 30)';
-export const COOL_BLUE_COLOR = 'rgb(20, 105, 215)';
-export const PANEL_BG_COLOR = '#411';
+export const HIGHLIGHT_COLOR = 'rgba(69, 94, 208, 1)';
+export const COOL_BLUE_COLOR = HIGHLIGHT_COLOR;
+export const PANEL_BG_COLOR = 'rgba(40, 54, 117, 1)';
 
 export function createDOMFromString(s: string): DocumentFragment {
     return document.createRange().createContextualFragment(s);
@@ -1984,7 +1984,7 @@ class About extends Panel {
 <p> <strong>DRAG AND DROP</strong> a GMA+TPL file to begin creating materials. </p>
 
 <p> <strong>CLICK AND DRAG</strong> to look around and use <strong>WASD</strong> to move the camera. </p>
-<p> Hold <strong>SHIFT</strong> to go faster, and use <strong>MOUSE WHEEL</strong> to fine tune the speed
+<p> Hold <strong>SHIFT</strong> to go faster, and use <strong>MOUSE WHEEL</strong> to fine tune the speed. 
 <strong>Z</strong> toggles the UI. </p>
 
 <p><strong>GX Studio</strong> by ComplexPlane</p>

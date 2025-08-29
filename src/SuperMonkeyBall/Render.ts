@@ -48,31 +48,7 @@ export class Renderer implements Viewer.SceneGfx {
     }
 
     public createPanels(): UI.Panel[] {
-        const renderHacksPanel = new UI.Panel();
-        renderHacksPanel.customHeaderBackgroundColor = UI.COOL_BLUE_COLOR;
-        renderHacksPanel.setTitle(UI.RENDER_HACKS_ICON, "Render Hacks");
-        // Enable Vertex Color
-        const enableVertexColorsCheckbox = new UI.Checkbox(
-            "Enable Vertex Colors",
-            true
-        );
-        enableVertexColorsCheckbox.onchanged = () => {
-            this.world.setMaterialHacks({
-                disableVertexColors: !enableVertexColorsCheckbox.checked,
-            });
-        };
-        renderHacksPanel.contents.appendChild(enableVertexColorsCheckbox.elem);
-
-        // Enable Texture
-        const enableTextures = new UI.Checkbox("Enable Textures", true);
-        enableTextures.onchanged = () => {
-            this.world.setMaterialHacks({
-                disableTextures: !enableTextures.checked,
-            });
-        };
-        renderHacksPanel.contents.appendChild(enableTextures.elem);
-
-        return [renderHacksPanel];
+       return [];
     }
 
     private prepareToRender(
