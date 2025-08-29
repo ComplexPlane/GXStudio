@@ -28,6 +28,10 @@ export class MaterialListGui {
         return this.selMaterial;
     }
 
+    public setSelectedMaterialIdx(idx: number) {
+        this.selMaterial = idx;
+    }
+
     public render() {
         ImGui.SeparatorText("Materials List");
         if (ImGui.BeginListBox("Materials", this.size)) {

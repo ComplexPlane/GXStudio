@@ -65,6 +65,7 @@ const TEV_STAGE_SCHEMA = z.object({
 
 const MATERIAL_SCHEMA = z.object({
     uuid: z.uuid(),
+    name: z.string(),
     tevStages: z.array(TEV_STAGE_SCHEMA),
     scalarAnims: z.array(SCALAR_ANIM_SCHEMA),
     colorAnims: z.array(COLOR_ANIM_SCHEMA),
@@ -109,7 +110,7 @@ export function encodeRoot(materials: Material[]): z.infer<typeof ROOT_SCHEMA> {
 export function decodeRoot(
     j: any,
     textures: Texture[],
-    newMaterialFunc: () => Material,
+    newMaterialFunc: (name: string) => Material,
 ): Material[] | string {
     const root = ROOT_SCHEMA.safeParse(j);
     if (!root.success) {
@@ -121,6 +122,7 @@ export function decodeRoot(
 function encodeMaterial(m: Material): z.infer<typeof MATERIAL_SCHEMA> {
     return {
         uuid: m.uuid,
+        name: m.name,
         tevStages: m.tevStages.map(encodeTevStage),
         scalarAnims: m.scalarAnims.map(encodeScalarAnim),
         colorAnims: m.colorAnims.map(encodeColorAnim),
@@ -130,9 +132,9 @@ function encodeMaterial(m: Material): z.infer<typeof MATERIAL_SCHEMA> {
 function decodeMaterial(
     m: z.infer<typeof MATERIAL_SCHEMA>,
     textures: Texture[],
-    newMaterialFunc: () => Material,
+    newMaterialFunc: (name: string) => Material,
 ): Material {
-    const material = newMaterialFunc();
+    const material = newMaterialFunc(m.name);
     material.uuid = m.uuid;
     material.tevStages = m.tevStages.map((s) => decodeTevStage(s, textures));
     material.scalarAnims = m.scalarAnims.map(decodeScalarAnim);

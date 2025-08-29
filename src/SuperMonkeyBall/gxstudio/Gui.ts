@@ -122,6 +122,7 @@ export class Gui {
 
         const texturePromises = [];
 
+        let gxTextureIdx = 0;
         for (let gxTexture of uniqueTextures.values()) {
             const mipChain = calcMipChain(gxTexture, gxTexture.mipCount);
             const mipPromises = [];
@@ -144,12 +145,14 @@ export class Gui {
             texturePromises.push(
                 Promise.all(mipPromises).then((imguiTexIds) => {
                     const texture: Texture = {
+                        idx: gxTextureIdx,
                         imguiTextureIds: imguiTexIds,
                         gxTexture: gxTexture,
                     };
                     return texture;
                 })
             );
+            gxTextureIdx++;
         }
 
         Promise.all(texturePromises).then((textures) => {
@@ -253,7 +256,7 @@ export class Gui {
     private importMaterials() {
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = '.json';
+        input.accept = 'application/json,.json';
 
         input.onchange = (event) => {
             const file = (event.target as HTMLInputElement).files?.[0];
@@ -261,28 +264,35 @@ export class Gui {
 
             const reader = new FileReader();
             reader.onload = (e) => {
+                let jsonData;
                 try {
-                    const jsonData = JSON.parse(e.target?.result as string);
-                    const result = decodeRoot(jsonData, this.textures, () =>
-                        new Material(this.device, this.renderCache, this.textureCache, 'Imported Material')
-                    );
-
-                    if (typeof result === 'string') {
-                        this.importError = result;
-                        ImGui.OpenPopup("Import Material Failed");
-                        return;
-                    }
-
-                    this.materials.length = 0;
-                    this.materials.push(...result);
+                    jsonData = JSON.parse(e.target?.result as string);
                 } catch (error) {
-                    alert(`Failed to import materials: ${error}`);
+                    this.importError = `Invalid JSON: ${error}`;
+                    ImGui.OpenPopup("Import Material Failed");
+                    return;
                 }
+
+                const result = decodeRoot(jsonData, this.textures, (name: string) =>
+                    new Material(this.device, this.renderCache, this.textureCache, name)
+                );
+
+                if (typeof result === 'string') {
+                    this.importError = result;
+                    ImGui.OpenPopup("Import Material Failed");
+                    return;
+                }
+
+                this.materials.length = 0;
+                this.materials.push(...result);
+                this.materialListGui.setSelectedMaterialIdx(0);
             };
             reader.readAsText(file);
         };
 
+        document.body.appendChild(input);
         input.click();
+        document.body.removeChild(input);
 
         if (ImGui.BeginPopupModal("Import Material")) {
             ImGui.Text("Materials imported.");

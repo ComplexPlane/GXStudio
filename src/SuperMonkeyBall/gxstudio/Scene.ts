@@ -161,13 +161,13 @@ export class Material {
 
         const textures = [];
         for (let tevStage of tevStages) {
-            if (tevStage.texture !== null) {
+            if (tevStage.texture.kind === "resolved") {
                 textures.push(
                     new TextureInst(
                         this.device,
                         this.renderCache,
                         this.textureCache,
-                        tevStage.texture.gxTexture,
+                        tevStage.texture.texture.gxTexture,
                         tevStage.textureWrapU,
                         tevStage.textureWrapV,
                     ),
