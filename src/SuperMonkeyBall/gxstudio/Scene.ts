@@ -1,8 +1,6 @@
 import { ImTextureRef } from "@mori2003/jsimgui";
 import { Color } from "../../Color.js";
-import {
-    GfxDevice
-} from "../../gfx/platform/GfxPlatform.js";
+import { GfxDevice } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
 import * as GX from "../../gx/gx_enum.js";
 import { TextureInputGX } from "../../gx/gx_texture.js";
@@ -12,23 +10,23 @@ import { MaterialInst } from "./MaterialInst.js";
 import { TextureInst } from "./TextureInst.js";
 
 export type Texture = {
-    idx: number,
+    idx: number;
     imguiTextureIds: ImTextureRef[]; // Loaded imgui textures, one per mip level
     gxTexture: TextureInputGX; // Original GX texture for passing to TextureCache
 };
 
 export type TextureRefResolved = {
-    kind: "resolved",
-    texture: Texture,
-}
+    kind: "resolved";
+    texture: Texture;
+};
 
 export type TextureRefStale = {
-    kind: "stale",
-    staleIdx: number,
+    kind: "stale";
+    staleIdx: number;
 };
 
 export type TextureRefNone = {
-    kind: "none",
+    kind: "none";
 };
 
 export type TextureRef = TextureRefResolved | TextureRefStale | TextureRefNone;
@@ -51,7 +49,7 @@ export type TevStage = {
     alphaDest: GX.Register;
     alphaOp: GX.TevOp;
 
-    texture: TextureRef,
+    texture: TextureRef;
     textureWrapU: GX.WrapMode;
     textureWrapV: GX.WrapMode;
 };
@@ -75,7 +73,7 @@ export function newWhiteTevStage(): TevStage {
         alphaDest: GX.Register.PREV,
         alphaOp: GX.TevOp.ADD,
 
-        texture: null,
+        texture: { kind: "none" },
         textureWrapU: GX.WrapMode.REPEAT,
         textureWrapV: GX.WrapMode.REPEAT,
     };
@@ -100,7 +98,7 @@ export function newLitTextureTevStage(): TevStage {
         alphaDest: GX.Register.PREV,
         alphaOp: GX.TevOp.ADD,
 
-        texture: null,
+        texture: { kind: "none" },
         textureWrapU: GX.WrapMode.REPEAT,
         textureWrapV: GX.WrapMode.REPEAT,
     };
@@ -151,7 +149,7 @@ export class Material {
         private device: GfxDevice,
         private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
-        public name: string
+        public name: string,
     ) {
         this.uuid = crypto.randomUUID();
         this.rebuild();
@@ -171,8 +169,8 @@ export class Material {
                         this.textureCache,
                         tevStage.texture.gxTexture,
                         tevStage.textureWrapU,
-                        tevStage.textureWrapV
-                    )
+                        tevStage.textureWrapV,
+                    ),
                 );
             }
         }
@@ -189,7 +187,7 @@ export class Material {
                 textures,
                 this.scalarAnims,
                 this.colorAnims,
-                cullMode
+                cullMode,
             );
             this.instances.set(cullMode, materialInst);
         }
@@ -231,4 +229,3 @@ export type GuiScene = {
     models: Model[];
     materials: Material[];
 };
-

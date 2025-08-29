@@ -16,6 +16,7 @@ import { ModelsGui } from "./ModelsGui.js";
 import { GuiScene, Material, Model, Texture } from "./Scene.js";
 import { TevGui } from "./TevGui.js";
 import { TexturesGui } from "./TexturesGui.js";
+import { encodeRoot, decodeRoot } from "./ImportExport.js";
 
 export class Gui {
     private modelsGui: ModelsGui;
@@ -23,6 +24,10 @@ export class Gui {
     private tevGui: TevGui;
     private animationsGui: AnimationsGui;
     private texturesGui: TexturesGui;
+
+    private device: GfxDevice;
+    private renderCache: GfxRenderCache;
+    private textureCache: TextureCache;
 
     private models: Model[] = [];
     private materials: Material[] = [];
@@ -32,12 +37,18 @@ export class Gui {
     private imguiSize = new ImVec2();
     private imguiPos = new ImVec2(0, 0);
 
+    private importError = "";
+
     constructor(
         device: GfxDevice,
         renderCache: GfxRenderCache,
         textureCache: TextureCache,
         gma: Gma
     ) {
+        this.device = device;
+        this.renderCache = renderCache;
+        this.textureCache = textureCache;
+
         this.canvasElem = document.getElementById("imguiCanvas") as HTMLCanvasElement;
         this.loadTextures(gma);
 
@@ -226,16 +237,85 @@ export class Gui {
                     ImGui.EndPopup();
                 }
 
-                if (ImGui.MenuItem("Import...", "")) {
-                    ImGui.OpenPopup("Import");
+                if (ImGui.MenuItem("Import Materials...", "")) {
+                    this.importMaterials();
                 }
-                if (ImGui.MenuItem("Export...", "")) {
-                    ImGui.OpenPopup("Export");
+                if (ImGui.MenuItem("Export Materials...", "")) {
+                    this.exportMaterials();
                 }
 
                 ImGui.EndMenu();
             }
             ImGui.EndMenuBar();
         }
+    }
+
+    private importMaterials() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+
+        input.onchange = (event) => {
+            const file = (event.target as HTMLInputElement).files?.[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const jsonData = JSON.parse(e.target?.result as string);
+                    const result = decodeRoot(jsonData, this.textures, () =>
+                        new Material(this.device, this.renderCache, this.textureCache, 'Imported Material')
+                    );
+
+                    if (typeof result === 'string') {
+                        this.importError = result;
+                        ImGui.OpenPopup("Import Material Failed");
+                        return;
+                    }
+
+                    this.materials.length = 0;
+                    this.materials.push(...result);
+                } catch (error) {
+                    alert(`Failed to import materials: ${error}`);
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        input.click();
+
+        if (ImGui.BeginPopupModal("Import Material")) {
+            ImGui.Text("Materials imported.");
+            if (ImGui.Button("OK")) {
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.EndPopup();
+        }
+
+        if (ImGui.BeginPopupModal("Import Material Failed")) {
+            ImGui.Text("Importing materials failed:");
+            ImGui.Text(this.importError);
+            if (ImGui.Button("OK")) {
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.EndPopup();
+        }
+    }
+
+    private exportMaterials() {
+        const exportedJson = encodeRoot(this.materials);
+        const jsonString = JSON.stringify(exportedJson, null, 2);
+
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'gxstudio-materials.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        URL.revokeObjectURL(url);
     }
 }
