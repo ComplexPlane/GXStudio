@@ -1981,7 +1981,9 @@ class About extends Panel {
 <h1> <img src="${logoURL}"> <span> GX Studio </span> </h1>
 <h2> A material editor for Super Monkey Ball 1 and 2, based on the <a href="https://noclip.website">noclip.website</a> engine. </h2>
 
-<p> <strong>CLICK AND DRAG</strong> to look around and use <strong>WASD</strong> to move the camera </p>
+<p> <strong>DRAG AND DROP</strong> a GMA+TPL file to begin creating materials. </p>
+
+<p> <strong>CLICK AND DRAG</strong> to look around and use <strong>WASD</strong> to move the camera. </p>
 <p> Hold <strong>SHIFT</strong> to go faster, and use <strong>MOUSE WHEEL</strong> to fine tune the speed
 <strong>Z</strong> toggles the UI. </p>
 
@@ -2850,9 +2852,9 @@ export class UI {
         this.setHasScene(scenePanels !== null);
 
         if (scenePanels !== null) {
-            this.setPanels([this.sceneSelect, ...scenePanels, this.textureViewer, this.viewerSettings, this.xrSettings, this.statisticsPanel, this.studioSidePanel, this.about]);
+            this.setPanels([...scenePanels, this.textureViewer, this.viewerSettings, this.statisticsPanel, this.about]);
         } else {
-            this.setPanels([this.sceneSelect, this.about]);
+            this.setPanels([this.about]);
         }
     }
 
