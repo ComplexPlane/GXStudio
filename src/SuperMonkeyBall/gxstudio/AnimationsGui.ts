@@ -94,6 +94,10 @@ export class AnimationsGui {
     ) {}
 
     public render() {
+        if (!ImGui.BeginChild("Animations Gui")) {
+            return;
+        }
+
         const selMaterial = this.materialListGui.getSelectedMaterialIdx();
         const material = this.materials[selMaterial];
 
@@ -173,6 +177,8 @@ export class AnimationsGui {
                 material.colorAnims.splice(delIdx, 1);
             }
         }
+
+        ImGui.EndChild();
     }
 
     private renderScalarAnim(anim: ScalarAnim): AnimAction | null {

@@ -146,6 +146,10 @@ export class TevGui {
     ) {}
 
     public render() {
+        if (!ImGui.BeginChild("TEV Stages Editor")) {
+            return;
+        }
+
         const selMaterial = this.materialListGui.getSelectedMaterialIdx();
         const material = this.materials[selMaterial];
 
@@ -251,6 +255,8 @@ export class TevGui {
             material.tevStages.splice(tevStageToDelete, 1);
             material.rebuild();
         }
+
+        ImGui.EndChild();
     }
 
     private renderTextureSelDropdown(label: string, tevStage: TevStage) {
