@@ -218,13 +218,13 @@ export class MaterialInst {
 
         materialParams.u_Lights[0].copy(lighting.infLightViewSpace);
 
+        this.setAnimatedStuff(materialParams, renderParams.t);
+
         this.materialHelper.allocateMaterialParamsDataOnInst(inst, materialParams);
         inst.setSamplerBindingsFromTextureMappings(materialParams.m_TextureMapping);
 
         // Draw params
         this.materialHelper.allocateDrawParamsDataOnInst(inst, drawParams);
-
-        this.setAnimatedStuff(materialParams, renderParams.t);
     }
 
     private setAnimatedStuff(materialParams: MaterialParams, t: number) {
