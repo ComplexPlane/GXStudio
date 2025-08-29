@@ -19,9 +19,9 @@ import { SceneDesc, SceneGroup } from './SceneBase.js';
 import logoURL from './assets/logo.png';
 import { AntialiasingMode } from './gfx/helpers/RenderGraphHelpers.js';
 
-export const HIGHLIGHT_COLOR = 'rgb(210, 30, 30)';
-export const COOL_BLUE_COLOR = 'rgb(20, 105, 215)';
-export const PANEL_BG_COLOR = '#411';
+export const HIGHLIGHT_COLOR = 'rgba(69, 94, 208, 1)';
+export const COOL_BLUE_COLOR = HIGHLIGHT_COLOR;
+export const PANEL_BG_COLOR = 'rgba(40, 54, 117, 1)';
 
 export function createDOMFromString(s: string): DocumentFragment {
     return document.createRange().createContextualFragment(s);
@@ -1981,8 +1981,10 @@ class About extends Panel {
 <h1> <img src="${logoURL}"> <span> GX Studio </span> </h1>
 <h2> A material editor for Super Monkey Ball 1 and 2, based on the <a href="https://noclip.website">noclip.website</a> engine. </h2>
 
-<p> <strong>CLICK AND DRAG</strong> to look around and use <strong>WASD</strong> to move the camera </p>
-<p> Hold <strong>SHIFT</strong> to go faster, and use <strong>MOUSE WHEEL</strong> to fine tune the speed
+<p> <strong>DRAG AND DROP</strong> a GMA+TPL file to begin creating materials. </p>
+
+<p> <strong>CLICK AND DRAG</strong> to look around and use <strong>WASD</strong> to move the camera. </p>
+<p> Hold <strong>SHIFT</strong> to go faster, and use <strong>MOUSE WHEEL</strong> to fine tune the speed. 
 <strong>Z</strong> toggles the UI. </p>
 
 <p><strong>GX Studio</strong> by ComplexPlane</p>
@@ -2689,8 +2691,6 @@ export class UI {
 
     public cameraSpeedIndicator = new CameraSpeedIndicator();
     private bottomBar = new BottomBar();
-    public playPauseButton = new PlayPauseButton();
-    private shareButton = new ShareButton();
     private fullscreenButton = new FullscreenButton();
 
     public debugFloaterHolder = new DebugFloaterHolder();
@@ -2755,8 +2755,8 @@ export class UI {
 
         this.toplevel.appendChild(this.bottomBar.elem);
         this.bottomBar.addWidgets(BottomBarArea.Left, this.cameraSpeedIndicator);
-        this.bottomBar.addWidgets(BottomBarArea.Center, this.playPauseButton);
-        this.bottomBar.addWidgets(BottomBarArea.Right, this.shareButton);
+        // this.bottomBar.addWidgets(BottomBarArea.Center, this.playPauseButton);
+        // this.bottomBar.addWidgets(BottomBarArea.Right, this.shareButton);
         this.bottomBar.addWidgets(BottomBarArea.Right, this.fullscreenButton);
 
         this.sceneSelect = new SceneSelect(viewer);
@@ -2789,7 +2789,7 @@ export class UI {
     }
 
     public setIsPlaying(v: boolean): void {
-        this.playPauseButton.setIsPlaying(v);
+        // this.playPauseButton.setIsPlaying(v);
     }
 
     public toggleWebXRCheckbox(shouldBeChecked: boolean = !this.xrSettings.enableXRCheckBox.checked) {
@@ -2802,11 +2802,6 @@ export class UI {
 
     public update(): void {
         this.syncVisibilityState();
-    }
-
-    public setShareSaveState(saveState: string) {
-        const shareURL = buildShareURL(saveState);
-        this.shareButton.setShareURL(shareURL);
     }
 
     public sceneChanged() {
@@ -2850,9 +2845,9 @@ export class UI {
         this.setHasScene(scenePanels !== null);
 
         if (scenePanels !== null) {
-            this.setPanels([this.sceneSelect, ...scenePanels, this.textureViewer, this.viewerSettings, this.xrSettings, this.statisticsPanel, this.studioSidePanel, this.about]);
+            this.setPanels([...scenePanels, this.textureViewer, this.viewerSettings, this.statisticsPanel, this.about]);
         } else {
-            this.setPanels([this.sceneSelect, this.about]);
+            this.setPanels([this.about]);
         }
     }
 
@@ -2902,11 +2897,11 @@ export class UI {
         this.bottomBar.setVisible(bottomBarVisible);
         this.bottomBar.setActive(this.shouldBottomBarBeFadeIn());
 
-        this.playPauseButton.setVisible(this.hasScene);
+        // this.playPauseButton.setVisible(this.hasScene);
 
         const extraButtonsVisible = !this.isEmbedMode;
         this.cameraSpeedIndicator.setVisible(extraButtonsVisible);
-        this.shareButton.setVisible(extraButtonsVisible && this.hasScene);
+        // this.shareButton.setVisible(extraButtonsVisible && this.hasScene);
     }
 
     public setEmbedMode(v: boolean): void {

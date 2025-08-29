@@ -20,6 +20,16 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
+      - name: Cache Node dependencies
+        uses: actions/setup-node@v4
+        with:
+          cache: pnpm
+
+      - name: Cache Rust workspace
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
       - name: Install dependencies
         run: pnpm install
 
