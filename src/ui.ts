@@ -2691,8 +2691,6 @@ export class UI {
 
     public cameraSpeedIndicator = new CameraSpeedIndicator();
     private bottomBar = new BottomBar();
-    public playPauseButton = new PlayPauseButton();
-    private shareButton = new ShareButton();
     private fullscreenButton = new FullscreenButton();
 
     public debugFloaterHolder = new DebugFloaterHolder();
@@ -2757,8 +2755,8 @@ export class UI {
 
         this.toplevel.appendChild(this.bottomBar.elem);
         this.bottomBar.addWidgets(BottomBarArea.Left, this.cameraSpeedIndicator);
-        this.bottomBar.addWidgets(BottomBarArea.Center, this.playPauseButton);
-        this.bottomBar.addWidgets(BottomBarArea.Right, this.shareButton);
+        // this.bottomBar.addWidgets(BottomBarArea.Center, this.playPauseButton);
+        // this.bottomBar.addWidgets(BottomBarArea.Right, this.shareButton);
         this.bottomBar.addWidgets(BottomBarArea.Right, this.fullscreenButton);
 
         this.sceneSelect = new SceneSelect(viewer);
@@ -2791,7 +2789,7 @@ export class UI {
     }
 
     public setIsPlaying(v: boolean): void {
-        this.playPauseButton.setIsPlaying(v);
+        // this.playPauseButton.setIsPlaying(v);
     }
 
     public toggleWebXRCheckbox(shouldBeChecked: boolean = !this.xrSettings.enableXRCheckBox.checked) {
@@ -2804,11 +2802,6 @@ export class UI {
 
     public update(): void {
         this.syncVisibilityState();
-    }
-
-    public setShareSaveState(saveState: string) {
-        const shareURL = buildShareURL(saveState);
-        this.shareButton.setShareURL(shareURL);
     }
 
     public sceneChanged() {
@@ -2904,11 +2897,11 @@ export class UI {
         this.bottomBar.setVisible(bottomBarVisible);
         this.bottomBar.setActive(this.shouldBottomBarBeFadeIn());
 
-        this.playPauseButton.setVisible(this.hasScene);
+        // this.playPauseButton.setVisible(this.hasScene);
 
         const extraButtonsVisible = !this.isEmbedMode;
         this.cameraSpeedIndicator.setVisible(extraButtonsVisible);
-        this.shareButton.setVisible(extraButtonsVisible && this.hasScene);
+        // this.shareButton.setVisible(extraButtonsVisible && this.hasScene);
     }
 
     public setEmbedMode(v: boolean): void {

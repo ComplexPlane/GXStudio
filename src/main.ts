@@ -486,7 +486,7 @@ class Main {
             return;
 
         this.isPlaying = v;
-        this.ui.playPauseButton.setIsPlaying(v);
+        // this.ui.playPauseButton.setIsPlaying(v);
 
         if (IS_DEVELOPMENT)
             this._saveCurrentTimeState(this._getCurrentSceneDescId()!);
@@ -786,7 +786,7 @@ class Main {
             this._saveCurrentTimeState(currentSceneDescId);
 
         const saveState = `${currentSceneDescId};${sceneStateStr}`;
-        this.ui.setShareSaveState(saveState);
+        // this.ui.setShareSaveState(saveState);
 
         let shouldUpdateURL = forceUpdateURL;
         if (!shouldUpdateURL) {
@@ -970,7 +970,7 @@ class Main {
         this.toplevel.appendChild(this.ui.elem);
         this.ui.sceneSelect.onscenedescselected = this._onSceneDescSelected.bind(this);
         this.ui.xrSettings.onWebXRStateRequested = this._onWebXRStateRequested.bind(this);
-        this.ui.playPauseButton.onplaypause = this.setIsPlaying.bind(this);
+        // this.ui.playPauseButton.onplaypause = this.setIsPlaying.bind(this);
 
         this.webXRContext.onsupportedchanged = () => {
             this._syncWebXRSettingsVisible();
