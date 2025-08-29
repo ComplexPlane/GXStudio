@@ -18,7 +18,6 @@ type BuildState = {
     stage: number;
     texCoord: GX.TexCoordID;
     texMap: GX.TexMapID;
-    texGenSrc: GX.TexGenSrc;
 };
 
 const SWAP_TABLES: SwapTable[] = [
@@ -113,7 +112,6 @@ export class MaterialInst {
             stage: 0,
             texCoord: GX.TexCoordID.TEXCOORD0,
             texMap: GX.TexMapID.TEXMAP0,
-            texGenSrc: GX.TexGenSrc.TEX0,
         };
         for (let tevStageIdx = 0; tevStageIdx < this.tevStages.length; tevStageIdx++) {
             const tevStage = this.tevStages[tevStageIdx];
@@ -122,7 +120,7 @@ export class MaterialInst {
             mb.setTexCoordGen(
                 buildState.texCoord,
                 GX.TexGenType.MTX2x4,
-                buildState.texGenSrc,
+                GX.TexGenSrc.TEX0,
                 TEXGEN_MTXS[tevStageIdx],
             );
             const texMap = tevStage.texture !== null ? buildState.texMap : GX.TexMapID.TEXMAP_NULL;
@@ -166,7 +164,6 @@ export class MaterialInst {
 
             buildState.stage++;
             buildState.texCoord++;
-            buildState.texGenSrc++;
             if (tevStage.texture !== null) {
                 buildState.texMap++;
             }
