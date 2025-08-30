@@ -18,6 +18,7 @@ import { GuiShared } from "./GuiShared.js";
 import { TevGui } from "./TevGui.js";
 import { TexturesGui } from "./TexturesGui.js";
 import { encodeRoot, decodeRoot } from "./ImportExport.js";
+import { AutoSave } from "./AutoSave.js";
 
 export class Gui {
     private modelsGui: ModelsGui;
@@ -31,6 +32,7 @@ export class Gui {
     private textureCache: TextureCache;
 
     private shared: GuiShared;
+    private autoSave: AutoSave;
 
     private canvasElem: HTMLCanvasElement;
     private imguiSize = new ImVec2();
@@ -99,10 +101,34 @@ export class Gui {
             textureCache,
             this.shared
         );
+
+        // Initialize AutoSave (but don't load/start yet - wait for textures)
+        this.autoSave = new AutoSave(
+            () => this.getGuiScene(),
+            () => this.shared.textures,
+            (name: string) => this.createNewMaterial(name)
+        );
     }
 
     public getGuiScene(): GuiScene {
         return { models: this.shared.models, materials: this.shared.materials };
+    }
+
+    private createNewMaterial(name: string): Material {
+        return new Material(this.device, this.renderCache, this.textureCache, name);
+    }
+
+    private initializeAutosave(): void {
+        // Load autosaved state if available (now that textures are ready)
+        if (this.autoSave.hasAutosavedState()) {
+            const error = this.autoSave.loadAutosavedState();
+            if (error) {
+                console.warn("Failed to load autosaved state:", error);
+            }
+        }
+
+        // Start autosaving
+        this.autoSave.start();
     }
 
     private loadTextures(gma: Gma) {
@@ -152,6 +178,9 @@ export class Gui {
         Promise.all(texturePromises).then((textures) => {
             textures.sort((a, b) => a.gxTexture.name.localeCompare(b.gxTexture.name));
             this.shared.textures.push(...textures);
+            
+            // Now that textures are loaded, initialize autosave
+            this.initializeAutosave();
         });
     }
 
@@ -324,5 +353,10 @@ export class Gui {
         document.body.removeChild(a);
 
         URL.revokeObjectURL(url);
+    }
+
+    public destroy(): void {
+        // Stop autosaving when the GUI is destroyed
+        this.autoSave.destroy();
     }
 }
