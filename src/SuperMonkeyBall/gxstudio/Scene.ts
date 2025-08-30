@@ -136,6 +136,26 @@ export function newPassthroughTevStage(prevTevStage: TevStage): TevStage {
     return tevStage;
 }
 
+export function createInsertedTevStage(): TevStage {
+    const tevStage = newWhiteTevStage();
+
+    // Set color inputs to use PREV register for passthrough behavior
+    tevStage.colorInA = GX.CC.ZERO;
+    tevStage.colorInB = GX.CC.ZERO;
+    tevStage.colorInC = GX.CC.ZERO;
+    tevStage.colorInD = GX.CC.CPREV;
+    tevStage.colorDest = GX.Register.PREV;
+
+    // Set alpha inputs to use PREV register for passthrough behavior
+    tevStage.alphaInA = GX.CA.ZERO;
+    tevStage.alphaInB = GX.CA.ZERO;
+    tevStage.alphaInC = GX.CA.ZERO;
+    tevStage.alphaInD = GX.CA.APREV;
+    tevStage.alphaDest = GX.Register.PREV;
+
+    return tevStage;
+}
+
 export class Material {
     public uuid: string;
     public tevStages = [newLitTextureTevStage()];

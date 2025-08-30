@@ -6,6 +6,7 @@ import * as GX from "../../gx/gx_enum.js";
 import { TextureCache } from "../ModelCache.js";
 import { createIdMap, GuiShared } from "./GuiShared.js";
 import {
+    createInsertedTevStage as newIdentityTevStage,
     newLitTextureTevStage,
     newPassthroughTevStage,
     newWhiteTevStage,
@@ -178,6 +179,7 @@ export class TevGui {
         }
 
         let tevStageToDelete: number | null = null;
+        let tevStageToInsertAfter: number | null = null;
         for (let tevStageIdx = 0; tevStageIdx < material.tevStages.length; tevStageIdx++) {
             const tevStage = material.tevStages[tevStageIdx];
             const prevTevStage = scratchTevStagea;
@@ -245,9 +247,20 @@ export class TevGui {
                     ImGui.TreePop();
                 }
 
+                if (stagesFull) {
+                    ImGui.BeginDisabled();
+                }
+                if (ImGui.Button(`Add TEV Stage (${material.tevStages.length}/8)`)) {
+                    tevStageToInsertAfter = tevStageIdx;
+                }
+                if (stagesFull) {
+                    ImGui.EndDisabled();
+                }
+                ImGui.SameLine();
                 if (ImGui.Button("Delete TEV Stage")) {
                     tevStageToDelete = tevStageIdx;
                 }
+                
                 ImGui.Spacing();
 
                 if (!objEqual(tevStage, prevTevStage)) {
@@ -260,6 +273,23 @@ export class TevGui {
 
         if (tevStageToDelete !== null) {
             material.tevStages.splice(tevStageToDelete, 1);
+            material.rebuild();
+        }
+
+        if (tevStageToInsertAfter !== null) {
+            const insertIdx = tevStageToInsertAfter + 1;
+            const isAppendingToEnd = insertIdx >= material.tevStages.length;
+            
+            let newTevStage: TevStage;
+            if (isAppendingToEnd) {
+                newTevStage = material.tevStages.length === 0
+                    ? newLitTextureTevStage()
+                    : newPassthroughTevStage(material.tevStages[material.tevStages.length - 1]);
+            } else {
+                newTevStage = newIdentityTevStage();
+            }
+            
+            material.tevStages.splice(insertIdx, 0, newTevStage);
             material.rebuild();
         }
 
