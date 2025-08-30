@@ -28,7 +28,7 @@ export class MaterialListGui {
         if (ImGui.BeginListBox("Materials", this.size)) {
             for (let i = 0; i < this.s.materials.length; i++) {
                 const isSelected = this.s.materials[i] === this.s.currMaterial;
-                if (ImGui.Selectable(this.s.materials[i].name, isSelected)) {
+                if (ImGui.Selectable(`${this.s.materials[i].name}###${this.s.materials[i].uuid}`, isSelected)) {
                     this.s.currMaterial = this.s.materials[i];
                 }
                 if (isSelected) {
