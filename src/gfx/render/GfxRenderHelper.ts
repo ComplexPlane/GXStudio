@@ -61,7 +61,7 @@ class GfxRenderHelperBase {
 
 // Debug Thumbnails
 import { SceneContext } from "../../SceneBase.js";
-import type { DebugTextDrawer } from "../helpers/DebugTextDrawer.js";
+// import type { DebugTextDrawer } from "../helpers/DebugTextDrawer.js"; // Removed
 
 class PromiseWithSavedValue<T> {
     public value: T | null = null;
@@ -89,18 +89,12 @@ class PromiseWithSavedValue<T> {
 }
 
 export class GfxRenderHelper extends GfxRenderHelperBase {
-    private debugTextDrawer: PromiseWithSavedValue<DebugTextDrawer | null>;
-
     constructor(device: GfxDevice, context: SceneContext | null = null, renderCache: GfxRenderCache | null = null) {
         super(device, renderCache);
-        this.debugTextDrawer = new PromiseWithSavedValue<DebugTextDrawer | null>(async () => {
-            const { makeDebugTextDrawer } = await import('../helpers/DebugTextDrawer.js');
-            return context !== null ? makeDebugTextDrawer(context) : null;
-        });
     }
 
     public override getDebugTextDrawer(): TextDrawer | null {
-        return this.debugTextDrawer.getValueOrStart();
+        return null; // DebugTextDrawer removed
     }
 
     public override destroy(): void {
