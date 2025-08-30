@@ -1,5 +1,6 @@
 import { encodeRoot, decodeRoot } from "./ImportExport.js";
-import { GuiScene, Texture, Material } from "./Scene.js";
+import { Texture, Material } from "./Scene.js";
+import { GuiShared } from "./GuiShared.js";
 
 export class AutoSave {
     private intervalId: number | null = null;
@@ -8,16 +9,16 @@ export class AutoSave {
     private readonly AUTOSAVE_INTERVAL_MS = 500;
     private isDestroyed = false;
 
-    private getGuiScene: () => GuiScene;
+    private getGuiShared: () => GuiShared;
     private getTextures: () => Texture[];
     private newMaterialFunc: (name: string) => Material;
 
     constructor(
-        getGuiScene: () => GuiScene,
+        getGuiShared: () => GuiShared,
         getTextures: () => Texture[],
         newMaterialFunc: (name: string) => Material
     ) {
-        this.getGuiScene = getGuiScene;
+        this.getGuiShared = getGuiShared;
         this.getTextures = getTextures;
         this.newMaterialFunc = newMaterialFunc;
     }
@@ -63,7 +64,7 @@ export class AutoSave {
             }
 
             const parsedData = JSON.parse(savedData);
-            const scene = this.getGuiScene();
+            const scene = this.getGuiShared();
             const textures = this.getTextures();
             
             const error = decodeRoot(parsedData, textures, scene, this.newMaterialFunc);
@@ -73,7 +74,7 @@ export class AutoSave {
             }
 
             // Update our cached state to match what was actually loaded
-            const updatedScene = this.getGuiScene();
+            const updatedScene = this.getGuiShared();
             const currentState = encodeRoot(updatedScene.materials);
             this.lastSavedStateJson = JSON.stringify(currentState);
             return null; // Success
@@ -96,7 +97,7 @@ export class AutoSave {
      */
     private checkAndSave(): void {
         try {
-            const scene = this.getGuiScene();
+            const scene = this.getGuiShared();
             const currentState = encodeRoot(scene.materials);
             const currentStateJson = JSON.stringify(currentState);
 

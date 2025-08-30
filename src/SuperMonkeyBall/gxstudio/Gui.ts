@@ -13,7 +13,7 @@ import { TextureCache } from "../ModelCache.js";
 import { AnimationsGui } from "./AnimationsGui.js";
 import { MaterialListGui } from "./MaterialListGui.js";
 import { ModelsGui } from "./ModelsGui.js";
-import { GuiScene, Material, Model, Texture } from "./Scene.js";
+import { Material, Model, Texture } from "./Scene.js";
 import { GuiShared } from "./GuiShared.js";
 import { TevGui } from "./TevGui.js";
 import { TexturesGui } from "./TexturesGui.js";
@@ -104,7 +104,7 @@ export class Gui {
 
         // Initialize AutoSave
         this.autoSave = new AutoSave(
-            () => this.getGuiScene(),
+            () => this.shared,
             () => this.shared.textures,
             (name: string) => this.createNewMaterial(name)
         );
@@ -122,8 +122,8 @@ export class Gui {
         this.autoSave.start();
     }
 
-    public getGuiScene(): GuiScene {
-        return { models: this.shared.models, materials: this.shared.materials };
+    public getGuiScene(): GuiShared {
+        return this.shared;
     }
 
     private createNewMaterial(name: string): Material {
@@ -288,7 +288,7 @@ export class Gui {
                 const error = decodeRoot(
                     jsonData, 
                     this.shared.textures, 
-                    this.getGuiScene(),
+                    this.shared,
                     (name: string) => new Material(this.device, this.renderCache, this.textureCache, name)
                 );
 
