@@ -14,8 +14,10 @@ import { AnimationsGui } from "./AnimationsGui.js";
 import { MaterialListGui } from "./MaterialListGui.js";
 import { ModelsGui } from "./ModelsGui.js";
 import { GuiScene, Material, Model, Texture } from "./Scene.js";
+import { GuiShared } from "./GuiShared.js";
 import { TevGui } from "./TevGui.js";
 import { TexturesGui } from "./TexturesGui.js";
+import { encodeRoot, decodeRoot } from "./ImportExport.js";
 
 export class Gui {
     private modelsGui: ModelsGui;
@@ -24,13 +26,17 @@ export class Gui {
     private animationsGui: AnimationsGui;
     private texturesGui: TexturesGui;
 
-    private models: Model[] = [];
-    private materials: Material[] = [];
-    private textures: Texture[] = [];
+    private device: GfxDevice;
+    private renderCache: GfxRenderCache;
+    private textureCache: TextureCache;
+
+    private shared: GuiShared;
 
     private canvasElem: HTMLCanvasElement;
     private imguiSize = new ImVec2();
     private imguiPos = new ImVec2(0, 0);
+
+    private importError = "";
 
     constructor(
         device: GfxDevice,
@@ -38,11 +44,22 @@ export class Gui {
         textureCache: TextureCache,
         gma: Gma
     ) {
+        this.device = device;
+        this.renderCache = renderCache;
+        this.textureCache = textureCache;
+
+        this.shared = {
+            models: [],
+            materials: [],
+            currMaterial: null,
+            textures: []
+        };
+
         this.canvasElem = document.getElementById("imguiCanvas") as HTMLCanvasElement;
         this.loadTextures(gma);
 
         for (let model of gma.idMap.values()) {
-            this.models.push({
+            this.shared.models.push({
                 name: model.name,
                 meshes: model.shapes.map((_) => {
                     return { material: null };
@@ -56,48 +73,36 @@ export class Gui {
             device,
             renderCache,
             textureCache,
-            this.models,
-            this.materials,
-            this.textures
+            this.shared
         );
         this.materialListGui = new MaterialListGui(
             device,
             renderCache,
             textureCache,
-            this.models,
-            this.materials,
-            this.textures
+            this.shared
         );
         this.tevGui = new TevGui(
             device,
             renderCache,
             textureCache,
-            this.models,
-            this.materials,
-            this.textures,
-            this.materialListGui
+            this.shared
         );
         this.animationsGui = new AnimationsGui(
             device,
             renderCache,
             textureCache,
-            this.models,
-            this.materials,
-            this.textures,
-            this.materialListGui
+            this.shared
         );
         this.texturesGui = new TexturesGui(
             device,
             renderCache,
             textureCache,
-            this.models,
-            this.materials,
-            this.textures
+            this.shared
         );
     }
 
     public getGuiScene(): GuiScene {
-        return { models: this.models, materials: this.materials };
+        return { models: this.shared.models, materials: this.shared.materials };
     }
 
     private loadTextures(gma: Gma) {
@@ -111,6 +116,7 @@ export class Gui {
 
         const texturePromises = [];
 
+        let gxTextureIdx = 0;
         for (let gxTexture of uniqueTextures.values()) {
             const mipChain = calcMipChain(gxTexture, gxTexture.mipCount);
             const mipPromises = [];
@@ -133,17 +139,19 @@ export class Gui {
             texturePromises.push(
                 Promise.all(mipPromises).then((imguiTexIds) => {
                     const texture: Texture = {
+                        idx: gxTextureIdx,
                         imguiTextureIds: imguiTexIds,
                         gxTexture: gxTexture,
                     };
                     return texture;
                 })
             );
+            gxTextureIdx++;
         }
 
         Promise.all(texturePromises).then((textures) => {
             textures.sort((a, b) => a.gxTexture.name.localeCompare(b.gxTexture.name));
-            this.textures.push(...textures);
+            this.shared.textures.push(...textures);
         });
     }
 
@@ -184,11 +192,10 @@ export class Gui {
     }
 
     private renderMaterialEditorGui() {
-        const selMaterial = this.materialListGui.getSelectedMaterialIdx();
-        if (selMaterial < 0) {
+        const material = this.shared.currMaterial;
+        if (material === null) {
             return;
         }
-        const material = this.materials[selMaterial];
 
         ImGui.SeparatorText(`Edit Material '${material.name}'`);
 
@@ -226,16 +233,96 @@ export class Gui {
                     ImGui.EndPopup();
                 }
 
-                if (ImGui.MenuItem("Import...", "")) {
-                    ImGui.OpenPopup("Import");
+                if (ImGui.MenuItem("Import Materials...", "")) {
+                    this.importMaterials();
                 }
-                if (ImGui.MenuItem("Export...", "")) {
-                    ImGui.OpenPopup("Export");
+                if (ImGui.MenuItem("Export Materials...", "")) {
+                    this.exportMaterials();
                 }
 
                 ImGui.EndMenu();
             }
             ImGui.EndMenuBar();
         }
+    }
+
+    private importMaterials() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json,.json';
+
+        input.onchange = (event) => {
+            const file = (event.target as HTMLInputElement).files?.[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                let jsonData;
+                try {
+                    jsonData = JSON.parse(e.target?.result as string);
+                } catch (error) {
+                    this.importError = `Invalid JSON: ${error}`;
+                    ImGui.OpenPopup("Import Material Failed");
+                    return;
+                }
+
+                const error = decodeRoot(
+                    jsonData, 
+                    this.shared.textures, 
+                    this.getGuiScene(),
+                    (name: string) => new Material(this.device, this.renderCache, this.textureCache, name)
+                );
+
+                if (error) {
+                    this.importError = error;
+                    ImGui.OpenPopup("Import Material Failed");
+                    return;
+                }
+
+                // Keep current material selection if it still exists
+                if (this.shared.currMaterial === null && this.shared.materials.length > 0) {
+                    this.shared.currMaterial = this.shared.materials[0];
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        document.body.appendChild(input);
+        input.click();
+        document.body.removeChild(input);
+
+        if (ImGui.BeginPopupModal("Import Material")) {
+            ImGui.Text("Materials imported.");
+            if (ImGui.Button("OK")) {
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.EndPopup();
+        }
+
+        if (ImGui.BeginPopupModal("Import Material Failed")) {
+            ImGui.Text("Importing materials failed:");
+            ImGui.Text(this.importError);
+            if (ImGui.Button("OK")) {
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.EndPopup();
+        }
+    }
+
+    private exportMaterials() {
+        const exportedJson = encodeRoot(this.shared.materials);
+        const jsonString = JSON.stringify(exportedJson, null, 2);
+
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'gxstudio-materials.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        URL.revokeObjectURL(url);
     }
 }

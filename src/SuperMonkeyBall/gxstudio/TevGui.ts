@@ -4,16 +4,16 @@ import { GfxDevice } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
 import * as GX from "../../gx/gx_enum.js";
 import { TextureCache } from "../ModelCache.js";
-import { createIdMap } from "./GuiUtils.js";
-import { MaterialListGui } from "./MaterialListGui.js";
+import { createIdMap, GuiShared } from "./GuiShared.js";
 import {
-    Material,
-    Model,
+    createInsertedTevStage as newIdentityTevStage,
     newLitTextureTevStage,
     newPassthroughTevStage,
     newWhiteTevStage,
     TevStage,
     Texture,
+    TextureRef,
+    TextureRefResolved,
 } from "./Scene.js";
 
 type ColorConst = {
@@ -94,7 +94,11 @@ type OutReg = {
 };
 
 const COLOR_OUTS: OutReg[] = [
-    { id: GX.Register.PREV, label: "Color Register PREV", help: "Color register PREV (most common)" },
+    {
+        id: GX.Register.PREV,
+        label: "Color Register PREV",
+        help: "Color register PREV (most common)",
+    },
     { id: GX.Register.REG0, label: "Color Register C0", help: "Color register C0" },
     { id: GX.Register.REG1, label: "Color Register C1", help: "Color register C1" },
     { id: GX.Register.REG2, label: "Color Register C2", help: "Color register C2" },
@@ -103,7 +107,11 @@ const COLOR_OUTS: OutReg[] = [
 const COLOR_OUT_MAP = createIdMap(COLOR_OUTS);
 
 const ALPHA_OUTS: OutReg[] = [
-    { id: GX.Register.PREV, label: "Alpha Register PREV", help: "Alpha register PREV (most common)" },
+    {
+        id: GX.Register.PREV,
+        label: "Alpha Register PREV",
+        help: "Alpha register PREV (most common)",
+    },
     { id: GX.Register.REG0, label: "Alpha Register C0", help: "Alpha register C0" },
     { id: GX.Register.REG1, label: "Alpha Register C1", help: "Alpha register C1" },
     { id: GX.Register.REG2, label: "Alpha Register C2", help: "Alpha register C2" },
@@ -134,15 +142,13 @@ export class TevGui {
     private smallImageButtonSize = new ImVec2(80, 80);
     private largeImageButtonSize = new ImVec2(120, 120);
     private scratchImVec2a = new ImVec2();
+    private scratchTextureRef: TextureRefResolved = { kind: "resolved", texture: {} as any };
 
     constructor(
         private device: GfxDevice,
         private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
-        private models: Model[],
-        private materials: Material[],
-        private textures: Texture[],
-        private materialListGui: MaterialListGui
+        private s: GuiShared,
     ) {}
 
     public render() {
@@ -150,8 +156,10 @@ export class TevGui {
             return;
         }
 
-        const selMaterial = this.materialListGui.getSelectedMaterialIdx();
-        const material = this.materials[selMaterial];
+        const material = this.s.currMaterial;
+        if (material === null) {
+            return;
+        }
 
         const stagesFull = material.tevStages.length >= 8;
         if (stagesFull) {
@@ -171,6 +179,7 @@ export class TevGui {
         }
 
         let tevStageToDelete: number | null = null;
+        let tevStageToInsertAfter: number | null = null;
         for (let tevStageIdx = 0; tevStageIdx < material.tevStages.length; tevStageIdx++) {
             const tevStage = material.tevStages[tevStageIdx];
             const prevTevStage = scratchTevStagea;
@@ -181,7 +190,7 @@ export class TevGui {
             if (
                 ImGui.CollapsingHeader(
                     `TEV Stage ${tevStageIdx}###${tevStage.uuid}`,
-                    ImGui.TreeNodeFlags.DefaultOpen
+                    ImGui.TreeNodeFlags.DefaultOpen,
                 )
             ) {
                 if (ImGui.TreeNodeEx("Texture", ImGui.TreeNodeFlags.DefaultOpen)) {
@@ -191,14 +200,14 @@ export class TevGui {
                         "U Wrap",
                         WRAP_MODES,
                         WRAP_MODE_MAP.get(tevStage.textureWrapU)!,
-                        (w) => w.label
+                        (w) => w.label,
                     ).id;
                     ImGui.SameLine();
                     tevStage.textureWrapV = renderCombo(
                         "V Wrap",
                         WRAP_MODES,
                         WRAP_MODE_MAP.get(tevStage.textureWrapV)!,
-                        (w) => w.label
+                        (w) => w.label,
                     ).id;
                     ImGui.PopItemWidth();
                     ImGui.TreePop();
@@ -221,7 +230,7 @@ export class TevGui {
                             COLOR_CONSTS,
                             COLOR_CONST_MAP.get(tevStage.kcsel)!,
                             (c) => c.label,
-                            (c) => c.help
+                            (c) => c.help,
                         ).id;
                     }
                     tevStage.colorDest = this.renderColorOutDropdown(`Dest`, tevStage.colorDest);
@@ -238,9 +247,20 @@ export class TevGui {
                     ImGui.TreePop();
                 }
 
+                if (stagesFull) {
+                    ImGui.BeginDisabled();
+                }
+                if (ImGui.Button(`Add TEV Stage (${material.tevStages.length}/8)`)) {
+                    tevStageToInsertAfter = tevStageIdx;
+                }
+                if (stagesFull) {
+                    ImGui.EndDisabled();
+                }
+                ImGui.SameLine();
                 if (ImGui.Button("Delete TEV Stage")) {
                     tevStageToDelete = tevStageIdx;
                 }
+                
                 ImGui.Spacing();
 
                 if (!objEqual(tevStage, prevTevStage)) {
@@ -256,31 +276,59 @@ export class TevGui {
             material.rebuild();
         }
 
+        if (tevStageToInsertAfter !== null) {
+            const insertIdx = tevStageToInsertAfter + 1;
+            const isAppendingToEnd = insertIdx >= material.tevStages.length;
+            
+            let newTevStage: TevStage;
+            if (isAppendingToEnd) {
+                newTevStage = material.tevStages.length === 0
+                    ? newLitTextureTevStage()
+                    : newPassthroughTevStage(material.tevStages[material.tevStages.length - 1]);
+            } else {
+                newTevStage = newIdentityTevStage();
+            }
+            
+            material.tevStages.splice(insertIdx, 0, newTevStage);
+            material.rebuild();
+        }
+
         ImGui.EndChild();
     }
 
     private renderTextureSelDropdown(label: string, tevStage: TevStage) {
         this.texturePicker((texture) => {
-            tevStage.texture = texture;
+            if (texture === null) {
+                tevStage.texture = { kind: "none" };
+            } else {
+                tevStage.texture = { kind: "resolved", texture };
+            }
         });
 
-        if (tevStage.texture !== null) {
+        if (tevStage.texture.kind === "resolved") {
             if (
                 ImGui.ImageButton(
                     "##textureButtonId",
-                    tevStage.texture.imguiTextureIds[0],
-                    this.smallImageButtonSize
+                    tevStage.texture.texture.imguiTextureIds[0],
+                    this.smallImageButtonSize,
                 )
             ) {
                 ImGui.OpenPopup("Choose Texture");
             }
             showTextureTooltip(tevStage.texture);
-        } else {
+        } else if (tevStage.texture.kind === "none") {
             const buttonSize = this.scratchImVec2a;
             getImageButtonSize(buttonSize, this.smallImageButtonSize);
             if (ImGui.Button("<none>", buttonSize)) {
                 ImGui.OpenPopup("Choose Texture");
             }
+        } else if (tevStage.texture.kind === "stale") {
+            const buttonSize = this.scratchImVec2a;
+            getImageButtonSize(buttonSize, this.smallImageButtonSize);
+            ImGui.BeginDisabled();
+            if (ImGui.Button(`<unknown idx: ${tevStage.texture.staleIdx}>`, buttonSize)) {
+            }
+            ImGui.EndDisabled();
         }
         ImGui.SameLine();
         ImGui.Text(label);
@@ -292,7 +340,7 @@ export class TevGui {
             if (ImGui.Button("Cancel")) {
                 ImGui.CloseCurrentPopup();
             }
-            const maybeTextures = [null, ...this.textures];
+            const maybeTextures = [null, ...this.s.textures];
             for (let i = 0; i < maybeTextures.length; i++) {
                 const texture = maybeTextures[i];
                 ImGui.PushID(i.toString());
@@ -314,7 +362,9 @@ export class TevGui {
                         setFunc(texture);
                         ImGui.CloseCurrentPopup();
                     }
-                    showTextureTooltip(texture);
+                    const ref = this.scratchTextureRef;
+                    ref.texture = texture;
+                    showTextureTooltip(ref);
                 }
 
                 ImGui.PopID();
@@ -331,7 +381,7 @@ export class TevGui {
             COLOR_INS,
             currColorSel,
             (s) => s.label,
-            (s) => s.help
+            (s) => s.help,
         ).id;
     }
 
@@ -342,7 +392,7 @@ export class TevGui {
             ALPHA_INS,
             currAlphaSel,
             (s) => s.label,
-            (s) => s.help
+            (s) => s.help,
         ).id;
     }
 
@@ -353,7 +403,7 @@ export class TevGui {
             COLOR_OUTS,
             currColorSel,
             (s) => s.label,
-            (s) => s.help
+            (s) => s.help,
         ).id;
     }
 
@@ -364,7 +414,7 @@ export class TevGui {
             ALPHA_OUTS,
             currAlphaSel,
             (s) => s.label,
-            (s) => s.help
+            (s) => s.help,
         ).id;
     }
 }
@@ -375,12 +425,16 @@ function getImageButtonSize(out: ImVec2, imageButtonSize: ImVec2) {
     out.y = imageButtonSize.y + framePadding.y * 2;
 }
 
-function showTextureTooltip(texture: Texture) {
+function showTextureTooltip(ref: TextureRef) {
     if (ImGui.BeginItemTooltip()) {
-        const dims = `${texture.gxTexture.width}x${texture.gxTexture.height}`;
-        const mips = `${texture.gxTexture.mipCount} mip level(s)`;
-        ImGui.Text(texture.gxTexture.name);
-        ImGui.Text(`${dims}, ${mips}`);
+        if (ref.kind === "resolved") {
+            const dims = `${ref.texture.gxTexture.width}x${ref.texture.gxTexture.height}`;
+            const mips = `${ref.texture.gxTexture.mipCount} mip level(s)`;
+            ImGui.Text(ref.texture.gxTexture.name);
+            ImGui.Text(`${dims}, ${mips}`);
+        } else if (ref.kind === "stale") {
+            ImGui.Text(`Unresolved texture index: ${ref.staleIdx}`);
+        }
         ImGui.EndTooltip();
     }
 }
@@ -390,7 +444,7 @@ function renderCombo<T>(
     items: T[],
     selectedItem: T,
     formatFunc: (v: T) => string,
-    helpFunc?: (v: T) => string
+    helpFunc?: (v: T) => string,
 ): T {
     let newSelectedItem = selectedItem;
     if (ImGui.BeginCombo(label, formatFunc(selectedItem), ImGui.ComboFlags.HeightLarge)) {

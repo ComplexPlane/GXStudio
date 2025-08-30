@@ -7,10 +7,10 @@ import {
 import { GfxDevice } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
 import { TextureCache } from "../ModelCache.js";
-import { Material, Model, Texture } from "./Scene.js";
+import { GuiShared } from "./GuiShared.js";
+import { Material } from "./Scene.js";
 
 export class MaterialListGui {
-    private selMaterial: number = -1;
     private tmpName: string[] | null = null;
     private errorColor = new ImVec4(1, 0.2, 0.2, 1);
     private size = new ImVec2(0, 100);
@@ -19,22 +19,17 @@ export class MaterialListGui {
         private device: GfxDevice,
         private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
-        private models: Model[],
-        private materials: Material[],
-        private textures: Texture[]
+        private s: GuiShared
     ) {}
 
-    public getSelectedMaterialIdx(): number {
-        return this.selMaterial;
-    }
 
     public render() {
         ImGui.SeparatorText("Materials List");
         if (ImGui.BeginListBox("Materials", this.size)) {
-            for (let i = 0; i < this.materials.length; i++) {
-                const isSelected = i === this.selMaterial;
-                if (ImGui.Selectable(this.materials[i].name, isSelected)) {
-                    this.selMaterial = i;
+            for (let i = 0; i < this.s.materials.length; i++) {
+                const isSelected = this.s.materials[i] === this.s.currMaterial;
+                if (ImGui.Selectable(`${this.s.materials[i].name}###${this.s.materials[i].uuid}`, isSelected)) {
+                    this.s.currMaterial = this.s.materials[i];
                 }
                 if (isSelected) {
                     ImGui.SetItemDefaultFocus();
@@ -43,10 +38,10 @@ export class MaterialListGui {
             ImGui.EndListBox();
         }
         if (ImGui.Button("New")) {
-            ImGui.OpenPopup("New Material");
+            this.createNewMaterial();
         }
 
-        if (this.materials.length === 0) {
+        if (this.s.currMaterial === null) {
             ImGui.BeginDisabled();
         }
         {
@@ -56,7 +51,7 @@ export class MaterialListGui {
             }
             ImGui.SameLine();
             if (ImGui.Button("Duplicate")) {
-                ImGui.OpenPopup("Duplicate Material");
+                this.duplicateMaterial();
             }
             ImGui.SameLine();
             if (ImGui.Button("Delete")) {
@@ -64,79 +59,41 @@ export class MaterialListGui {
             }
             ImGui.SameLine();
             if (ImGui.ArrowButton("Move Down", ImGui.Dir._Down)) {
-                this.selMaterial = swap(this.materials, this.selMaterial, this.selMaterial + 1);
+                const currIdx = this.s.materials.indexOf(this.s.currMaterial!);
+                if (currIdx >= 0) {
+                    const newIdx = swap(this.s.materials, currIdx, currIdx + 1);
+                    this.s.currMaterial = this.s.materials[newIdx];
+                }
             }
             ImGui.SameLine();
             if (ImGui.ArrowButton("Move Up", ImGui.Dir._Up)) {
-                this.selMaterial = swap(this.materials, this.selMaterial, this.selMaterial - 1);
+                const currIdx = this.s.materials.indexOf(this.s.currMaterial!);
+                if (currIdx >= 0) {
+                    const newIdx = swap(this.s.materials, currIdx, currIdx - 1);
+                    this.s.currMaterial = this.s.materials[newIdx];
+                }
             }
         }
-        if (this.materials.length === 0) {
+        if (this.s.currMaterial === null) {
             ImGui.EndDisabled();
         }
 
-        // New material
-        const materialName = this.nameSomethingPopup(
-            "New Material",
-            "My New Material",
-            this.materials.map((m) => m.name)
-        );
-        if (materialName !== null) {
-            const material = new Material(
-                this.device,
-                this.renderCache,
-                this.textureCache,
-                materialName
-            );
-            this.selMaterial++;
-            this.materials.splice(this.selMaterial, 0, material);
-        }
 
         // Rename material
-        if (this.materials.length > 0) {
+        if (this.s.currMaterial !== null) {
             const newName = this.nameSomethingPopup(
                 "Rename Material",
-                this.materials[this.selMaterial].name,
-                this.materials.filter((_, i) => i !== this.selMaterial).map((m) => m.name)
+                this.s.currMaterial.name
             );
             if (newName !== null) {
-                this.materials[this.selMaterial].name = newName;
-            }
-        }
-
-        // Duplicate material
-        if (this.materials.length > 0) {
-            const newName = this.nameSomethingPopup(
-                "Duplicate Material",
-                this.materials[this.selMaterial].name,
-                this.materials.map((m) => m.name)
-            );
-            if (newName !== null) {
-                const clone = this.materials[this.selMaterial].clone(newName);
-                this.selMaterial++;
-                this.materials.splice(this.selMaterial, 0, clone);
+                this.s.currMaterial.name = newName;
             }
         }
 
         if (ImGui.BeginPopup("Delete Material")) {
-            ImGui.Text(`Delete material '${this.materials[this.selMaterial].name}'?`);
+            ImGui.Text(`Delete material '${this.s.currMaterial!.name}'?`);
             if (ImGui.Button("OK")) {
-                // Remove any mesh references to this material
-                const materialToDelete = this.materials[this.selMaterial];
-                for (let model of this.models.values()) {
-                    for (let mesh of model.meshes) {
-                        if (mesh.material === materialToDelete) {
-                            mesh.material = null;
-                        }
-                    }
-                }
-
-                // Delete material
-                this.materials.splice(this.selMaterial, 1);
-                if (this.selMaterial === this.materials.length) {
-                    this.selMaterial--;
-                }
-
+                this.deleteMaterial();
                 ImGui.CloseCurrentPopup();
             }
             ImGui.SameLine();
@@ -147,10 +104,54 @@ export class MaterialListGui {
         }
     }
 
+    private createNewMaterial() {
+        const materialName = this.generateNextMaterialName(this.s.materials.map((m) => m.name));
+        const material = new Material(
+            this.device,
+            this.renderCache,
+            this.textureCache,
+            materialName
+        );
+        const currIdx = this.s.currMaterial ? this.s.materials.indexOf(this.s.currMaterial) : -1;
+        const newIdx = currIdx + 1;
+        this.s.materials.splice(newIdx, 0, material);
+        this.s.currMaterial = material;
+    }
+
+    private duplicateMaterial() {
+        if (this.s.currMaterial === null) return;
+        
+        const newName = this.generateNextMaterialName(this.s.materials.map((m) => m.name));
+        const clone = this.s.currMaterial.clone(newName);
+        const currIdx = this.s.materials.indexOf(this.s.currMaterial);
+        const newIdx = currIdx + 1;
+        this.s.materials.splice(newIdx, 0, clone);
+        this.s.currMaterial = clone;
+    }
+
+    private deleteMaterial() {
+        if (this.s.currMaterial === null) return;
+
+        // Remove any mesh references to this material
+        const materialToDelete = this.s.currMaterial;
+        for (let model of this.s.models.values()) {
+            for (let mesh of model.meshes) {
+                if (mesh.material === materialToDelete) {
+                    mesh.material = null;
+                }
+            }
+        }
+
+        // Delete material
+        const currIdx = this.s.materials.indexOf(materialToDelete);
+        this.s.materials.splice(currIdx, 1);
+        const newIdx = currIdx === this.s.materials.length ? currIdx - 1 : currIdx;
+        this.s.currMaterial = newIdx >= 0 && newIdx < this.s.materials.length ? this.s.materials[newIdx] : null;
+    }
+
     private nameSomethingPopup(
         label: string,
-        defaultName: string,
-        existingNames: string[]
+        defaultName: string
     ): string | null {
         let ret = null;
         if (ImGui.BeginPopup(label)) {
@@ -162,14 +163,10 @@ export class MaterialListGui {
             const trimmedName = this.tmpName[0].trim();
 
             const nameEmpty = trimmedName.length === 0;
-            const nameConflict = existingNames.includes(trimmedName);
-            const disabled = nameEmpty || nameConflict;
+            const disabled = nameEmpty;
 
             if (nameEmpty) {
                 ImGui.TextColored(this.errorColor, "Error: Empty Name");
-            }
-            if (nameConflict) {
-                ImGui.TextColored(this.errorColor, "Error: Duplicate Name");
             }
 
             if (disabled) {
@@ -192,6 +189,30 @@ export class MaterialListGui {
             ImGui.EndPopup();
         }
         return ret;
+    }
+
+    private generateNextMaterialName(existingNames: string[]): string {
+        const baseName = "Material";
+        
+        // If no materials exist, start with "Material 1"
+        if (existingNames.length === 0) {
+            return `${baseName} 1`;
+        }
+        
+        // Find the highest number used with the base name
+        let highestNumber = 0;
+        const regex = new RegExp(`^${baseName}\\s+(\\d+)$`);
+        
+        for (const name of existingNames) {
+            const match = name.match(regex);
+            if (match) {
+                const number = parseInt(match[1], 10);
+                highestNumber = Math.max(highestNumber, number);
+            }
+        }
+        
+        // Return the next number in sequence
+        return `${baseName} ${highestNumber + 1}`;
     }
 }
 

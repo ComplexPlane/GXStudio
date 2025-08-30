@@ -1,8 +1,6 @@
 import { ImTextureRef } from "@mori2003/jsimgui";
 import { Color } from "../../Color.js";
-import {
-    GfxDevice
-} from "../../gfx/platform/GfxPlatform.js";
+import { GfxDevice } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
 import * as GX from "../../gx/gx_enum.js";
 import { TextureInputGX } from "../../gx/gx_texture.js";
@@ -12,9 +10,26 @@ import { MaterialInst } from "./MaterialInst.js";
 import { TextureInst } from "./TextureInst.js";
 
 export type Texture = {
+    idx: number;
     imguiTextureIds: ImTextureRef[]; // Loaded imgui textures, one per mip level
     gxTexture: TextureInputGX; // Original GX texture for passing to TextureCache
 };
+
+export type TextureRefResolved = {
+    kind: "resolved";
+    texture: Texture;
+};
+
+export type TextureRefStale = {
+    kind: "stale";
+    staleIdx: number;
+};
+
+export type TextureRefNone = {
+    kind: "none";
+};
+
+export type TextureRef = TextureRefResolved | TextureRefStale | TextureRefNone;
 
 export type TevStage = {
     uuid: string;
@@ -34,7 +49,7 @@ export type TevStage = {
     alphaDest: GX.Register;
     alphaOp: GX.TevOp;
 
-    texture: Texture | null;
+    texture: TextureRef;
     textureWrapU: GX.WrapMode;
     textureWrapV: GX.WrapMode;
 };
@@ -58,7 +73,7 @@ export function newWhiteTevStage(): TevStage {
         alphaDest: GX.Register.PREV,
         alphaOp: GX.TevOp.ADD,
 
-        texture: null,
+        texture: { kind: "none" },
         textureWrapU: GX.WrapMode.REPEAT,
         textureWrapV: GX.WrapMode.REPEAT,
     };
@@ -83,7 +98,7 @@ export function newLitTextureTevStage(): TevStage {
         alphaDest: GX.Register.PREV,
         alphaOp: GX.TevOp.ADD,
 
-        texture: null,
+        texture: { kind: "none" },
         textureWrapU: GX.WrapMode.REPEAT,
         textureWrapV: GX.WrapMode.REPEAT,
     };
@@ -121,7 +136,28 @@ export function newPassthroughTevStage(prevTevStage: TevStage): TevStage {
     return tevStage;
 }
 
+export function createInsertedTevStage(): TevStage {
+    const tevStage = newWhiteTevStage();
+
+    // Set color inputs to use PREV register for passthrough behavior
+    tevStage.colorInA = GX.CC.ZERO;
+    tevStage.colorInB = GX.CC.ZERO;
+    tevStage.colorInC = GX.CC.ZERO;
+    tevStage.colorInD = GX.CC.CPREV;
+    tevStage.colorDest = GX.Register.PREV;
+
+    // Set alpha inputs to use PREV register for passthrough behavior
+    tevStage.alphaInA = GX.CA.ZERO;
+    tevStage.alphaInB = GX.CA.ZERO;
+    tevStage.alphaInC = GX.CA.ZERO;
+    tevStage.alphaInD = GX.CA.APREV;
+    tevStage.alphaDest = GX.Register.PREV;
+
+    return tevStage;
+}
+
 export class Material {
+    public uuid: string;
     public tevStages = [newLitTextureTevStage()];
     public scalarAnims: ScalarAnim[] = [];
     public colorAnims: ColorAnim[] = [];
@@ -133,8 +169,9 @@ export class Material {
         private device: GfxDevice,
         private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
-        public name: string
+        public name: string,
     ) {
+        this.uuid = crypto.randomUUID();
         this.rebuild();
     }
 
@@ -144,16 +181,16 @@ export class Material {
 
         const textures = [];
         for (let tevStage of tevStages) {
-            if (tevStage.texture !== null) {
+            if (tevStage.texture.kind === "resolved") {
                 textures.push(
                     new TextureInst(
                         this.device,
                         this.renderCache,
                         this.textureCache,
-                        tevStage.texture.gxTexture,
+                        tevStage.texture.texture.gxTexture,
                         tevStage.textureWrapU,
-                        tevStage.textureWrapV
-                    )
+                        tevStage.textureWrapV,
+                    ),
                 );
             }
         }
@@ -170,7 +207,7 @@ export class Material {
                 textures,
                 this.scalarAnims,
                 this.colorAnims,
-                cullMode
+                cullMode,
             );
             this.instances.set(cullMode, materialInst);
         }
@@ -178,6 +215,7 @@ export class Material {
 
     public clone(name: string): Material {
         const newMaterial = new Material(this.device, this.renderCache, this.textureCache, name);
+        newMaterial.uuid = crypto.randomUUID();
         newMaterial.tevStages = this.tevStages.map((t) => {
             return { ...t, uuid: crypto.randomUUID() };
         });
@@ -211,4 +249,3 @@ export type GuiScene = {
     models: Model[];
     materials: Material[];
 };
-

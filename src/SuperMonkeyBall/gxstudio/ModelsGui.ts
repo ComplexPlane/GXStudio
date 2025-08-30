@@ -5,37 +5,34 @@ import {
 import { GfxDevice } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
 import { TextureCache } from "../ModelCache.js";
-import { renderCombo } from "./GuiUtils.js";
-import { Material, Model, Texture } from "./Scene.js";
+import { GuiShared, renderCombo } from "./GuiShared.js";
 
 export class ModelsGui {
     constructor(
         private device: GfxDevice,
         private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
-        private models: Model[],
-        private materials: Material[],
-        private textures: Texture[]
+        private s: GuiShared
     ) {}
 
     public render() {
         ImGui.SeparatorText("Models List");
         if (ImGui.Button("Show All")) {
-            for (let model of this.models.values()) {
+            for (let model of this.s.models.values()) {
                 model.visible = true;
             }
         }
         ImGui.SameLine();
         if (ImGui.Button("Hide All")) {
-            for (let model of this.models.values()) {
+            for (let model of this.s.models.values()) {
                 model.visible = false;
             }
         }
 
         if (ImGui.BeginChild("Models List Child")) {
             const a = [false];
-            const maybeMaterials = [null, ...this.materials];
-            for (let model of this.models) {
+            const maybeMaterials = [null, ...this.s.materials];
+            for (let model of this.s.models) {
                 ImGui.PushID(model.name);
                 if (ImGui.TreeNodeEx(model.name)) {
                     model.hover = ImGui.IsItemHovered();

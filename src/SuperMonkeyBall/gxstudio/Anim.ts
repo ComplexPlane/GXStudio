@@ -2,47 +2,49 @@ import { Color, colorAdd, colorCopy, colorLerp, colorNewCopy, OpaqueBlack } from
 import { mod } from "../../util.js";
 import { COLOR_CHANNELS, SCALAR_CHANNELS } from "./AnimationsGui.js";
 
-export const enum ScalarChannel {
-    UV0_TranslateU,
-    UV0_TranslateV,
-    UV1_TranslateU,
-    UV1_TranslateV,
-    UV2_TranslateU,
-    UV2_TranslateV,
-    UV3_TranslateU,
-    UV3_TranslateV,
-    UV4_TranslateU,
-    UV4_TranslateV,
-    UV5_TranslateU,
-    UV5_TranslateV,
-    UV6_TranslateU,
-    UV6_TranslateV,
-    UV7_TranslateU,
-    UV7_TranslateV,
-
-    A0,
-    A1,
-    A2,
-    APREV,
+export enum ScalarChannel {
+    // Do not change these values, they're part of the export schema
+    UV0_TranslateU = 0,
+    UV0_TranslateV = 1,
+    UV1_TranslateU = 2,
+    UV1_TranslateV = 3,
+    UV2_TranslateU = 4,
+    UV2_TranslateV = 5,
+    UV3_TranslateU = 6,
+    UV3_TranslateV = 7,
+    UV4_TranslateU = 8,
+    UV4_TranslateV = 9,
+    UV5_TranslateU = 10,
+    UV5_TranslateV = 11,
+    UV6_TranslateU = 12,
+    UV6_TranslateV = 13,
+    UV7_TranslateU = 14,
+    UV7_TranslateV = 15,
+    A0 = 16,
+    A1 = 17,
+    A2 = 18,
+    APREV = 19,
 }
 
-export const enum ColorChannel {
-    C0,
-    C1,
-    C2,
-    CPREV,
-    K0,
-    K1,
-    K2,
-    K3,
+export enum ColorChannel {
+    // Do not change these values, they're part of the export schema
+    C0 = 0,
+    C1 = 1,
+    C2 = 2,
+    CPREV = 3,
+    K0 = 4,
+    K1 = 5,
+    K2 = 6,
+    K3 = 7,
 }
 
-export const enum CurveKind {
-    Constant,
-    Linear,
-    Sine,
-    Saw,
-    Square,
+export enum CurveKind {
+    // Do not change these values, they're part of the export schema
+    Constant = 0,
+    Linear = 1,
+    Sine = 2,
+    Saw = 3,
+    Square = 4,
 }
 
 export type ScalarAnim = {

@@ -29,7 +29,8 @@
     "gl-matrix": "^3.4.3",
     "librw": "^0.4.0",
     "reflect-metadata": "^0.2.2",
-    "tiff": "^6.2.0"
+    "tiff": "^6.2.0",
+    "zod": "^4.1.5"
   },
   "scripts": {
     "start": "pnpm run build:rust && rsbuild dev",
