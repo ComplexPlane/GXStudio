@@ -1,7 +1,7 @@
 import * as z from "zod";
 import { ColorAnim, ColorChannel, CurveKind, ScalarAnim, ScalarChannel } from "./Anim";
 import * as GX from "../../gx/gx_enum.js";
-import { Material, TevStage, Texture, TextureRef } from "./Scene";
+import { GuiScene, Material, TevStage, Texture, TextureRef } from "./Scene";
 
 const SCHEMA_VERSION = "1.0.0";
 
@@ -110,13 +110,39 @@ export function encodeRoot(materials: Material[]): z.infer<typeof ROOT_SCHEMA> {
 export function decodeRoot(
     j: any,
     textures: Texture[],
+    scene: GuiScene,
     newMaterialFunc: (name: string) => Material,
-): Material[] | string {
+): string | null {
     const root = ROOT_SCHEMA.safeParse(j);
     if (!root.success) {
         return `Failed to parse materials JSON: ${root.error.message}`;
     }
-    return root.data.materials.map((m) => decodeMaterial(m, textures, newMaterialFunc));
+
+    const importedMaterials = root.data.materials.map((m) => decodeMaterial(m, textures, newMaterialFunc));
+    
+    // Process imported materials with UUID matching
+    for (const importedMaterial of importedMaterials) {
+        const existingMaterialIndex = scene.materials.findIndex(m => m.uuid === importedMaterial.uuid);
+        
+        if (existingMaterialIndex !== -1) {
+            // Swap out the existing material object with the imported one
+            scene.materials[existingMaterialIndex] = importedMaterial;
+            
+            // Update all mesh references that point to the old material
+            for (const model of scene.models) {
+                for (const mesh of model.meshes) {
+                    if (mesh.material && mesh.material.uuid === importedMaterial.uuid) {
+                        mesh.material = importedMaterial;
+                    }
+                }
+            }
+        } else {
+            // Add new material if UUID doesn't exist
+            scene.materials.push(importedMaterial);
+        }
+    }
+    
+    return null; // Success
 }
 
 function encodeMaterial(m: Material): z.infer<typeof MATERIAL_SCHEMA> {

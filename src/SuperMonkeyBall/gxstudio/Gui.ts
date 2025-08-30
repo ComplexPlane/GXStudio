@@ -266,19 +266,23 @@ export class Gui {
                     return;
                 }
 
-                const result = decodeRoot(jsonData, this.shared.textures, (name: string) =>
-                    new Material(this.device, this.renderCache, this.textureCache, name)
+                const error = decodeRoot(
+                    jsonData, 
+                    this.shared.textures, 
+                    this.getGuiScene(),
+                    (name: string) => new Material(this.device, this.renderCache, this.textureCache, name)
                 );
 
-                if (typeof result === 'string') {
-                    this.importError = result;
+                if (error) {
+                    this.importError = error;
                     ImGui.OpenPopup("Import Material Failed");
                     return;
                 }
 
-                this.shared.materials.length = 0;
-                this.shared.materials.push(...result);
-                this.shared.currMaterial = result.length > 0 ? result[0] : null;
+                // Keep current material selection if it still exists
+                if (this.shared.currMaterial === null && this.shared.materials.length > 0) {
+                    this.shared.currMaterial = this.shared.materials[0];
+                }
             };
             reader.readAsText(file);
         };
