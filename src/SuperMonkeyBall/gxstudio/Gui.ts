@@ -14,6 +14,7 @@ import { AnimationsGui } from "./AnimationsGui.js";
 import { MaterialListGui } from "./MaterialListGui.js";
 import { ModelsGui } from "./ModelsGui.js";
 import { GuiScene, Material, Model, Texture } from "./Scene.js";
+import { GuiShared } from "./GuiShared.js";
 import { TevGui } from "./TevGui.js";
 import { TexturesGui } from "./TexturesGui.js";
 import { encodeRoot, decodeRoot } from "./ImportExport.js";
@@ -29,9 +30,7 @@ export class Gui {
     private renderCache: GfxRenderCache;
     private textureCache: TextureCache;
 
-    private models: Model[] = [];
-    private materials: Material[] = [];
-    private textures: Texture[] = [];
+    private shared: GuiShared;
 
     private canvasElem: HTMLCanvasElement;
     private imguiSize = new ImVec2();
@@ -49,11 +48,18 @@ export class Gui {
         this.renderCache = renderCache;
         this.textureCache = textureCache;
 
+        this.shared = {
+            models: [],
+            materials: [],
+            currMaterial: null,
+            textures: []
+        };
+
         this.canvasElem = document.getElementById("imguiCanvas") as HTMLCanvasElement;
         this.loadTextures(gma);
 
         for (let model of gma.idMap.values()) {
-            this.models.push({
+            this.shared.models.push({
                 name: model.name,
                 meshes: model.shapes.map((_) => {
                     return { material: null };
@@ -67,48 +73,36 @@ export class Gui {
             device,
             renderCache,
             textureCache,
-            this.models,
-            this.materials,
-            this.textures
+            this.shared
         );
         this.materialListGui = new MaterialListGui(
             device,
             renderCache,
             textureCache,
-            this.models,
-            this.materials,
-            this.textures
+            this.shared
         );
         this.tevGui = new TevGui(
             device,
             renderCache,
             textureCache,
-            this.models,
-            this.materials,
-            this.textures,
-            this.materialListGui
+            this.shared
         );
         this.animationsGui = new AnimationsGui(
             device,
             renderCache,
             textureCache,
-            this.models,
-            this.materials,
-            this.textures,
-            this.materialListGui
+            this.shared
         );
         this.texturesGui = new TexturesGui(
             device,
             renderCache,
             textureCache,
-            this.models,
-            this.materials,
-            this.textures
+            this.shared
         );
     }
 
     public getGuiScene(): GuiScene {
-        return { models: this.models, materials: this.materials };
+        return { models: this.shared.models, materials: this.shared.materials };
     }
 
     private loadTextures(gma: Gma) {
@@ -157,7 +151,7 @@ export class Gui {
 
         Promise.all(texturePromises).then((textures) => {
             textures.sort((a, b) => a.gxTexture.name.localeCompare(b.gxTexture.name));
-            this.textures.push(...textures);
+            this.shared.textures.push(...textures);
         });
     }
 
@@ -198,11 +192,10 @@ export class Gui {
     }
 
     private renderMaterialEditorGui() {
-        const selMaterial = this.materialListGui.getSelectedMaterialIdx();
-        if (selMaterial < 0) {
+        const material = this.shared.currMaterial;
+        if (material === null) {
             return;
         }
-        const material = this.materials[selMaterial];
 
         ImGui.SeparatorText(`Edit Material '${material.name}'`);
 
@@ -273,7 +266,7 @@ export class Gui {
                     return;
                 }
 
-                const result = decodeRoot(jsonData, this.textures, (name: string) =>
+                const result = decodeRoot(jsonData, this.shared.textures, (name: string) =>
                     new Material(this.device, this.renderCache, this.textureCache, name)
                 );
 
@@ -283,9 +276,9 @@ export class Gui {
                     return;
                 }
 
-                this.materials.length = 0;
-                this.materials.push(...result);
-                this.materialListGui.setSelectedMaterialIdx(0);
+                this.shared.materials.length = 0;
+                this.shared.materials.push(...result);
+                this.shared.currMaterial = result.length > 0 ? result[0] : null;
             };
             reader.readAsText(file);
         };
@@ -313,7 +306,7 @@ export class Gui {
     }
 
     private exportMaterials() {
-        const exportedJson = encodeRoot(this.materials);
+        const exportedJson = encodeRoot(this.shared.materials);
         const jsonString = JSON.stringify(exportedJson, null, 2);
 
         const blob = new Blob([jsonString], { type: 'application/json' });

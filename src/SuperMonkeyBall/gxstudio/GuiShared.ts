@@ -1,6 +1,12 @@
-import {
-    ImGui
-} from "@mori2003/jsimgui";
+import { ImGui } from "@mori2003/jsimgui";
+import { Material, Model, Texture } from "./Scene";
+
+export type GuiShared = {
+    models: Model[];
+    materials: Material[];
+    currMaterial: Material | null;
+    textures: Texture[];
+}
 
 export function renderCombo<T>(
     label: string,

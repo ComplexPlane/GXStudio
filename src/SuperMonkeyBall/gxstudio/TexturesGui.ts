@@ -2,7 +2,7 @@ import { ImGui, ImVec2 } from "@mori2003/jsimgui";
 import { GfxDevice } from "../../gfx/platform/GfxPlatform";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache";
 import { TextureCache } from "../ModelCache";
-import { Material, Model, Texture } from "./Scene";
+import { GuiShared } from "./GuiShared";
 
 
 export class TexturesGui {
@@ -12,15 +12,13 @@ export class TexturesGui {
         private device: GfxDevice,
         private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
-        private models: Model[],
-        private materials: Material[],
-        private textures: Texture[]
+        private s: GuiShared
     ) {}
 
     public render() {
         if (ImGui.BeginChild("Textures Child")) {
             ImGui.SeparatorText("Textures List");
-            for (let texture of this.textures) {
+            for (let texture of this.s.textures) {
                 const name = texture.gxTexture.name;
                 const dims = `${texture.gxTexture.width}x${texture.gxTexture.height}`;
                 const mips = `${texture.gxTexture.mipCount} mip level(s)`;

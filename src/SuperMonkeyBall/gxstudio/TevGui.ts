@@ -4,11 +4,8 @@ import { GfxDevice } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
 import * as GX from "../../gx/gx_enum.js";
 import { TextureCache } from "../ModelCache.js";
-import { createIdMap } from "./GuiUtils.js";
-import { MaterialListGui } from "./MaterialListGui.js";
+import { createIdMap, GuiShared } from "./GuiShared.js";
 import {
-    Material,
-    Model,
     newLitTextureTevStage,
     newPassthroughTevStage,
     newWhiteTevStage,
@@ -150,10 +147,7 @@ export class TevGui {
         private device: GfxDevice,
         private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
-        private models: Model[],
-        private materials: Material[],
-        private textures: Texture[],
-        private materialListGui: MaterialListGui,
+        private s: GuiShared,
     ) {}
 
     public render() {
@@ -161,8 +155,10 @@ export class TevGui {
             return;
         }
 
-        const selMaterial = this.materialListGui.getSelectedMaterialIdx();
-        const material = this.materials[selMaterial];
+        const material = this.s.currMaterial;
+        if (material === null) {
+            return;
+        }
 
         const stagesFull = material.tevStages.length >= 8;
         if (stagesFull) {
@@ -314,7 +310,7 @@ export class TevGui {
             if (ImGui.Button("Cancel")) {
                 ImGui.CloseCurrentPopup();
             }
-            const maybeTextures = [null, ...this.textures];
+            const maybeTextures = [null, ...this.s.textures];
             for (let i = 0; i < maybeTextures.length; i++) {
                 const texture = maybeTextures[i];
                 ImGui.PushID(i.toString());

@@ -3,10 +3,8 @@ import { colorCopy, colorFromRGBA } from "../../Color";
 import { GfxDevice } from "../../gfx/platform/GfxPlatform";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache";
 import { TextureCache } from "../ModelCache";
-import { createIdMap, renderCombo } from "./GuiUtils";
-import { MaterialListGui } from "./MaterialListGui";
+import { createIdMap, GuiShared, renderCombo } from "./GuiShared";
 import { ColorAnim, ColorChannel, CurveKind, ScalarAnim, ScalarChannel } from "./Anim";
-import { Material, Model, Texture } from "./Scene";
 
 type ScalarChannelInfo = {
     id: ScalarChannel;
@@ -87,10 +85,7 @@ export class AnimationsGui {
         private device: GfxDevice,
         private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
-        private models: Model[],
-        private materials: Material[],
-        private textures: Texture[],
-        private materialListGui: MaterialListGui,
+        private s: GuiShared,
     ) {}
 
     public render() {
@@ -98,8 +93,10 @@ export class AnimationsGui {
             return;
         }
 
-        const selMaterial = this.materialListGui.getSelectedMaterialIdx();
-        const material = this.materials[selMaterial];
+        const material = this.s.currMaterial;
+        if (material === null) {
+            return;
+        }
 
         if (ImGui.CollapsingHeader(`Scalar Channels`, ImGui.TreeNodeFlags.DefaultOpen)) {
             if (ImGui.Button("Add Scalar Animation")) {
