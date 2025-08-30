@@ -102,24 +102,15 @@ export class Gui {
             this.shared
         );
 
-        // Initialize AutoSave (but don't load/start yet - wait for textures)
+        // Initialize AutoSave
         this.autoSave = new AutoSave(
             () => this.getGuiScene(),
             () => this.shared.textures,
             (name: string) => this.createNewMaterial(name)
         );
-    }
 
-    public getGuiScene(): GuiScene {
-        return { models: this.shared.models, materials: this.shared.materials };
-    }
-
-    private createNewMaterial(name: string): Material {
-        return new Material(this.device, this.renderCache, this.textureCache, name);
-    }
-
-    private initializeAutosave(): void {
-        // Load autosaved state if available (now that textures are ready)
+        // Load autosaved state if available (after construction is complete)
+        // This happens synchronously now since textures load synchronously in loadTextures()
         if (this.autoSave.hasAutosavedState()) {
             const error = this.autoSave.loadAutosavedState();
             if (error) {
@@ -131,6 +122,15 @@ export class Gui {
         this.autoSave.start();
     }
 
+    public getGuiScene(): GuiScene {
+        return { models: this.shared.models, materials: this.shared.materials };
+    }
+
+    private createNewMaterial(name: string): Material {
+        return new Material(this.device, this.renderCache, this.textureCache, name);
+    }
+
+
     private loadTextures(gma: Gma) {
         // Gather list of unique textures
         const uniqueTextures = new Map<string, TextureInputGX>();
@@ -140,48 +140,38 @@ export class Gui {
             }
         }
 
-        const texturePromises = [];
-
+        const textures: Texture[] = [];
+        
         let gxTextureIdx = 0;
         for (let gxTexture of uniqueTextures.values()) {
             const mipChain = calcMipChain(gxTexture, gxTexture.mipCount);
-            const mipPromises = [];
+            const imguiTextureIds: ImTextureRef[] = [];
+            
             for (let mipLevel of mipChain.mipLevels) {
-                mipPromises.push(
-                    decodeTexture(mipLevel).then((decoded) => {
-                        const array = new Uint8Array(
-                            decoded.pixels.buffer,
-                            decoded.pixels.byteOffset,
-                            decoded.pixels.byteLength
-                        );
-                        const id = ImGuiImplWeb.LoadTexture(array, {
-                            width: mipLevel.width,
-                            height: mipLevel.height,
-                        });
-                        return new ImTextureRef(id);
-                    })
+                const decoded = decodeTexture(mipLevel);
+                const array = new Uint8Array(
+                    decoded.pixels.buffer,
+                    decoded.pixels.byteOffset,
+                    decoded.pixels.byteLength
                 );
+                const id = ImGuiImplWeb.LoadTexture(array, {
+                    width: mipLevel.width,
+                    height: mipLevel.height,
+                });
+                imguiTextureIds.push(new ImTextureRef(id));
             }
-            texturePromises.push(
-                Promise.all(mipPromises).then((imguiTexIds) => {
-                    const texture: Texture = {
-                        idx: gxTextureIdx,
-                        imguiTextureIds: imguiTexIds,
-                        gxTexture: gxTexture,
-                    };
-                    return texture;
-                })
-            );
+            
+            const texture: Texture = {
+                idx: gxTextureIdx,
+                imguiTextureIds: imguiTextureIds,
+                gxTexture: gxTexture,
+            };
+            textures.push(texture);
             gxTextureIdx++;
         }
 
-        Promise.all(texturePromises).then((textures) => {
-            textures.sort((a, b) => a.gxTexture.name.localeCompare(b.gxTexture.name));
-            this.shared.textures.push(...textures);
-            
-            // Now that textures are loaded, initialize autosave
-            this.initializeAutosave();
-        });
+        textures.sort((a, b) => a.gxTexture.name.localeCompare(b.gxTexture.name));
+        this.shared.textures.push(...textures);
     }
 
     public render() {

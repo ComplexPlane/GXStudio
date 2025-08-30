@@ -325,10 +325,16 @@ export class TevGui {
         } else if (tevStage.texture.kind === "stale") {
             const buttonSize = this.scratchImVec2a;
             getImageButtonSize(buttonSize, this.smallImageButtonSize);
-            ImGui.BeginDisabled();
-            if (ImGui.Button(`<unknown idx: ${tevStage.texture.staleIdx}>`, buttonSize)) {
+
+            // Make button dark red, different color on hover/active
+            if (ImGui.Button(`<? idx: ${tevStage.texture.staleIdx}>`, buttonSize)) {
+                ImGui.OpenPopup("Choose Texture");
             }
-            ImGui.EndDisabled();
+
+            if (ImGui.BeginItemTooltip()) {
+               ImGui.Text(`Unresolved texture index: ${tevStage.texture.staleIdx}`); 
+               ImGui.EndTooltip();
+            }
         }
         ImGui.SameLine();
         ImGui.Text(label);

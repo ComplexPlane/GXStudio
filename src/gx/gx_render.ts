@@ -176,7 +176,6 @@ export class GXViewerTexture implements Viewer.Texture {
     public activate(): Promise<void> {
         assert(this.surfaces.length === 0);
 
-        const promises: Promise<void>[] = [];
         for (let i = 0; i < this.mipChain.mipLevels.length; i++) {
             const mipLevel = this.mipChain.mipLevels[i];
 
@@ -186,12 +185,11 @@ export class GXViewerTexture implements Viewer.Texture {
             canvas.title = mipLevel.name;
             this.surfaces.push(canvas);
 
-            promises.push(GX_Texture.decodeTexture(mipLevel).then((rgbaTexture) => {
-                convertToCanvasData(canvas, ArrayBufferSlice.fromView(rgbaTexture.pixels));
-            }));
+            const rgbaTexture = GX_Texture.decodeTexture(mipLevel);
+            convertToCanvasData(canvas, ArrayBufferSlice.fromView(rgbaTexture.pixels));
         }
-
-        return Promise.all(promises) as any as Promise<void>;
+        
+        return Promise.resolve();
     }
 }
 
@@ -200,14 +198,12 @@ export function loadTextureFromMipChain(device: GfxDevice, mipChain: GX_Texture.
     const gfxTexture = device.createTexture(makeTextureDescriptor2D(GfxFormat.U8_RGBA_NORM, firstMipLevel.width, firstMipLevel.height, mipChain.mipLevels.length));
     device.setResourceName(gfxTexture, mipChain.name);
 
-    const promises: Promise<void>[] = [];
     for (let i = 0; i < mipChain.mipLevels.length; i++) {
         const level = i;
         const mipLevel = mipChain.mipLevels[i];
 
-        promises.push(GX_Texture.decodeTexture(mipLevel).then((rgbaTexture) => {
-            device.uploadTextureData(gfxTexture, level, [rgbaTexture.pixels]);
-        }));
+        const rgbaTexture = GX_Texture.decodeTexture(mipLevel);
+        device.uploadTextureData(gfxTexture, level, [rgbaTexture.pixels]);
     }
 
     const viewerExtraInfo = new Map<string, string>();

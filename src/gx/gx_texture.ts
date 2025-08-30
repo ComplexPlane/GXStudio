@@ -155,7 +155,7 @@ export function getFormatName(format: GX.TexFormat, paletteFormat?: GX.TexPalett
     }
 }
 
-async function decodeRust(texture: TextureInputGX): Promise<DecodedTexture> {
+function decodeRust(texture: TextureInputGX): DecodedTexture {
     const fmt =
         texture.format === GX.TexFormat.I4 ? rust.PixelFormat.I4 :
         texture.format === GX.TexFormat.I8 ? rust.PixelFormat.I8 :
@@ -180,9 +180,9 @@ async function decodeRust(texture: TextureInputGX): Promise<DecodedTexture> {
     return { pixels };
 }
 
-export async function decodeTexture(texture: TextureInputGX): Promise<DecodedTexture> {
+export function decodeTexture(texture: TextureInputGX): DecodedTexture {
     if (texture.data === null)
         return decode_Dummy(texture);
 
-    return await decodeRust(texture);
+    return decodeRust(texture);
 }
