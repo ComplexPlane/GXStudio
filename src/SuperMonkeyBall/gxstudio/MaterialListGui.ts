@@ -1,8 +1,4 @@
-import {
-    ImGui,
-    ImVec2,
-    ImVec4
-} from "@mori2003/jsimgui";
+import { ImGui, ImVec2, ImVec4 } from "@mori2003/jsimgui";
 
 import { GfxDevice } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
@@ -19,16 +15,20 @@ export class MaterialListGui {
         private device: GfxDevice,
         private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
-        private s: GuiShared
+        private s: GuiShared,
     ) {}
-
 
     public render() {
         ImGui.SeparatorText("Materials List");
         if (ImGui.BeginListBox("Materials", this.size)) {
             for (let i = 0; i < this.s.materials.length; i++) {
                 const isSelected = this.s.materials[i] === this.s.currMaterial;
-                if (ImGui.Selectable(`${this.s.materials[i].name}###${this.s.materials[i].uuid}`, isSelected)) {
+                if (
+                    ImGui.Selectable(
+                        `${this.s.materials[i].name}###${this.s.materials[i].uuid}`,
+                        isSelected,
+                    )
+                ) {
                     this.s.currMaterial = this.s.materials[i];
                 }
                 if (isSelected) {
@@ -78,13 +78,9 @@ export class MaterialListGui {
             ImGui.EndDisabled();
         }
 
-
         // Rename material
         if (this.s.currMaterial !== null) {
-            const newName = this.nameSomethingPopup(
-                "Rename Material",
-                this.s.currMaterial.name
-            );
+            const newName = this.nameSomethingPopup("Rename Material", this.s.currMaterial.name);
             if (newName !== null) {
                 this.s.currMaterial.name = newName;
             }
@@ -110,7 +106,7 @@ export class MaterialListGui {
             this.device,
             this.renderCache,
             this.textureCache,
-            materialName
+            materialName,
         );
         const currIdx = this.s.currMaterial ? this.s.materials.indexOf(this.s.currMaterial) : -1;
         const newIdx = currIdx + 1;
@@ -120,7 +116,7 @@ export class MaterialListGui {
 
     private duplicateMaterial() {
         if (this.s.currMaterial === null) return;
-        
+
         const newName = this.generateNextMaterialName(this.s.materials.map((m) => m.name));
         const clone = this.s.currMaterial.clone(newName);
         const currIdx = this.s.materials.indexOf(this.s.currMaterial);
@@ -146,13 +142,11 @@ export class MaterialListGui {
         const currIdx = this.s.materials.indexOf(materialToDelete);
         this.s.materials.splice(currIdx, 1);
         const newIdx = currIdx === this.s.materials.length ? currIdx - 1 : currIdx;
-        this.s.currMaterial = newIdx >= 0 && newIdx < this.s.materials.length ? this.s.materials[newIdx] : null;
+        this.s.currMaterial =
+            newIdx >= 0 && newIdx < this.s.materials.length ? this.s.materials[newIdx] : null;
     }
 
-    private nameSomethingPopup(
-        label: string,
-        defaultName: string
-    ): string | null {
+    private nameSomethingPopup(label: string, defaultName: string): string | null {
         let ret = null;
         if (ImGui.BeginPopup(label)) {
             ImGui.Text(label);
@@ -193,16 +187,16 @@ export class MaterialListGui {
 
     private generateNextMaterialName(existingNames: string[]): string {
         const baseName = "Material";
-        
+
         // If no materials exist, start with "Material 1"
         if (existingNames.length === 0) {
             return `${baseName} 1`;
         }
-        
+
         // Find the highest number used with the base name
         let highestNumber = 0;
         const regex = new RegExp(`^${baseName}\\s+(\\d+)$`);
-        
+
         for (const name of existingNames) {
             const match = name.match(regex);
             if (match) {
@@ -210,7 +204,7 @@ export class MaterialListGui {
                 highestNumber = Math.max(highestNumber, number);
             }
         }
-        
+
         // Return the next number in sequence
         return `${baseName} ${highestNumber + 1}`;
     }

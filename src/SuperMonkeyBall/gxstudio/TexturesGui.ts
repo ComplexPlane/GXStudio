@@ -4,7 +4,6 @@ import { GfxRenderCache } from "../../gfx/render/GfxRenderCache";
 import { TextureCache } from "../ModelCache";
 import { GuiShared } from "./GuiShared";
 
-
 export class TexturesGui {
     private scratchImVec2a = new ImVec2();
 
@@ -12,7 +11,7 @@ export class TexturesGui {
         private device: GfxDevice,
         private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
-        private s: GuiShared
+        private s: GuiShared,
     ) {}
 
     public render() {

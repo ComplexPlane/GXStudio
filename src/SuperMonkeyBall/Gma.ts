@@ -272,7 +272,8 @@ function parseShape(buffer: ArrayBufferSlice, idx: number): Shape {
         const frontCulledDlist = buffer.slice(dlistOffs, dlistOffs + frontCulledDlistSize);
         dlists.push({
             data: frontCulledDlist,
-            cullMode: material.flags & MaterialFlags.DoubleSided ? GX.CullMode.NONE : GX.CullMode.FRONT,
+            cullMode:
+                material.flags & MaterialFlags.DoubleSided ? GX.CullMode.NONE : GX.CullMode.FRONT,
         });
         dlistOffs += frontCulledDlistSize;
     }
@@ -281,7 +282,8 @@ function parseShape(buffer: ArrayBufferSlice, idx: number): Shape {
         const backCulledDlist = buffer.slice(dlistOffs, dlistOffs + backCulledDlistSize);
         dlists.push({
             data: backCulledDlist,
-            cullMode: material.flags & MaterialFlags.DoubleSided ? GX.CullMode.NONE : GX.CullMode.BACK,
+            cullMode:
+                material.flags & MaterialFlags.DoubleSided ? GX.CullMode.NONE : GX.CullMode.BACK,
         });
         dlistOffs += backCulledDlistSize;
     }
@@ -292,7 +294,10 @@ function parseShape(buffer: ArrayBufferSlice, idx: number): Shape {
         const extraBackCulledDlistSize = view.getInt32(dlistOffs + 0xc);
         dlistOffs += 0x20;
 
-        const extraFrontCulledDlist = buffer.slice(dlistOffs, dlistOffs + extraFrontCulledDlistSize);
+        const extraFrontCulledDlist = buffer.slice(
+            dlistOffs,
+            dlistOffs + extraFrontCulledDlistSize,
+        );
         dlists.push({ data: extraFrontCulledDlist, cullMode: GX.CullMode.FRONT });
         dlistOffs += extraFrontCulledDlistSize;
 
@@ -319,7 +324,12 @@ function parseModel(buffer: ArrayBufferSlice, name: string, tpl: AVTpl): Model {
 
     const modelFlags = view.getUint32(0x04) as ModelFlags;
     let useVtxCon = modelFlags & (ModelFlags.Skin | ModelFlags.Effective);
-    vec3.set(boundSphereCenter, view.getFloat32(0x08), view.getFloat32(0x0c), view.getFloat32(0x10));
+    vec3.set(
+        boundSphereCenter,
+        view.getFloat32(0x08),
+        view.getFloat32(0x0c),
+        view.getFloat32(0x10),
+    );
     const boundSphereRadius = view.getFloat32(0x14);
 
     const tevLayerCount = view.getInt16(0x18);
@@ -425,7 +435,8 @@ export function parseGma(gmaBuffer: ArrayBufferSlice, tpl: AVTpl): Gma {
 
         // TODO parse attribute into nicer type first
         const modelFlags = view.getUint32(gcmfBaseOffs + modelOffs + 0x04) as ModelFlags;
-        const unsupported = modelFlags & (ModelFlags.Stitching | ModelFlags.Skin | ModelFlags.Effective);
+        const unsupported =
+            modelFlags & (ModelFlags.Stitching | ModelFlags.Skin | ModelFlags.Effective);
         if (unsupported) {
             // TODO: Support these types of models
             continue;

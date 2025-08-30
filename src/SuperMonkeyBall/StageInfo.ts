@@ -1,4 +1,3 @@
-
 import { Color, colorNewFromRGBA, colorNewFromRGBA8 } from "../Color.js";
 import {
     BackgroundConstructor,
@@ -518,5 +517,5 @@ const STAGE_LIST: StageInfo[] = [
 ];
 
 export const STAGE_INFO_MAP: Map<StageId, StageInfo> = new Map(
-    STAGE_LIST.map((stageInfo) => [stageInfo.id, stageInfo])
+    STAGE_LIST.map((stageInfo) => [stageInfo.id, stageInfo]),
 );

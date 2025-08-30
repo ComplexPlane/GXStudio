@@ -7,9 +7,7 @@ import {
 } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
 import * as GX from "../../gx/gx_enum.js";
-import {
-    translateWrapModeGfx
-} from "../../gx/gx_render.js";
+import { translateWrapModeGfx } from "../../gx/gx_render.js";
 import { TextureInputGX } from "../../gx/gx_texture.js";
 import { TextureCache } from "../ModelCache.js";
 
@@ -23,7 +21,7 @@ export class TextureInst {
         textureCache: TextureCache,
         texture: TextureInputGX,
         wrapModeU: GX.WrapMode,
-        wrapModeV: GX.WrapMode
+        wrapModeV: GX.WrapMode,
     ) {
         this.loadedTex = textureCache.getTexture(device, texture);
 
@@ -54,4 +52,3 @@ export class TextureInst {
         mapping.gfxSampler = this.gfxSampler;
     }
 }
-

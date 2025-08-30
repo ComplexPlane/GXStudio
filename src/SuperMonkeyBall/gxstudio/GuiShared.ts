@@ -6,14 +6,14 @@ export type GuiShared = {
     materials: Material[];
     currMaterial: Material | null;
     textures: Texture[];
-}
+};
 
 export function renderCombo<T>(
     label: string,
     items: T[],
     selectedItem: T,
     formatFunc: (v: T) => string,
-    helpFunc?: (v: T) => string
+    helpFunc?: (v: T) => string,
 ): T {
     let newSelectedItem = selectedItem;
     if (ImGui.BeginCombo(label, formatFunc(selectedItem), ImGui.ComboFlags.HeightLarge)) {

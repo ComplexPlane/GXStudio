@@ -1,6 +1,4 @@
-import {
-    ImGui
-} from "@mori2003/jsimgui";
+import { ImGui } from "@mori2003/jsimgui";
 
 import { GfxDevice } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
@@ -12,7 +10,7 @@ export class ModelsGui {
         private device: GfxDevice,
         private renderCache: GfxRenderCache,
         private textureCache: TextureCache,
-        private s: GuiShared
+        private s: GuiShared,
     ) {}
 
     public render() {
@@ -48,7 +46,7 @@ export class ModelsGui {
                                 "Material",
                                 maybeMaterials,
                                 mesh.material,
-                                (m) => (m === null ? "<default>" : m.name)
+                                (m) => (m === null ? "<default>" : m.name),
                             );
                             ImGui.TreePop();
                         }

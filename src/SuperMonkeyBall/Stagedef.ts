@@ -359,7 +359,7 @@ function parseSlicedList<T>(
     offset: number,
     origList: T[],
     origListOffs: number,
-    elemSize: number
+    elemSize: number,
 ): T[] {
     const count = view.getUint32(offset);
     const listOffs = view.getUint32(offset + 0x4);
@@ -691,31 +691,61 @@ function parseStagedefUncompressed(buffer: ArrayBufferSlice): Stage {
         }
 
         // "sub" means a subset of the stage's list
-        const subGoals = parseSlicedList(view, coliHeaderOffs + 0x3c, goals, goalListOffs, GOAL_SIZE);
-        const subBumpers = parseSlicedList(view, coliHeaderOffs + 0x4c, bumpers, bumperListOffs, BUMPER_SIZE);
-        const subJamabars = parseSlicedList(view, coliHeaderOffs + 0x54, jamabars, jamabarListOffs, JAMABAR_SIZE);
-        const subBananas = parseSlicedList(view, coliHeaderOffs + 0x5c, bananas, bananaListOffs, BANANA_SIZE);
-        const subColiCones = parseSlicedList(view, coliHeaderOffs + 0x64, coliCones, coliConeListOffs, COLI_CONE_SIZE);
+        const subGoals = parseSlicedList(
+            view,
+            coliHeaderOffs + 0x3c,
+            goals,
+            goalListOffs,
+            GOAL_SIZE,
+        );
+        const subBumpers = parseSlicedList(
+            view,
+            coliHeaderOffs + 0x4c,
+            bumpers,
+            bumperListOffs,
+            BUMPER_SIZE,
+        );
+        const subJamabars = parseSlicedList(
+            view,
+            coliHeaderOffs + 0x54,
+            jamabars,
+            jamabarListOffs,
+            JAMABAR_SIZE,
+        );
+        const subBananas = parseSlicedList(
+            view,
+            coliHeaderOffs + 0x5c,
+            bananas,
+            bananaListOffs,
+            BANANA_SIZE,
+        );
+        const subColiCones = parseSlicedList(
+            view,
+            coliHeaderOffs + 0x64,
+            coliCones,
+            coliConeListOffs,
+            COLI_CONE_SIZE,
+        );
         const subColiSpheres = parseSlicedList(
             view,
             coliHeaderOffs + 0x6c,
             coliSpheres,
             coliSphereListOffs,
-            COLI_SPHERE_SIZE
+            COLI_SPHERE_SIZE,
         );
         const subColiCylinders = parseSlicedList(
             view,
             coliHeaderOffs + 0x74,
             coliCylinders,
             coliCylinderListOffs,
-            COLI_CYLINDER_SIZE
+            COLI_CYLINDER_SIZE,
         );
         const subAnimGroupModels = parseSlicedList(
             view,
             coliHeaderOffs + 0x7c,
             animGroupModels,
             animGroupModelListOffs,
-            ANIM_GROUP_MODEL_SIZE
+            ANIM_GROUP_MODEL_SIZE,
         );
         // const subFalloutVolumes = parseSlicedList(view, coliHeaderOffs + 0x7C, falloutVolumes, falloutVolumeListOffs, FALLOUT_VOLUME_SIZE);
         // TODO reflective stage models, stage model instances, model A/B ptr

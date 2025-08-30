@@ -39,21 +39,21 @@ export function debugDrawColi(stagedef: SD.Stage, camera: Camera) {
                 camera.clipFromWorldMatrix,
                 vert1,
                 vert2,
-                color
+                color,
             );
             drawWorldSpaceLine(
                 getDebugOverlayCanvas2D(),
                 camera.clipFromWorldMatrix,
                 vert2,
                 vert3,
-                color
+                color,
             );
             drawWorldSpaceLine(
                 getDebugOverlayCanvas2D(),
                 camera.clipFromWorldMatrix,
                 vert3,
                 vert1,
-                color
+                color,
             );
         }
     }

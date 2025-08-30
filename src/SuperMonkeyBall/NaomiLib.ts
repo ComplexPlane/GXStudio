@@ -7,7 +7,13 @@
 import { mat4, vec2, vec3 } from "gl-matrix";
 import ArrayBufferSlice from "../ArrayBufferSlice.js";
 import { Color, colorCopy, colorNewFromRGBA, colorNewFromRGBA8, colorScale } from "../Color.js";
-import { GfxDevice, GfxMipFilterMode, GfxSampler, GfxTexFilterMode, GfxWrapMode } from "../gfx/platform/GfxPlatform.js";
+import {
+    GfxDevice,
+    GfxMipFilterMode,
+    GfxSampler,
+    GfxTexFilterMode,
+    GfxWrapMode,
+} from "../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../gfx/render/GfxRenderCache.js";
 import { GfxRenderInst } from "../gfx/render/GfxRenderInstManager.js";
 import * as GX from "../gx/gx_enum.js";
@@ -155,7 +161,11 @@ function parseVtxTypeB(view: DataView, vtxOffs: number): VtxTypeB {
     return { pos, normal, texCoord };
 }
 
-function parseDispList<T>(view: DataView, dispListOffs: number, parseVtxFunc: ParseVtxFunc<T>): DispList<T> {
+function parseDispList<T>(
+    view: DataView,
+    dispListOffs: number,
+    parseVtxFunc: ParseVtxFunc<T>,
+): DispList<T> {
     const flags = view.getUint32(dispListOffs + 0x0) as DispListFlags;
     const vtxOrFaceCount = view.getUint32(dispListOffs + 0x4);
     let vtxCount: number;
@@ -193,7 +203,12 @@ function parseDispList<T>(view: DataView, dispListOffs: number, parseVtxFunc: Pa
 
 // If this is a valid mesh (aka not the end-of-list marker), return it and the buffer offset to the next mesh.
 // Otherwise return null.
-function parseMeshList<T>(view: DataView, meshOffs: number, parseVtxFunc: ParseVtxFunc<T>, tpl: AVTpl): Mesh<T>[] {
+function parseMeshList<T>(
+    view: DataView,
+    meshOffs: number,
+    parseVtxFunc: ParseVtxFunc<T>,
+    tpl: AVTpl,
+): Mesh<T>[] {
     const meshes: Mesh<T>[] = [];
     let meshIdx = 0;
 
@@ -211,7 +226,12 @@ function parseMeshList<T>(view: DataView, meshOffs: number, parseVtxFunc: ParseV
         const materialColorR = view.getFloat32(meshOffs + 0x30);
         const materialColorG = view.getFloat32(meshOffs + 0x34);
         const materialColorB = view.getFloat32(meshOffs + 0x38);
-        const materialColor = colorNewFromRGBA(materialColorR, materialColorG, materialColorB, materialColorA);
+        const materialColor = colorNewFromRGBA(
+            materialColorR,
+            materialColorG,
+            materialColorB,
+            materialColorA,
+        );
 
         const dispListSize = view.getUint32(meshOffs + 0x4c);
         const dispListOffs = meshOffs + 0x50;
@@ -277,7 +297,7 @@ class MaterialInst {
         device: GfxDevice,
         renderCache: GfxRenderCache,
         meshData: Mesh<unknown>,
-        textureCache: TextureCache
+        textureCache: TextureCache,
     ): void {
         if (meshData.tex === null) {
             this.loadedTex = null;
@@ -303,7 +323,8 @@ class MaterialInst {
             wrapT = GfxWrapMode.Repeat;
         }
 
-        const texFilter = (meshData.texFlags & 3) === 0 ? GfxTexFilterMode.Point : GfxTexFilterMode.Bilinear;
+        const texFilter =
+            (meshData.texFlags & 3) === 0 ? GfxTexFilterMode.Point : GfxTexFilterMode.Bilinear;
 
         this.gfxSampler = renderCache.createSampler({
             wrapS,
@@ -316,52 +337,147 @@ class MaterialInst {
         });
     }
 
-    private genGXMaterial(device: GfxDevice, renderCache: GfxRenderCache, meshData: Mesh<unknown>): void {
+    private genGXMaterial(
+        device: GfxDevice,
+        renderCache: GfxRenderCache,
+        meshData: Mesh<unknown>,
+    ): void {
         const mb = new GXMaterialBuilder();
 
         mb.setCullMode(NL_TO_GX_CULL_MODE[meshData.dispList.flags & 3]);
 
         mb.setTevDirect(0);
-        mb.setTexCoordGen(GX.TexCoordID.TEXCOORD0, GX.TexGenType.MTX2x4, GX.TexGenSrc.TEX0, GX.TexGenMatrix.TEXMTX0);
+        mb.setTexCoordGen(
+            GX.TexCoordID.TEXCOORD0,
+            GX.TexGenType.MTX2x4,
+            GX.TexGenSrc.TEX0,
+            GX.TexGenMatrix.TEXMTX0,
+        );
 
-        mb.setBlendMode(GX.BlendMode.NONE, GX.BlendFactor.ONE, GX.BlendFactor.ZERO, GX.LogicOp.CLEAR);
+        mb.setBlendMode(
+            GX.BlendMode.NONE,
+            GX.BlendFactor.ONE,
+            GX.BlendFactor.ZERO,
+            GX.LogicOp.CLEAR,
+        );
         mb.setFog(GX.FogType.NONE, false);
 
         if (this.loadedTex === null) {
-            mb.setTevOrder(0, GX.TexCoordID.TEXCOORD_NULL, GX.TexMapID.TEXMAP_NULL, GX.RasColorChannelID.COLOR0A0);
+            mb.setTevOrder(
+                0,
+                GX.TexCoordID.TEXCOORD_NULL,
+                GX.TexMapID.TEXMAP_NULL,
+                GX.RasColorChannelID.COLOR0A0,
+            );
         } else {
             switch ((meshData.texFlags >> 6) & 3) {
                 case 0: {
-                    mb.setTevOrder(0, GX.TexCoordID.TEXCOORD0, GX.TexMapID.TEXMAP0, GX.RasColorChannelID.COLOR0A0);
+                    mb.setTevOrder(
+                        0,
+                        GX.TexCoordID.TEXCOORD0,
+                        GX.TexMapID.TEXMAP0,
+                        GX.RasColorChannelID.COLOR0A0,
+                    );
                     mb.setTevColorIn(0, GX.CC.ZERO, GX.CC.ZERO, GX.CC.ZERO, GX.CC.TEXC);
-                    mb.setTevColorOp(0, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, GX.Register.PREV);
+                    mb.setTevColorOp(
+                        0,
+                        GX.TevOp.ADD,
+                        GX.TevBias.ZERO,
+                        GX.TevScale.SCALE_1,
+                        true,
+                        GX.Register.PREV,
+                    );
                     mb.setTevAlphaIn(0, GX.CA.ZERO, GX.CA.TEXA, GX.CA.RASA, GX.CA.ZERO);
-                    mb.setTevAlphaOp(0, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, GX.Register.PREV);
+                    mb.setTevAlphaOp(
+                        0,
+                        GX.TevOp.ADD,
+                        GX.TevBias.ZERO,
+                        GX.TevScale.SCALE_1,
+                        true,
+                        GX.Register.PREV,
+                    );
                     break;
                 }
                 case 1: {
-                    mb.setTevOrder(0, GX.TexCoordID.TEXCOORD0, GX.TexMapID.TEXMAP0, GX.RasColorChannelID.COLOR0A0);
+                    mb.setTevOrder(
+                        0,
+                        GX.TexCoordID.TEXCOORD0,
+                        GX.TexMapID.TEXMAP0,
+                        GX.RasColorChannelID.COLOR0A0,
+                    );
                     mb.setTevColorIn(0, GX.CC.ZERO, GX.CC.RASC, GX.CC.TEXC, GX.CC.ZERO);
-                    mb.setTevColorOp(0, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, GX.Register.PREV);
+                    mb.setTevColorOp(
+                        0,
+                        GX.TevOp.ADD,
+                        GX.TevBias.ZERO,
+                        GX.TevScale.SCALE_1,
+                        true,
+                        GX.Register.PREV,
+                    );
                     mb.setTevAlphaIn(0, GX.CA.ZERO, GX.CA.TEXA, GX.CA.RASA, GX.CA.ZERO);
-                    mb.setTevAlphaOp(0, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, GX.Register.PREV);
+                    mb.setTevAlphaOp(
+                        0,
+                        GX.TevOp.ADD,
+                        GX.TevBias.ZERO,
+                        GX.TevScale.SCALE_1,
+                        true,
+                        GX.Register.PREV,
+                    );
                     break;
                 }
                 case 2: {
-                    mb.setTevOrder(0, GX.TexCoordID.TEXCOORD0, GX.TexMapID.TEXMAP0, GX.RasColorChannelID.COLOR0A0);
+                    mb.setTevOrder(
+                        0,
+                        GX.TexCoordID.TEXCOORD0,
+                        GX.TexMapID.TEXMAP0,
+                        GX.RasColorChannelID.COLOR0A0,
+                    );
                     mb.setTevColorIn(0, GX.CC.RASC, GX.CC.TEXC, GX.CC.TEXA, GX.CC.ZERO);
-                    mb.setTevColorOp(0, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, GX.Register.PREV);
+                    mb.setTevColorOp(
+                        0,
+                        GX.TevOp.ADD,
+                        GX.TevBias.ZERO,
+                        GX.TevScale.SCALE_1,
+                        true,
+                        GX.Register.PREV,
+                    );
                     mb.setTevAlphaIn(0, GX.CA.ZERO, GX.CA.ZERO, GX.CA.ZERO, GX.CA.RASA);
-                    mb.setTevAlphaOp(0, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, GX.Register.PREV);
+                    mb.setTevAlphaOp(
+                        0,
+                        GX.TevOp.ADD,
+                        GX.TevBias.ZERO,
+                        GX.TevScale.SCALE_1,
+                        true,
+                        GX.Register.PREV,
+                    );
                     break;
                 }
                 case 3: {
                     // Equivalent to 1?
-                    mb.setTevOrder(0, GX.TexCoordID.TEXCOORD0, GX.TexMapID.TEXMAP0, GX.RasColorChannelID.COLOR0A0);
+                    mb.setTevOrder(
+                        0,
+                        GX.TexCoordID.TEXCOORD0,
+                        GX.TexMapID.TEXMAP0,
+                        GX.RasColorChannelID.COLOR0A0,
+                    );
                     mb.setTevColorIn(0, GX.CC.ZERO, GX.CC.TEXC, GX.CC.RASC, GX.CC.ZERO);
-                    mb.setTevColorOp(0, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, GX.Register.PREV);
+                    mb.setTevColorOp(
+                        0,
+                        GX.TevOp.ADD,
+                        GX.TevBias.ZERO,
+                        GX.TevScale.SCALE_1,
+                        true,
+                        GX.Register.PREV,
+                    );
                     mb.setTevAlphaIn(0, GX.CA.ZERO, GX.CA.RASA, GX.CA.TEXA, GX.CA.ZERO);
-                    mb.setTevAlphaOp(0, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, GX.Register.PREV);
+                    mb.setTevAlphaOp(
+                        0,
+                        GX.TevOp.ADD,
+                        GX.TevBias.ZERO,
+                        GX.TevScale.SCALE_1,
+                        true,
+                        GX.Register.PREV,
+                    );
                     break;
                 }
             }
@@ -376,7 +492,7 @@ class MaterialInst {
                     GX.ColorSrc.REG,
                     0,
                     GX.DiffuseFunction.CLAMP,
-                    GX.AttenuationFunction.SPOT
+                    GX.AttenuationFunction.SPOT,
                 );
                 break;
             }
@@ -388,7 +504,7 @@ class MaterialInst {
                     GX.ColorSrc.VTX,
                     0,
                     GX.DiffuseFunction.CLAMP,
-                    GX.AttenuationFunction.SPOT
+                    GX.AttenuationFunction.SPOT,
                 );
                 break;
             }
@@ -400,7 +516,7 @@ class MaterialInst {
                     GX.ColorSrc.REG,
                     1, // We only have one directional light for now
                     GX.DiffuseFunction.CLAMP,
-                    GX.AttenuationFunction.SPOT
+                    GX.AttenuationFunction.SPOT,
                 );
                 break;
             }
@@ -424,7 +540,7 @@ class MaterialInst {
         renderCache: GfxRenderCache,
         inst: GfxRenderInst,
         drawParams: DrawParams,
-        renderParams: RenderParams
+        renderParams: RenderParams,
     ): void {
         // Shader program
         this.materialHelper.setOnRenderInst(renderCache, inst);
@@ -461,7 +577,7 @@ class MaterialInst {
         device: GfxDevice,
         renderCache: GfxRenderCache,
         private meshData: Mesh<unknown>,
-        textureCache: TextureCache
+        textureCache: TextureCache,
     ) {
         this.initSampler(device, renderCache, meshData, textureCache);
         this.genGXMaterial(device, renderCache, meshData);
@@ -474,7 +590,12 @@ class MeshInst {
     private ddraw: TSDraw;
     private material: MaterialInst;
 
-    constructor(device: GfxDevice, renderCache: GfxRenderCache, meshData: MeshWithType, textureCache: TextureCache) {
+    constructor(
+        device: GfxDevice,
+        renderCache: GfxRenderCache,
+        meshData: MeshWithType,
+        textureCache: TextureCache,
+    ) {
         this.material = new MaterialInst(device, renderCache, meshData.mesh, textureCache);
         this.ddraw = new TSDraw();
 
@@ -528,7 +649,13 @@ class MeshInst {
         mat4.copy(drawParams.u_PosMtx[0], renderParams.viewFromModel);
 
         const inst = ctx.renderInstManager.newRenderInst();
-        this.material.setOnRenderInst(ctx.device, ctx.renderInstManager.gfxRenderCache, inst, drawParams, renderParams);
+        this.material.setOnRenderInst(
+            ctx.device,
+            ctx.renderInstManager.gfxRenderCache,
+            inst,
+            drawParams,
+            renderParams,
+        );
         this.ddraw.setOnRenderInst(inst);
         ctx.opaqueInstList.submitRenderInst(inst); // TODO(complexplane): Translucent depth sort stuff
     }
@@ -540,14 +667,21 @@ class MeshInst {
 
 export class ModelInst implements ModelInterface {
     private meshes: MeshInst[] = [];
-    constructor(device: GfxDevice, renderCache: GfxRenderCache, public modelData: Model, textureCache: TextureCache) {
+    constructor(
+        device: GfxDevice,
+        renderCache: GfxRenderCache,
+        public modelData: Model,
+        textureCache: TextureCache,
+    ) {
         if (modelData.meshList.kind === "A") {
             this.meshes = modelData.meshList.meshes.map(
-                (meshData) => new MeshInst(device, renderCache, { kind: "A", mesh: meshData }, textureCache)
+                (meshData) =>
+                    new MeshInst(device, renderCache, { kind: "A", mesh: meshData }, textureCache),
             );
         } else {
             this.meshes = modelData.meshList.meshes.map(
-                (meshData) => new MeshInst(device, renderCache, { kind: "B", mesh: meshData }, textureCache)
+                (meshData) =>
+                    new MeshInst(device, renderCache, { kind: "B", mesh: meshData }, textureCache),
             );
         }
     }

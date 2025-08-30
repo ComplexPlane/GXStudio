@@ -50,9 +50,14 @@ export class ModelInst implements ModelInterface {
     private shapes: ShapeInst[];
     private tevLayers: TevLayerInst[]; // Each shape's material uses up to three of these
 
-    constructor(device: GfxDevice, renderCache: GfxRenderCache, public modelData: Gma.Model, texHolder: TextureCache) {
+    constructor(
+        device: GfxDevice,
+        renderCache: GfxRenderCache,
+        public modelData: Gma.Model,
+        texHolder: TextureCache,
+    ) {
         this.tevLayers = modelData.tevLayers.map(
-            (tevLayerData) => new TevLayerInst(device, renderCache, tevLayerData, texHolder)
+            (tevLayerData) => new TevLayerInst(device, renderCache, tevLayerData, texHolder),
         );
         this.shapes = modelData.shapes.map(
             (shapeData, i) =>
@@ -64,7 +69,7 @@ export class ModelInst implements ModelInterface {
                     modelData,
                     i >= modelData.opaqueShapeCount,
                     i,
-                )
+                ),
         );
     }
 
@@ -85,11 +90,15 @@ export class ModelInst implements ModelInterface {
         const maxScale = Math.max(...scale);
 
         const centerWorldSpace = scratchVec3a;
-        transformVec3Mat4w1(centerWorldSpace, renderParams.viewFromModel, this.modelData.boundSphereCenter);
+        transformVec3Mat4w1(
+            centerWorldSpace,
+            renderParams.viewFromModel,
+            this.modelData.boundSphereCenter,
+        );
         transformVec3Mat4w1(centerWorldSpace, ctx.viewerInput.camera.worldMatrix, centerWorldSpace);
         const inFrustum = ctx.viewerInput.camera.frustum.containsSphere(
             centerWorldSpace,
-            this.modelData.boundSphereRadius * maxScale
+            this.modelData.boundSphereRadius * maxScale,
         );
         if (!inFrustum) return;
 

@@ -10,7 +10,7 @@ function parseAVTplHeader(
     texHeaderBuffer: ArrayBufferSlice,
     tplName: string,
     idx: number,
-    tplBuffer: ArrayBufferSlice
+    tplBuffer: ArrayBufferSlice,
 ): TextureInputGX {
     let view = texHeaderBuffer.createDataView();
 

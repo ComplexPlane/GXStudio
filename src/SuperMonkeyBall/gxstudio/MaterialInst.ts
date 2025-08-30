@@ -42,7 +42,11 @@ const COLOR_CHANNELS = [
     { colorChannel: ColorChannel.C0, colorKind: ColorKind.C0, alphaChannel: ScalarChannel.A0 },
     { colorChannel: ColorChannel.C1, colorKind: ColorKind.C1, alphaChannel: ScalarChannel.A1 },
     { colorChannel: ColorChannel.C2, colorKind: ColorKind.C2, alphaChannel: ScalarChannel.A2 },
-    { colorChannel: ColorChannel.CPREV, colorKind: ColorKind.CPREV, alphaChannel: ScalarChannel.APREV },
+    {
+        colorChannel: ColorChannel.CPREV,
+        colorKind: ColorKind.CPREV,
+        alphaChannel: ScalarChannel.APREV,
+    },
 ];
 
 const KONST_CHANNELS = [
@@ -64,7 +68,7 @@ const TEXGEN_MTXS = [
     // Does Gamecube have these?
     GX.TexGenMatrix.TEXMTX8,
     GX.TexGenMatrix.TEXMTX9,
-]
+];
 
 const scratchMaterialParams = new MaterialParams();
 const scratchColor1: Color = colorNewCopy(White);
@@ -239,16 +243,15 @@ export class MaterialInst {
                 this.scalarState.get(TEXMTX_UV_CHANNELS[i].v)!,
                 0,
             );
-            mat4.fromTranslation(
-                materialParams.u_TexMtx[i],
-                translation,
-            );
+            mat4.fromTranslation(materialParams.u_TexMtx[i], translation);
         }
 
         for (const colorMapping of COLOR_CHANNELS) {
             const animatedColor = this.colorState.get(colorMapping.colorChannel)!;
             colorCopy(materialParams.u_Color[colorMapping.colorKind], animatedColor);
-            materialParams.u_Color[colorMapping.colorKind].a = this.scalarState.get(colorMapping.alphaChannel)!;
+            materialParams.u_Color[colorMapping.colorKind].a = this.scalarState.get(
+                colorMapping.alphaChannel,
+            )!;
         }
 
         for (const konstMapping of KONST_CHANNELS) {

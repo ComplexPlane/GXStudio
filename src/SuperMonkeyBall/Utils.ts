@@ -33,7 +33,7 @@ export class MkbTime {
             this.stageTimeFrames = clamp(
                 this.stageTimeLimitFrames - this.animTimeFrames + SPIN_IN_FRAMES,
                 0,
-                this.stageTimeLimitFrames
+                this.stageTimeLimitFrames,
             );
         }
     }
@@ -62,7 +62,7 @@ export class MkbTime {
 export type Sphere = {
     center: vec3;
     radius: number;
-}
+};
 
 export function parseVec3f(view: DataView, offset: number): vec3 {
     const x = view.getFloat32(offset);

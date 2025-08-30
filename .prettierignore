@@ -1,0 +1,5 @@
+# Only format SuperMonkeyBall directory
+*
+!src/
+src/*
+!src/SuperMonkeyBall/

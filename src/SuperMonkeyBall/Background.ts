@@ -257,28 +257,34 @@ export class BgNight implements Background {
                 const modelListIdx = windowAnim.id - 65;
                 const modelList = NIGHT_WINDOW_MODEL_LISTS[modelListIdx] ?? NIGHT_WINDOW_A_MODELS;
                 const animFrame = Math.floor(state.time.getAnimTimeFrames() / 2) % modelList.length;
-                const windowModel = assertExists(state.modelCache.getModel(modelList[animFrame], GmaSrc.Bg));
+                const windowModel = assertExists(
+                    state.modelCache.getModel(modelList[animFrame], GmaSrc.Bg),
+                );
 
                 const renderParams = scratchRenderParams;
                 renderParams.reset();
                 renderParams.lighting = state.lighting;
                 renderParams.sort = RenderSort.None;
                 renderParams.t = state.time.getAnimTimeSeconds();
-                mat4.translate(renderParams.viewFromModel, ctx.viewerInput.camera.viewMatrix, windowAnim.pos);
+                mat4.translate(
+                    renderParams.viewFromModel,
+                    ctx.viewerInput.camera.viewMatrix,
+                    windowAnim.pos,
+                );
                 mat4.rotateZ(
                     renderParams.viewFromModel,
                     renderParams.viewFromModel,
-                    S16_TO_RADIANS * windowAnim.rot[2]
+                    S16_TO_RADIANS * windowAnim.rot[2],
                 );
                 mat4.rotateY(
                     renderParams.viewFromModel,
                     renderParams.viewFromModel,
-                    S16_TO_RADIANS * windowAnim.rot[1]
+                    S16_TO_RADIANS * windowAnim.rot[1],
                 );
                 mat4.rotateX(
                     renderParams.viewFromModel,
                     renderParams.viewFromModel,
-                    S16_TO_RADIANS * windowAnim.rot[0]
+                    S16_TO_RADIANS * windowAnim.rot[0],
                 );
                 windowModel.prepareToRender(ctx, renderParams);
             }
@@ -317,8 +323,18 @@ export class BgSunset implements Background {
                 this.cloudModels.push(cloudModel);
 
                 vec3.set(cloudModel.currTexTranslate, Math.random(), Math.random(), Math.random());
-                vec3.set(cloudModel.desiredTexVel, 0, (Math.random() * 0.2 + 0.9) * 0.0015151514671742916, 0);
-                vec3.rotateZ(cloudModel.desiredTexVel, cloudModel.desiredTexVel, Vec3Zero, Math.random() * Math.PI);
+                vec3.set(
+                    cloudModel.desiredTexVel,
+                    0,
+                    (Math.random() * 0.2 + 0.9) * 0.0015151514671742916,
+                    0,
+                );
+                vec3.rotateZ(
+                    cloudModel.desiredTexVel,
+                    cloudModel.desiredTexVel,
+                    Vec3Zero,
+                    Math.random() * Math.PI,
+                );
                 vec3.copy(cloudModel.currTexVel, cloudModel.desiredTexVel);
             } else {
                 this.bgObjects.push(bgObject);
@@ -342,8 +358,18 @@ export class BgSunset implements Background {
             const cloudModel = this.cloudModels[i];
             cloudModel.bgObject.update(state);
             if (speedUpClouds) {
-                vec3.set(cloudModel.desiredTexVel, 0, (Math.random() * 0.2 + 0.9) * 0.0030303029343485832, 0);
-                vec3.rotateZ(cloudModel.desiredTexVel, cloudModel.desiredTexVel, Vec3Zero, Math.random() * Math.PI);
+                vec3.set(
+                    cloudModel.desiredTexVel,
+                    0,
+                    (Math.random() * 0.2 + 0.9) * 0.0030303029343485832,
+                    0,
+                );
+                vec3.rotateZ(
+                    cloudModel.desiredTexVel,
+                    cloudModel.desiredTexVel,
+                    Vec3Zero,
+                    Math.random() * Math.PI,
+                );
             }
             // Exponential interpolate desired tex vel towards current tex vel
             const lerp = Math.pow(0.95, state.time.getDeltaTimeFrames()); // Adjust lerp multipler for framerate
@@ -352,7 +378,7 @@ export class BgSunset implements Background {
                 cloudModel.currTexTranslate,
                 cloudModel.currTexTranslate,
                 cloudModel.currTexVel,
-                state.time.getDeltaTimeFrames()
+                state.time.getDeltaTimeFrames(),
             );
         }
     }
@@ -496,14 +522,21 @@ export class BgStorm implements Background {
             for (let j = 0; j < flipbookAnims.stormFireAnims.length; j++) {
                 const fireAnim = flipbookAnims.stormFireAnims[j];
                 const fireFrame =
-                    (Math.floor(state.time.getAnimTimeFrames()) + 4 * fireAnim.frameOffset) % STORM_FIRE_MODELS.length;
-                const fireModel = assertExists(state.modelCache.getModel(STORM_FIRE_MODELS[fireFrame], GmaSrc.Bg));
+                    (Math.floor(state.time.getAnimTimeFrames()) + 4 * fireAnim.frameOffset) %
+                    STORM_FIRE_MODELS.length;
+                const fireModel = assertExists(
+                    state.modelCache.getModel(STORM_FIRE_MODELS[fireFrame], GmaSrc.Bg),
+                );
 
                 const renderParams = scratchRenderParams;
                 renderParams.reset();
                 renderParams.lighting = state.lighting;
                 renderParams.t = state.time.getAnimTimeSeconds();
-                mat4.translate(renderParams.viewFromModel, ctx.viewerInput.camera.viewMatrix, fireAnim.pos);
+                mat4.translate(
+                    renderParams.viewFromModel,
+                    ctx.viewerInput.camera.viewMatrix,
+                    fireAnim.pos,
+                );
                 mat4.rotateY(renderParams.viewFromModel, renderParams.viewFromModel, cameraRotY);
                 fireModel.prepareToRender(ctx, renderParams);
             }

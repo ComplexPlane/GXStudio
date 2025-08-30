@@ -28,16 +28,40 @@ type BuildState = {
     texGenSrc: GX.TexGenSrc;
 };
 
-function buildDiffuseLayer(mb: GXMaterialBuilder, state: BuildState, colorIn: GX.CC, alphaIn: GX.CA) {
+function buildDiffuseLayer(
+    mb: GXMaterialBuilder,
+    state: BuildState,
+    colorIn: GX.CC,
+    alphaIn: GX.CA,
+) {
     mb.setTevDirect(state.stage);
     mb.setTevSwapMode(state.stage, SWAP_TABLES[0], SWAP_TABLES[0]);
-    mb.setTexCoordGen(state.texCoord, GX.TexGenType.MTX2x4, state.texGenSrc, GX.TexGenMatrix.TEXMTX1);
+    mb.setTexCoordGen(
+        state.texCoord,
+        GX.TexGenType.MTX2x4,
+        state.texGenSrc,
+        GX.TexGenMatrix.TEXMTX1,
+    );
     mb.setTevOrder(state.stage, state.texCoord, state.texMap, GX.RasColorChannelID.COLOR0A0);
 
     mb.setTevColorIn(state.stage, GX.CC.ZERO, GX.CC.TEXC, colorIn, GX.CC.ZERO);
-    mb.setTevColorOp(state.stage, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, GX.Register.PREV);
+    mb.setTevColorOp(
+        state.stage,
+        GX.TevOp.ADD,
+        GX.TevBias.ZERO,
+        GX.TevScale.SCALE_1,
+        true,
+        GX.Register.PREV,
+    );
     mb.setTevAlphaIn(state.stage, GX.CA.ZERO, GX.CA.TEXA, alphaIn, GX.CA.ZERO);
-    mb.setTevAlphaOp(state.stage, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, GX.Register.PREV);
+    mb.setTevAlphaOp(
+        state.stage,
+        GX.TevOp.ADD,
+        GX.TevBias.ZERO,
+        GX.TevScale.SCALE_1,
+        true,
+        GX.Register.PREV,
+    );
 
     state.stage++;
     state.texCoord++;
@@ -45,16 +69,40 @@ function buildDiffuseLayer(mb: GXMaterialBuilder, state: BuildState, colorIn: GX
     state.texGenSrc++;
 }
 
-function buildAlphaBlendLayer(mb: GXMaterialBuilder, state: BuildState, colorIn: GX.CC, alphaIn: GX.CA) {
+function buildAlphaBlendLayer(
+    mb: GXMaterialBuilder,
+    state: BuildState,
+    colorIn: GX.CC,
+    alphaIn: GX.CA,
+) {
     mb.setTevDirect(state.stage);
     mb.setTevSwapMode(state.stage, SWAP_TABLES[0], SWAP_TABLES[1]);
-    mb.setTexCoordGen(state.texCoord, GX.TexGenType.MTX2x4, state.texGenSrc, GX.TexGenMatrix.TEXMTX1);
+    mb.setTexCoordGen(
+        state.texCoord,
+        GX.TexGenType.MTX2x4,
+        state.texGenSrc,
+        GX.TexGenMatrix.TEXMTX1,
+    );
     mb.setTevOrder(state.stage, state.texCoord, state.texMap, GX.RasColorChannelID.COLOR0A0);
 
     mb.setTevColorIn(state.stage, GX.CC.ZERO, GX.CC.ZERO, GX.CC.ZERO, colorIn);
-    mb.setTevColorOp(state.stage, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, GX.Register.PREV);
+    mb.setTevColorOp(
+        state.stage,
+        GX.TevOp.ADD,
+        GX.TevBias.ZERO,
+        GX.TevScale.SCALE_1,
+        true,
+        GX.Register.PREV,
+    );
     mb.setTevAlphaIn(state.stage, GX.CA.ZERO, GX.CA.TEXA, alphaIn, GX.CA.ZERO);
-    mb.setTevAlphaOp(state.stage, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, GX.Register.PREV);
+    mb.setTevAlphaOp(
+        state.stage,
+        GX.TevOp.ADD,
+        GX.TevBias.ZERO,
+        GX.TevScale.SCALE_1,
+        true,
+        GX.Register.PREV,
+    );
 
     state.stage++;
     state.texCoord++;
@@ -62,13 +110,37 @@ function buildAlphaBlendLayer(mb: GXMaterialBuilder, state: BuildState, colorIn:
     state.texGenSrc++;
 }
 
-function buildDummyPassthroughLayer(mb: GXMaterialBuilder, state: BuildState, colorIn: GX.CC, alphaIn: GX.CA) {
+function buildDummyPassthroughLayer(
+    mb: GXMaterialBuilder,
+    state: BuildState,
+    colorIn: GX.CC,
+    alphaIn: GX.CA,
+) {
     mb.setTevDirect(state.stage);
-    mb.setTevOrder(state.stage, GX.TexCoordID.TEXCOORD_NULL, GX.TexMapID.TEXMAP_NULL, GX.RasColorChannelID.COLOR0A0);
+    mb.setTevOrder(
+        state.stage,
+        GX.TexCoordID.TEXCOORD_NULL,
+        GX.TexMapID.TEXMAP_NULL,
+        GX.RasColorChannelID.COLOR0A0,
+    );
     mb.setTevColorIn(state.stage, GX.CC.ZERO, GX.CC.ZERO, GX.CC.ZERO, colorIn);
-    mb.setTevColorOp(state.stage, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, GX.Register.PREV);
+    mb.setTevColorOp(
+        state.stage,
+        GX.TevOp.ADD,
+        GX.TevBias.ZERO,
+        GX.TevScale.SCALE_1,
+        true,
+        GX.Register.PREV,
+    );
     mb.setTevAlphaIn(state.stage, GX.CA.ZERO, GX.CA.ZERO, GX.CA.ZERO, alphaIn);
-    mb.setTevAlphaOp(state.stage, GX.TevOp.ADD, GX.TevBias.ZERO, GX.TevScale.SCALE_1, true, GX.Register.PREV);
+    mb.setTevAlphaOp(
+        state.stage,
+        GX.TevOp.ADD,
+        GX.TevBias.ZERO,
+        GX.TevScale.SCALE_1,
+        true,
+        GX.Register.PREV,
+    );
 
     state.stage++;
 }
@@ -84,7 +156,7 @@ export class MaterialInst {
         private materialData: Gma.Material,
         modelTevLayers: TevLayerInst[],
         private translucentShape: boolean,
-        private cullMode: GX.CullMode
+        private cullMode: GX.CullMode,
     ) {
         this.tevLayers = [];
 
@@ -113,7 +185,7 @@ export class MaterialInst {
                     GX.ColorSrc.VTX, // Material source
                     0,
                     GX.DiffuseFunction.NONE,
-                    GX.AttenuationFunction.NONE
+                    GX.AttenuationFunction.NONE,
                 );
             } else {
                 colorIn = GX.CC.C0;
@@ -128,7 +200,7 @@ export class MaterialInst {
                     GX.ColorSrc.VTX, // mat_src
                     0, // light_mask
                     GX.DiffuseFunction.NONE, // diff_fn
-                    GX.AttenuationFunction.NONE // attn_fn
+                    GX.AttenuationFunction.NONE, // attn_fn
                 ); // attn_fn
                 // Enable alpha channel
                 mb.setChanCtrl(
@@ -138,7 +210,7 @@ export class MaterialInst {
                     GX.ColorSrc.VTX, // mat_src
                     1, // light_mask, assuming we only have on directional light for now
                     GX.DiffuseFunction.CLAMP, // diff_fn
-                    GX.AttenuationFunction.SPOT // attn_fn
+                    GX.AttenuationFunction.SPOT, // attn_fn
                 );
             } else {
                 mb.setChanCtrl(
@@ -148,7 +220,7 @@ export class MaterialInst {
                     GX.ColorSrc.REG, // mat_src
                     0, // light_mask
                     GX.DiffuseFunction.NONE, // diff_fn
-                    GX.AttenuationFunction.NONE // attn_fn
+                    GX.AttenuationFunction.NONE, // attn_fn
                 ); // attn_fn
                 // Enable alpha channel
                 mb.setChanCtrl(
@@ -158,7 +230,7 @@ export class MaterialInst {
                     GX.ColorSrc.REG, // mat_src
                     1, // light_mask, assuming we only have on directional light for now
                     GX.DiffuseFunction.CLAMP, // diff_fn
-                    GX.AttenuationFunction.SPOT // attn_fn
+                    GX.AttenuationFunction.SPOT, // attn_fn
                 );
             }
         }
@@ -175,7 +247,7 @@ export class MaterialInst {
                 buildState.stage,
                 GX.TexCoordID.TEXCOORD_NULL,
                 GX.TexMapID.TEXMAP_NULL,
-                GX.RasColorChannelID.COLOR0A0
+                GX.RasColorChannelID.COLOR0A0,
             );
             mb.setTevColorIn(buildState.stage, GX.CC.ZERO, GX.CC.ZERO, GX.CC.ZERO, colorIn);
             mb.setTevColorOp(
@@ -184,7 +256,7 @@ export class MaterialInst {
                 GX.TevBias.ZERO,
                 GX.TevScale.SCALE_1,
                 true,
-                GX.Register.PREV
+                GX.Register.PREV,
             );
             mb.setTevAlphaIn(buildState.stage, GX.CA.ZERO, GX.CA.ZERO, GX.CA.ZERO, alphaIn);
             mb.setTevAlphaOp(
@@ -193,7 +265,7 @@ export class MaterialInst {
                 GX.TevBias.ZERO,
                 GX.TevScale.SCALE_1,
                 true,
-                GX.Register.PREV
+                GX.Register.PREV,
             );
             buildState.stage++;
         } else {
@@ -244,7 +316,7 @@ export class MaterialInst {
         renderCache: GfxRenderCache,
         inst: GfxRenderInst,
         drawParams: DrawParams,
-        renderParams: RenderParams
+        renderParams: RenderParams,
     ): void {
         // Shader program
         this.materialHelper.setOnRenderInst(renderCache, inst);
@@ -269,7 +341,10 @@ export class MaterialInst {
 
         // Material color
         const materialColor = scratchColor1;
-        if (this.materialData.flags & (Gma.MaterialFlags.CustomMatAmbColors | Gma.MaterialFlags.SimpleMaterial)) {
+        if (
+            this.materialData.flags &
+            (Gma.MaterialFlags.CustomMatAmbColors | Gma.MaterialFlags.SimpleMaterial)
+        ) {
             colorCopy(materialColor, this.materialData.materialColor);
         } else {
             colorCopy(materialColor, White);

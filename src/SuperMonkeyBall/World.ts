@@ -51,25 +51,37 @@ export class World {
     private background: Background;
     private gui: Gui;
 
-    constructor(device: GfxDevice, renderCache: GfxRenderCache, private stageData: StageData) {
+    constructor(
+        device: GfxDevice,
+        renderCache: GfxRenderCache,
+        private stageData: StageData,
+    ) {
         this.worldState = {
             modelCache: new ModelCache(device, renderCache, stageData),
             time: new MkbTime(60), // TODO(complexplane): Per-stage time limit
             lighting: new Lighting(stageData.stageInfo.bgInfo),
         };
         this.animGroups = stageData.stagedef.animGroups.map(
-            (_, i) => new AnimGroup(this.worldState.modelCache, stageData, i)
+            (_, i) => new AnimGroup(this.worldState.modelCache, stageData, i),
         );
 
         const bgObjects: BgObjectInst[] = [];
         for (const bgObject of stageData.stagedef.bgObjects.concat(stageData.stagedef.fgObjects)) {
             if (!(bgObject.flags & SD.BgModelFlags.Visible)) continue;
-            const model = this.worldState.modelCache.getModel(bgObject.modelName, GmaSrc.StageAndBg);
+            const model = this.worldState.modelCache.getModel(
+                bgObject.modelName,
+                GmaSrc.StageAndBg,
+            );
             if (model === null) continue;
             bgObjects.push(new BgObjectInst(model, bgObject));
         }
         this.background = new stageData.stageInfo.bgInfo.bgConstructor(this.worldState, bgObjects);
-        this.gui = new Gui(device, renderCache, this.worldState.modelCache.getTextureCache(), stageData.bgGma);
+        this.gui = new Gui(
+            device,
+            renderCache,
+            this.worldState.modelCache.getTextureCache(),
+            stageData.bgGma,
+        );
     }
 
     public update(viewerInput: Viewer.ViewerRenderInput): void {

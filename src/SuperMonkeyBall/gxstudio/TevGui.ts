@@ -260,7 +260,7 @@ export class TevGui {
                 if (ImGui.Button("Delete TEV Stage")) {
                     tevStageToDelete = tevStageIdx;
                 }
-                
+
                 ImGui.Spacing();
 
                 if (!objEqual(tevStage, prevTevStage)) {
@@ -279,16 +279,17 @@ export class TevGui {
         if (tevStageToInsertAfter !== null) {
             const insertIdx = tevStageToInsertAfter + 1;
             const isAppendingToEnd = insertIdx >= material.tevStages.length;
-            
+
             let newTevStage: TevStage;
             if (isAppendingToEnd) {
-                newTevStage = material.tevStages.length === 0
-                    ? newLitTextureTevStage()
-                    : newPassthroughTevStage(material.tevStages[material.tevStages.length - 1]);
+                newTevStage =
+                    material.tevStages.length === 0
+                        ? newLitTextureTevStage()
+                        : newPassthroughTevStage(material.tevStages[material.tevStages.length - 1]);
             } else {
                 newTevStage = newIdentityTevStage();
             }
-            
+
             material.tevStages.splice(insertIdx, 0, newTevStage);
             material.rebuild();
         }
@@ -332,8 +333,8 @@ export class TevGui {
             }
 
             if (ImGui.BeginItemTooltip()) {
-               ImGui.Text(`Unresolved texture index: ${tevStage.texture.staleIdx}`); 
-               ImGui.EndTooltip();
+                ImGui.Text(`Unresolved texture index: ${tevStage.texture.staleIdx}`);
+                ImGui.EndTooltip();
             }
         }
         ImGui.SameLine();

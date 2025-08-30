@@ -49,32 +49,38 @@ class SuperMonkeyBallSceneDesc implements Viewer.SceneDesc {
         const stageTplPath = `${gameFilesPath}/st${stageIdStr}/st${stageIdStr}.tpl`;
         const stageInfo = assertExists(STAGE_INFO_MAP.get(stageId));
 
-        const commonGmaP = dataShare.ensureObject<DestroyableGma>(`${gameFilesPath}/Common`, async () => {
-            const commonGmaPath = `${gameFilesPath}/init/common.gma.lz`;
-            const commonTplPath = `${gameFilesPath}/init/common.tpl.lz`;
-            const [gmaBuf, tplBuf] = await Promise.all([
-                dataFetcher.fetchData(commonGmaPath),
-                dataFetcher.fetchData(commonTplPath),
-            ]);
-            const tpl = parseAVTpl(decompressLZ(tplBuf), "common");
-            const gma = Gma.parseGma(decompressLZ(gmaBuf), tpl) as unknown as DestroyableGma;
-            gma.destroy = () => {}; // HACK
-            return gma;
-        });
+        const commonGmaP = dataShare.ensureObject<DestroyableGma>(
+            `${gameFilesPath}/Common`,
+            async () => {
+                const commonGmaPath = `${gameFilesPath}/init/common.gma.lz`;
+                const commonTplPath = `${gameFilesPath}/init/common.tpl.lz`;
+                const [gmaBuf, tplBuf] = await Promise.all([
+                    dataFetcher.fetchData(commonGmaPath),
+                    dataFetcher.fetchData(commonTplPath),
+                ]);
+                const tpl = parseAVTpl(decompressLZ(tplBuf), "common");
+                const gma = Gma.parseGma(decompressLZ(gmaBuf), tpl) as unknown as DestroyableGma;
+                gma.destroy = () => {}; // HACK
+                return gma;
+            },
+        );
 
         const bgFilename = stageInfo.bgInfo.fileName;
-        const bgGmaP = dataShare.ensureObject<DestroyableGma>(`${gameFilesPath}/bg/${bgFilename}`, async () => {
-            const bgGmaPath = `${gameFilesPath}/bg/${bgFilename}.gma`;
-            const bgTplPath = `${gameFilesPath}/bg/${bgFilename}.tpl`;
-            const [gmaBuf, tplBuf] = await Promise.all([
-                dataFetcher.fetchData(bgGmaPath),
-                dataFetcher.fetchData(bgTplPath),
-            ]);
-            const tpl = parseAVTpl(tplBuf, bgFilename);
-            const gma = Gma.parseGma(gmaBuf, tpl) as unknown as DestroyableGma;
-            gma.destroy = () => {}; // HACK
-            return gma;
-        });
+        const bgGmaP = dataShare.ensureObject<DestroyableGma>(
+            `${gameFilesPath}/bg/${bgFilename}`,
+            async () => {
+                const bgGmaPath = `${gameFilesPath}/bg/${bgFilename}.gma`;
+                const bgTplPath = `${gameFilesPath}/bg/${bgFilename}.tpl`;
+                const [gmaBuf, tplBuf] = await Promise.all([
+                    dataFetcher.fetchData(bgGmaPath),
+                    dataFetcher.fetchData(bgTplPath),
+                ]);
+                const tpl = parseAVTpl(tplBuf, bgFilename);
+                const gma = Gma.parseGma(gmaBuf, tpl) as unknown as DestroyableGma;
+                gma.destroy = () => {}; // HACK
+                return gma;
+            },
+        );
 
         const [commonGma, bgGma, stagedefBuf, stageGmaBuf, stageTplBuf] = await Promise.all([
             commonGmaP,
@@ -106,7 +112,7 @@ function buildFakeStage(name: string, gma: Gma.Gma, nlObj: Nl.Obj): StageData {
             infLightRotY: 24576,
         },
     };
-    const bgObjects: BgObject[] = [...gma.nameMap.values()].map((model) => { 
+    const bgObjects: BgObject[] = [...gma.nameMap.values()].map((model) => {
         return {
             flags: SD.BgModelFlags.Visible,
             modelName: model.name,
@@ -116,7 +122,7 @@ function buildFakeStage(name: string, gma: Gma.Gma, nlObj: Nl.Obj): StageData {
             translucency: 0,
             anim: null,
             flipbookAnims: null,
-        }; 
+        };
     });
     const stagedef: SD.Stage = {
         loopStartSeconds: 0,
@@ -143,7 +149,10 @@ function buildFakeStage(name: string, gma: Gma.Gma, nlObj: Nl.Obj): StageData {
     return stageData;
 }
 
-export function createSceneFromNamedBuffers(context: SceneContext, buffers: NamedArrayBufferSlice[]): Renderer | null {
+export function createSceneFromNamedBuffers(
+    context: SceneContext,
+    buffers: NamedArrayBufferSlice[],
+): Renderer | null {
     // GMA case: .gma(.lz) for models, .tpl(.lz) for TPL
     // NaomiLib case: _p.lz for models, .lz for TPL
 
@@ -151,7 +160,11 @@ export function createSceneFromNamedBuffers(context: SceneContext, buffers: Name
     let [modelsBuf, tplBuf] = buffers;
 
     // Fix order
-    if (tplBuf.name.endsWith(".gma") || tplBuf.name.endsWith("_p.lz") || tplBuf.name.endsWith(".gma.lz")) {
+    if (
+        tplBuf.name.endsWith(".gma") ||
+        tplBuf.name.endsWith("_p.lz") ||
+        tplBuf.name.endsWith(".gma.lz")
+    ) {
         [modelsBuf, tplBuf] = [tplBuf, modelsBuf];
     }
 

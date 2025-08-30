@@ -324,8 +324,7 @@ export const enum BgNightModelID {
     /*0x007D*/ NIG_SKY,
     /*0x007E*/ NIG_TREE,
     /*0x007F*/ NIG_BOX,
-};
-
+}
 
 // Model IDs for GMBE8P/files/test/bg/bg_stm.gma
 export const enum BgStormModelID {

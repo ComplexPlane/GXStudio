@@ -20,7 +20,10 @@ export class BgObjectInst {
     private visible = true;
     private translucency = 0; // 1 - alpha
 
-    constructor(private model: ModelInst, public bgObjectData: SD.BgObject) {
+    constructor(
+        private model: ModelInst,
+        public bgObjectData: SD.BgObject,
+    ) {
         this.translucency = bgObjectData.translucency;
         const rotRadians = scratchVec3c;
         vec3.scale(rotRadians, bgObjectData.rot, S16_TO_RADIANS);
@@ -42,7 +45,7 @@ export class BgObjectInst {
         const loopedTimeSeconds = loopWrap(
             state.time.getAnimTimeSeconds(),
             anim.loopStartSeconds,
-            anim.loopEndSeconds
+            anim.loopEndSeconds,
         );
 
         if (anim.visibleKeyframes.length !== 0) {
@@ -77,13 +80,19 @@ export class BgObjectInst {
             pos[2] = interpolateKeyframes(loopedTimeSeconds, anim.posZKeyframes);
         }
         if (anim.rotXKeyframes.length !== 0) {
-            rotRadians[0] = interpolateKeyframes(loopedTimeSeconds, anim.rotXKeyframes) * MathConstants.DEG_TO_RAD;
+            rotRadians[0] =
+                interpolateKeyframes(loopedTimeSeconds, anim.rotXKeyframes) *
+                MathConstants.DEG_TO_RAD;
         }
         if (anim.rotYKeyframes.length !== 0) {
-            rotRadians[1] = interpolateKeyframes(loopedTimeSeconds, anim.rotYKeyframes) * MathConstants.DEG_TO_RAD;
+            rotRadians[1] =
+                interpolateKeyframes(loopedTimeSeconds, anim.rotYKeyframes) *
+                MathConstants.DEG_TO_RAD;
         }
         if (anim.rotZKeyframes.length !== 0) {
-            rotRadians[2] = interpolateKeyframes(loopedTimeSeconds, anim.rotZKeyframes) * MathConstants.DEG_TO_RAD;
+            rotRadians[2] =
+                interpolateKeyframes(loopedTimeSeconds, anim.rotZKeyframes) *
+                MathConstants.DEG_TO_RAD;
         }
         if (anim.scaleXKeyframes.length !== 0) {
             scale[0] = interpolateKeyframes(loopedTimeSeconds, anim.scaleXKeyframes);
@@ -107,9 +116,13 @@ export class BgObjectInst {
         renderParams.sort = this.translucency < EPSILON ? RenderSort.Translucent : RenderSort.All;
         if (texMtx !== undefined) {
             mat4.copy(renderParams.texMtx, texMtx);
-        } 
+        }
 
-        mat4.mul(renderParams.viewFromModel, ctx.viewerInput.camera.viewMatrix, this.worldFromModel);
+        mat4.mul(
+            renderParams.viewFromModel,
+            ctx.viewerInput.camera.viewMatrix,
+            this.worldFromModel,
+        );
 
         renderParams.lighting = state.lighting;
         renderParams.depthOffset = 400;

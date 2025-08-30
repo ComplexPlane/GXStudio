@@ -119,16 +119,20 @@ export function decodeRoot(
         return `Failed to parse materials JSON: ${root.error.message}`;
     }
 
-    const importedMaterials = root.data.materials.map((m) => decodeMaterial(m, textures, newMaterialFunc));
-    
+    const importedMaterials = root.data.materials.map((m) =>
+        decodeMaterial(m, textures, newMaterialFunc),
+    );
+
     // Process imported materials with UUID matching
     for (const importedMaterial of importedMaterials) {
-        const existingMaterialIndex = scene.materials.findIndex(m => m.uuid === importedMaterial.uuid);
-        
+        const existingMaterialIndex = scene.materials.findIndex(
+            (m) => m.uuid === importedMaterial.uuid,
+        );
+
         if (existingMaterialIndex !== -1) {
             // Swap out the existing material object with the imported one
             scene.materials[existingMaterialIndex] = importedMaterial;
-            
+
             // Update all mesh references that point to the old material
             for (const model of scene.models) {
                 for (const mesh of model.meshes) {
@@ -142,7 +146,7 @@ export function decodeRoot(
             scene.materials.push(importedMaterial);
         }
     }
-    
+
     return null; // Success
 }
 

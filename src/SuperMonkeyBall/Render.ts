@@ -8,14 +8,8 @@ import {
 } from "../gfx/helpers/RenderGraphHelpers.js";
 import { GfxDevice } from "../gfx/platform/GfxPlatform.js";
 import { GfxrAttachmentSlot } from "../gfx/render/GfxRenderGraph.js";
-import {
-    GfxRenderInstList,
-    GfxRenderInstManager,
-} from "../gfx/render/GfxRenderInstManager.js";
-import {
-    GXRenderHelperGfx,
-    fillSceneParamsDataOnTemplate,
-} from "../gx/gx_render.js";
+import { GfxRenderInstList, GfxRenderInstManager } from "../gfx/render/GfxRenderInstManager.js";
+import { GXRenderHelperGfx, fillSceneParamsDataOnTemplate } from "../gx/gx_render.js";
 import * as UI from "../ui.js";
 import * as Viewer from "../viewer.js";
 import { StageData, World } from "./World.js";
@@ -39,7 +33,10 @@ export class Renderer implements Viewer.SceneGfx {
     private opaqueInstList = new GfxRenderInstList();
     private translucentInstList = new GfxRenderInstList();
 
-    constructor(device: GfxDevice, private stageData: StageData) {
+    constructor(
+        device: GfxDevice,
+        private stageData: StageData,
+    ) {
         this.renderHelper = new GXRenderHelperGfx(device);
         this.world = new World(device, this.renderHelper.renderCache, stageData);
         const textureCache = this.world.getTextureCache();
@@ -48,14 +45,14 @@ export class Renderer implements Viewer.SceneGfx {
     }
 
     public createPanels(): UI.Panel[] {
-       return [];
+        return [];
     }
 
     private prepareToRender(
         device: GfxDevice,
         viewerInput: Viewer.ViewerRenderInput,
         opaqueInstList: GfxRenderInstList,
-        translucentInstList: GfxRenderInstList
+        translucentInstList: GfxRenderInstList,
     ): void {
         this.world.update(viewerInput);
 
@@ -84,58 +81,37 @@ export class Renderer implements Viewer.SceneGfx {
         const mainColorDesc = makeBackbufferDescSimple(
             GfxrAttachmentSlot.Color0,
             viewerInput,
-            makeAttachmentClearDescriptor(this.world.getClearColor())
+            makeAttachmentClearDescriptor(this.world.getClearColor()),
         );
         const mainDepthDesc = makeBackbufferDescSimple(
             GfxrAttachmentSlot.DepthStencil,
             viewerInput,
-            opaqueBlackFullClearRenderPassDescriptor
+            opaqueBlackFullClearRenderPassDescriptor,
         );
 
         const builder = this.renderHelper.renderGraph.newGraphBuilder();
 
-        const mainColorTargetID = builder.createRenderTargetID(
-            mainColorDesc,
-            "Main Color"
-        );
-        const mainDepthTargetID = builder.createRenderTargetID(
-            mainDepthDesc,
-            "Main Depth"
-        );
+        const mainColorTargetID = builder.createRenderTargetID(mainColorDesc, "Main Color");
+        const mainDepthTargetID = builder.createRenderTargetID(mainDepthDesc, "Main Depth");
         builder.pushPass((pass) => {
             pass.setDebugName("Main");
             pass.attachRenderTargetID(GfxrAttachmentSlot.Color0, mainColorTargetID);
-            pass.attachRenderTargetID(
-                GfxrAttachmentSlot.DepthStencil,
-                mainDepthTargetID
-            );
+            pass.attachRenderTargetID(GfxrAttachmentSlot.DepthStencil, mainDepthTargetID);
             pass.exec((passRenderer) => {
-                this.opaqueInstList.drawOnPassRenderer(
-                    this.renderHelper.renderCache,
-                    passRenderer
-                );
+                this.opaqueInstList.drawOnPassRenderer(this.renderHelper.renderCache, passRenderer);
                 this.translucentInstList.drawOnPassRenderer(
                     this.renderHelper.renderCache,
-                    passRenderer
+                    passRenderer,
                 );
             });
         });
-        this.renderHelper.antialiasingSupport.pushPasses(
-            builder,
-            viewerInput,
-            mainColorTargetID
-        );
+        this.renderHelper.antialiasingSupport.pushPasses(builder, viewerInput, mainColorTargetID);
         builder.resolveRenderTargetToExternalTexture(
             mainColorTargetID,
-            viewerInput.onscreenTexture
+            viewerInput.onscreenTexture,
         );
 
-        this.prepareToRender(
-            device,
-            viewerInput,
-            this.opaqueInstList,
-            this.translucentInstList
-        );
+        this.prepareToRender(device, viewerInput, this.opaqueInstList, this.translucentInstList);
 
         this.renderHelper.renderGraph.execute(builder);
     }

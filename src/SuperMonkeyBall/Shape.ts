@@ -12,7 +12,7 @@ import {
     GX_VtxDesc,
     LoadedVertexData,
     VtxLoader,
-    compileVtxLoaderMultiVat
+    compileVtxLoaderMultiVat,
 } from "../gx/gx_displaylist.js";
 import * as GX from "../gx/gx_enum.js";
 import { GXMaterialHacks } from "../gx/gx_material.js";
@@ -98,7 +98,7 @@ export class ShapeInst {
 
         // 16-bit models use VTXFMT1
         const loadedVertexDatas = shapeData.dlists.map((dlist) =>
-            generateLoadedVertexData(dlist.data.slice(1), loader)
+            generateLoadedVertexData(dlist.data.slice(1), loader),
         );
         this.bufferCoalescer = loadedDataCoalescerComboGfx(device, loadedVertexDatas);
         this.subShapes = shapeData.dlists.map((dlist, i) => {
@@ -109,9 +109,14 @@ export class ShapeInst {
                 buf.vertexBuffers,
                 buf.indexBuffer,
                 loadedVertexLayout,
-                loadedVertexDatas[i]
+                loadedVertexDatas[i],
             );
-            const material = new MaterialInst(shapeData.material, modelTevLayers, translucent, dlist.cullMode);
+            const material = new MaterialInst(
+                shapeData.material,
+                modelTevLayers,
+                translucent,
+                dlist.cullMode,
+            );
             return { shapeHelper, material };
         });
     }
@@ -139,7 +144,7 @@ export class ShapeInst {
                     ctx.renderInstManager.gfxRenderCache,
                     inst,
                     drawParams,
-                    renderParams
+                    renderParams,
                 );
             } else {
                 this.subShapes[i].material.setOnRenderInst(
@@ -147,7 +152,7 @@ export class ShapeInst {
                     ctx.renderInstManager.gfxRenderCache,
                     inst,
                     drawParams,
-                    renderParams
+                    renderParams,
                 );
             }
             this.subShapes[i].shapeHelper.setOnRenderInst(inst);
@@ -157,7 +162,11 @@ export class ShapeInst {
                 renderParams.sort === RenderSort.All
             ) {
                 const originViewSpace = scratchVec3a;
-                transformVec3Mat4w1(originViewSpace, renderParams.viewFromModel, this.shapeData.origin);
+                transformVec3Mat4w1(
+                    originViewSpace,
+                    renderParams.viewFromModel,
+                    this.shapeData.origin,
+                );
                 inst.sortKey = -(vec3.len(originViewSpace) + renderParams.depthOffset);
                 ctx.translucentInstList.submitRenderInst(inst);
             } else {

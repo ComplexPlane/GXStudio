@@ -60,7 +60,11 @@ export function interpolateKeyframes(timeSeconds: number, keyframes: SD.Keyframe
     return baseValue + deltaSeconds * (inAdjust + outAdjust);
 }
 
-export function loopWrap(timeSeconds: number, loopStartSeconds: number, loopEndSeconds: number): number {
+export function loopWrap(
+    timeSeconds: number,
+    loopStartSeconds: number,
+    loopEndSeconds: number,
+): number {
     const loopDuration = loopEndSeconds - loopStartSeconds;
     // Game does this but adding loop start time just seems weird...
     return ((timeSeconds + loopStartSeconds) % loopDuration) + loopStartSeconds;

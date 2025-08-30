@@ -16,7 +16,7 @@ export class AutoSave {
     constructor(
         getGuiShared: () => GuiShared,
         getTextures: () => Texture[],
-        newMaterialFunc: (name: string) => Material
+        newMaterialFunc: (name: string) => Material,
     ) {
         this.getGuiShared = getGuiShared;
         this.getTextures = getTextures;
@@ -66,7 +66,7 @@ export class AutoSave {
             const parsedData = JSON.parse(savedData);
             const scene = this.getGuiShared();
             const textures = this.getTextures();
-            
+
             const error = decodeRoot(parsedData, textures, scene, this.newMaterialFunc);
             if (error) {
                 console.warn("Failed to load autosaved state:", error);

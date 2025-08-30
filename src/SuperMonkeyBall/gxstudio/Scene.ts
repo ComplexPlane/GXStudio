@@ -244,5 +244,3 @@ export type Model = {
     hover: boolean;
     meshes: Mesh[];
 };
-
-

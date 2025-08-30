@@ -32,7 +32,9 @@ export class TextureCache implements UI.TextureListHolder {
 
     public updateViewerTextures(): void {
         const nameList = Array.from(this.cache.keys()).sort();
-        this.viewerTextures = nameList.map((name) => assertExists(this.cache.get(name)).viewerTexture);
+        this.viewerTextures = nameList.map(
+            (name) => assertExists(this.cache.get(name)).viewerTexture,
+        );
         if (this.onnewtextures !== null) {
             this.onnewtextures();
         }
@@ -74,7 +76,11 @@ export class ModelCache {
     private redGoalModel: ModelInst | null = null;
     private bumperModel: ModelInst | null = null;
 
-    constructor(private device: GfxDevice, private renderCache: GfxRenderCache, stageData: StageData) {
+    constructor(
+        private device: GfxDevice,
+        private renderCache: GfxRenderCache,
+        stageData: StageData,
+    ) {
         this.stageEntry = new CacheEntry(stageData.stageGma);
         this.bgEntry = new CacheEntry(stageData.bgGma);
         this.commonEntry = new CacheEntry(stageData.commonGma);
@@ -117,7 +123,12 @@ export class ModelCache {
         if (modelInst !== undefined) {
             return modelInst;
         }
-        const freshModelInst = new ModelInst(this.device, this.renderCache, modelData, this.textureCache);
+        const freshModelInst = new ModelInst(
+            this.device,
+            this.renderCache,
+            modelData,
+            this.textureCache,
+        );
         entry.modelCache.set(modelData.name, freshModelInst);
         return freshModelInst;
     }
@@ -135,9 +146,14 @@ export class ModelCache {
             }
             case GmaSrc.StageAndBg: {
                 if (typeof model !== "string") {
-                    throw new Error("Must request model by name when searching in multiple sources");
+                    throw new Error(
+                        "Must request model by name when searching in multiple sources",
+                    );
                 }
-                return this.getModelFromEntry(model, this.stageEntry) ?? this.getModelFromEntry(model, this.bgEntry);
+                return (
+                    this.getModelFromEntry(model, this.stageEntry) ??
+                    this.getModelFromEntry(model, this.bgEntry)
+                );
             }
         }
     }

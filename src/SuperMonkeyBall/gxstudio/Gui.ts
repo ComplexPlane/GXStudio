@@ -1,9 +1,4 @@
-import {
-    ImGui,
-    ImGuiImplWeb,
-    ImTextureRef,
-    ImVec2
-} from "@mori2003/jsimgui";
+import { ImGui, ImGuiImplWeb, ImTextureRef, ImVec2 } from "@mori2003/jsimgui";
 
 import { GfxDevice } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
@@ -44,7 +39,7 @@ export class Gui {
         device: GfxDevice,
         renderCache: GfxRenderCache,
         textureCache: TextureCache,
-        gma: Gma
+        gma: Gma,
     ) {
         this.device = device;
         this.renderCache = renderCache;
@@ -54,7 +49,7 @@ export class Gui {
             models: [],
             materials: [],
             currMaterial: null,
-            textures: []
+            textures: [],
         };
 
         this.canvasElem = document.getElementById("imguiCanvas") as HTMLCanvasElement;
@@ -71,42 +66,17 @@ export class Gui {
             });
         }
 
-        this.modelsGui = new ModelsGui(
-            device,
-            renderCache,
-            textureCache,
-            this.shared
-        );
-        this.materialListGui = new MaterialListGui(
-            device,
-            renderCache,
-            textureCache,
-            this.shared
-        );
-        this.tevGui = new TevGui(
-            device,
-            renderCache,
-            textureCache,
-            this.shared
-        );
-        this.animationsGui = new AnimationsGui(
-            device,
-            renderCache,
-            textureCache,
-            this.shared
-        );
-        this.texturesGui = new TexturesGui(
-            device,
-            renderCache,
-            textureCache,
-            this.shared
-        );
+        this.modelsGui = new ModelsGui(device, renderCache, textureCache, this.shared);
+        this.materialListGui = new MaterialListGui(device, renderCache, textureCache, this.shared);
+        this.tevGui = new TevGui(device, renderCache, textureCache, this.shared);
+        this.animationsGui = new AnimationsGui(device, renderCache, textureCache, this.shared);
+        this.texturesGui = new TexturesGui(device, renderCache, textureCache, this.shared);
 
         // Initialize AutoSave
         this.autoSave = new AutoSave(
             () => this.shared,
             () => this.shared.textures,
-            (name: string) => this.createNewMaterial(name)
+            (name: string) => this.createNewMaterial(name),
         );
 
         // Load autosaved state if available (after construction is complete)
@@ -130,7 +100,6 @@ export class Gui {
         return new Material(this.device, this.renderCache, this.textureCache, name);
     }
 
-
     private loadTextures(gma: Gma) {
         // Gather list of unique textures
         const uniqueTextures = new Map<string, TextureInputGX>();
@@ -141,18 +110,18 @@ export class Gui {
         }
 
         const textures: Texture[] = [];
-        
+
         let gxTextureIdx = 0;
         for (let gxTexture of uniqueTextures.values()) {
             const mipChain = calcMipChain(gxTexture, gxTexture.mipCount);
             const imguiTextureIds: ImTextureRef[] = [];
-            
+
             for (let mipLevel of mipChain.mipLevels) {
                 const decoded = decodeTexture(mipLevel);
                 const array = new Uint8Array(
                     decoded.pixels.buffer,
                     decoded.pixels.byteOffset,
-                    decoded.pixels.byteLength
+                    decoded.pixels.byteLength,
                 );
                 const id = ImGuiImplWeb.LoadTexture(array, {
                     width: mipLevel.width,
@@ -160,7 +129,7 @@ export class Gui {
                 });
                 imguiTextureIds.push(new ImTextureRef(id));
             }
-            
+
             const texture: Texture = {
                 idx: gxTextureIdx,
                 imguiTextureIds: imguiTextureIds,
@@ -184,7 +153,7 @@ export class Gui {
         ImGui.Begin(
             "Root",
             [],
-            ImGui.WindowFlags.NoTitleBar | ImGui.WindowFlags.NoResize | ImGui.WindowFlags.MenuBar
+            ImGui.WindowFlags.NoTitleBar | ImGui.WindowFlags.NoResize | ImGui.WindowFlags.MenuBar,
         );
 
         this.renderMenuBar();
@@ -266,9 +235,9 @@ export class Gui {
     }
 
     private importMaterials() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'application/json,.json';
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "application/json,.json";
 
         input.onchange = (event) => {
             const file = (event.target as HTMLInputElement).files?.[0];
@@ -286,10 +255,11 @@ export class Gui {
                 }
 
                 const error = decodeRoot(
-                    jsonData, 
-                    this.shared.textures, 
+                    jsonData,
+                    this.shared.textures,
                     this.shared,
-                    (name: string) => new Material(this.device, this.renderCache, this.textureCache, name)
+                    (name: string) =>
+                        new Material(this.device, this.renderCache, this.textureCache, name),
                 );
 
                 if (error) {
@@ -332,12 +302,12 @@ export class Gui {
         const exportedJson = encodeRoot(this.shared.materials);
         const jsonString = JSON.stringify(exportedJson, null, 2);
 
-        const blob = new Blob([jsonString], { type: 'application/json' });
+        const blob = new Blob([jsonString], { type: "application/json" });
         const url = URL.createObjectURL(blob);
 
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = 'gxstudio-materials.json';
+        a.download = "gxstudio-materials.json";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

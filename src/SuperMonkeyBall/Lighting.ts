@@ -26,13 +26,13 @@ export class Lighting {
             this.infLightWorldSpace.Position,
             this.infLightWorldSpace.Position,
             Vec3Zero,
-            S16_TO_RADIANS * bgInfo.infLightRotX
+            S16_TO_RADIANS * bgInfo.infLightRotX,
         );
         vec3.rotateY(
             this.infLightWorldSpace.Position,
             this.infLightWorldSpace.Position,
             Vec3Zero,
-            S16_TO_RADIANS * bgInfo.infLightRotY
+            S16_TO_RADIANS * bgInfo.infLightRotY,
         );
         // Move point light far away to emulate directional light
         vec3.scale(this.infLightWorldSpace.Position, this.infLightWorldSpace.Position, 10000);
@@ -46,7 +46,7 @@ export class Lighting {
         transformVec3Mat4w0(
             this.infLightViewSpace.Position,
             viewerInput.camera.viewMatrix,
-            this.infLightWorldSpace.Position
+            this.infLightWorldSpace.Position,
         );
     }
 }

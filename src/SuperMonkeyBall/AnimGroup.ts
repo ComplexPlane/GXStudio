@@ -30,7 +30,11 @@ export class AnimGroup {
     private translation = vec3.create();
     private loopedTimeSeconds = 0;
 
-    constructor(modelCache: ModelCache, private stageData: StageData, private animGroupIdx: number) {
+    constructor(
+        modelCache: ModelCache,
+        private stageData: StageData,
+        private animGroupIdx: number,
+    ) {
         this.agData = stageData.stagedef.animGroups[animGroupIdx];
         this.models = [];
         for (let i = 0; i < this.agData.animGroupModels.length; i++) {
@@ -47,8 +51,16 @@ export class AnimGroup {
         if (animGroupIdx > 0) {
             // Not in world space, animate
             mat4.fromXRotation(this.originFromAg, -this.agData.originRot[0] * S16_TO_RADIANS);
-            mat4.rotateY(this.originFromAg, this.originFromAg, -this.agData.originRot[1] * S16_TO_RADIANS);
-            mat4.rotateZ(this.originFromAg, this.originFromAg, -this.agData.originRot[2] * S16_TO_RADIANS);
+            mat4.rotateY(
+                this.originFromAg,
+                this.originFromAg,
+                -this.agData.originRot[1] * S16_TO_RADIANS,
+            );
+            mat4.rotateZ(
+                this.originFromAg,
+                this.originFromAg,
+                -this.agData.originRot[2] * S16_TO_RADIANS,
+            );
             const negOrigin = scratchVec3a;
             vec3.negate(negOrigin, this.agData.originPos);
             mat4.translate(this.originFromAg, this.originFromAg, negOrigin);
@@ -63,7 +75,9 @@ export class AnimGroup {
         this.bumpers = this.agData.bumpers.map((bumper) => new Bumper(modelCache, bumper));
 
         if (stageData.stageInfo.id === StageId.St101_Blur_Bridge) {
-            this.blurBridgeAccordionModel = assertExists(modelCache.getModel("MOT_STAGE101_BLUR", GmaSrc.StageAndBg));
+            this.blurBridgeAccordionModel = assertExists(
+                modelCache.getModel("MOT_STAGE101_BLUR", GmaSrc.StageAndBg),
+            );
         }
     }
 
@@ -73,7 +87,7 @@ export class AnimGroup {
             this.loopedTimeSeconds = loopWrap(
                 state.time.getAnimTimeSeconds(),
                 this.stageData.stagedef.loopStartSeconds,
-                this.stageData.stagedef.loopEndSeconds
+                this.stageData.stagedef.loopEndSeconds,
             );
 
             // Use initial values if there are no corresponding keyframes
@@ -84,25 +98,37 @@ export class AnimGroup {
 
             if (anim !== null) {
                 if (anim.posXKeyframes.length !== 0) {
-                    this.translation[0] = interpolateKeyframes(this.loopedTimeSeconds, anim.posXKeyframes);
+                    this.translation[0] = interpolateKeyframes(
+                        this.loopedTimeSeconds,
+                        anim.posXKeyframes,
+                    );
                 }
                 if (anim.posYKeyframes.length !== 0) {
-                    this.translation[1] = interpolateKeyframes(this.loopedTimeSeconds, anim.posYKeyframes);
+                    this.translation[1] = interpolateKeyframes(
+                        this.loopedTimeSeconds,
+                        anim.posYKeyframes,
+                    );
                 }
                 if (anim.posZKeyframes.length !== 0) {
-                    this.translation[2] = interpolateKeyframes(this.loopedTimeSeconds, anim.posZKeyframes);
+                    this.translation[2] = interpolateKeyframes(
+                        this.loopedTimeSeconds,
+                        anim.posZKeyframes,
+                    );
                 }
                 if (anim.rotXKeyframes.length !== 0) {
                     rotRadians[0] =
-                        interpolateKeyframes(this.loopedTimeSeconds, anim.rotXKeyframes) * MathConstants.DEG_TO_RAD;
+                        interpolateKeyframes(this.loopedTimeSeconds, anim.rotXKeyframes) *
+                        MathConstants.DEG_TO_RAD;
                 }
                 if (anim.rotYKeyframes.length !== 0) {
                     rotRadians[1] =
-                        interpolateKeyframes(this.loopedTimeSeconds, anim.rotYKeyframes) * MathConstants.DEG_TO_RAD;
+                        interpolateKeyframes(this.loopedTimeSeconds, anim.rotYKeyframes) *
+                        MathConstants.DEG_TO_RAD;
                 }
                 if (anim.rotZKeyframes.length !== 0) {
                     rotRadians[2] =
-                        interpolateKeyframes(this.loopedTimeSeconds, anim.rotZKeyframes) * MathConstants.DEG_TO_RAD;
+                        interpolateKeyframes(this.loopedTimeSeconds, anim.rotZKeyframes) *
+                        MathConstants.DEG_TO_RAD;
                 }
             }
 
@@ -139,7 +165,10 @@ export class AnimGroup {
         const accordionPos = scratchVec3a;
         vec3.copy(accordionPos, this.translation);
 
-        const prevX = interpolateKeyframes(this.loopedTimeSeconds - 0.5, this.agData.anim.posXKeyframes);
+        const prevX = interpolateKeyframes(
+            this.loopedTimeSeconds - 0.5,
+            this.agData.anim.posXKeyframes,
+        );
         const flip = prevX >= accordionPos[0];
         const deltaX = Math.abs(prevX - accordionPos[0]);
         accordionPos[0] = (accordionPos[0] + prevX) / 2 + (flip ? 1 : -1);
@@ -183,13 +212,15 @@ export class AnimGroup {
     }
 }
 
-
 const scratchVec3c = vec3.create();
 class Banana {
     private model: ModelInst;
     private yRotRadians: number = 0;
 
-    constructor(modelCache: ModelCache, private bananaData: SD.Banana) {
+    constructor(
+        modelCache: ModelCache,
+        private bananaData: SD.Banana,
+    ) {
         const modelId =
             bananaData.type === SD.BananaType.Single
                 ? CommonModelID.OBJ_BANANA_01_LOD150
@@ -198,7 +229,8 @@ class Banana {
     }
 
     public update(state: WorldState): void {
-        const incRadians = S16_TO_RADIANS * (this.bananaData.type === SD.BananaType.Single ? 1024 : 768);
+        const incRadians =
+            S16_TO_RADIANS * (this.bananaData.type === SD.BananaType.Single ? 1024 : 768);
         this.yRotRadians += incRadians * state.time.getDeltaTimeFrames();
         this.yRotRadians %= 2 * Math.PI;
     }
@@ -223,7 +255,10 @@ class Banana {
 class Goal {
     private model: ModelInst;
 
-    constructor(modelCache: ModelCache, private goalData: SD.Goal) {
+    constructor(
+        modelCache: ModelCache,
+        private goalData: SD.Goal,
+    ) {
         if (goalData.type === SD.GoalType.Blue) {
             this.model = assertExists(modelCache.getBlueGoalModel());
         } else if (goalData.type === SD.GoalType.Green) {
@@ -253,7 +288,10 @@ class Bumper {
     private model: ModelInst;
     private yRotRadians: number = 0;
 
-    constructor(modelCache: ModelCache, private bumperData: SD.Bumper) {
+    constructor(
+        modelCache: ModelCache,
+        private bumperData: SD.Bumper,
+    ) {
         this.model = assertExists(modelCache.getBumperModel());
     }
 
