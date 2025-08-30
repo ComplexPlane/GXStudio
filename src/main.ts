@@ -83,7 +83,7 @@ import * as Scenes_TheWitness from './TheWitness/Scenes_TheWitness.js';
 import * as Scenes_FFX from './FinalFantasyX/scenes.js';
 import * as Scenes_WiiBanner from './Common/NW4R/lyt/Scenes_WiiBanner.js';
 import * as Scenes_DiddyKongRacing from './DiddyKongRacing/scenes.js';
-import * as Scenes_SpongebobRevengeOfTheFlyingDutchman from "./SpongebobRevengeOfTheFlyingDutchman/scenes.js";
+
 import * as Scenes_MarioKart8Deluxe from './MarioKart8Deluxe/Scenes.js';
 import * as Scenes_JetSetRadio from './JetSetRadio/Scenes.js';
 import * as Scenes_Halo1 from './Halo1/scenes.js';
@@ -205,7 +205,7 @@ const sceneGroups: (string | SceneGroup)[] = [
     Scenes_MarioAndSonicAtThe2012OlympicGames.sceneGroup,
     Scenes_MetroidPrime.sceneGroupMP3,
     Scenes_Psychonauts.sceneGroup,
-    Scenes_SpongebobRevengeOfTheFlyingDutchman.sceneGroup,
+
     Scenes_SonicColors.sceneGroup,
     Scenes_SuperMarioOdyssey.sceneGroup,
     Scenes_SuperSmashBrosMelee.sceneGroup,

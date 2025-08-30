@@ -245,7 +245,4 @@ export type Model = {
     meshes: Mesh[];
 };
 
-export type GuiScene = {
-    models: Model[];
-    materials: Material[];
-};
+

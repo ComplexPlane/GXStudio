@@ -16,7 +16,7 @@ import { BgInfos, StageInfo } from "./StageInfo.js";
 import { MkbTime } from "./Utils.js";
 import { AnimGroup } from "./AnimGroup.js";
 import { Lighting } from "./Lighting.js";
-import { GuiScene } from "./gxstudio/Scene.js";
+import { GuiShared } from "./gxstudio/GuiShared.js";
 import { Gui } from "./gxstudio/Gui.js";
 
 // Immutable parsed stage definition
@@ -97,7 +97,7 @@ export class World {
         return this.stageData.stageInfo.bgInfo.clearColor;
     }
 
-    public getGuiScene(): GuiScene {
+    public getGuiScene(): GuiShared {
         return this.gui.getGuiScene();
     }
 

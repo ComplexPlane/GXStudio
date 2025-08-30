@@ -166,8 +166,8 @@ export class ShapeInst {
         }
     }
 
-    private getGuiMaterial(ctx: RenderContext): GuiScene.Material | null {
-        const guiModel = ctx.guiScene.models.find((m) => m.name === this.modelData.name);
+    private getGuiMaterial(ctx: RenderContext): any {
+        const guiModel = ctx.guiScene.models.find((m: any) => m.name === this.modelData.name);
         if (guiModel === undefined) return null;
         return guiModel.meshes[this.shapeIdx].material;
     }

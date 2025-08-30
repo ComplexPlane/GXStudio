@@ -13,11 +13,12 @@ import { TextureCache } from "../ModelCache.js";
 import { AnimationsGui } from "./AnimationsGui.js";
 import { MaterialListGui } from "./MaterialListGui.js";
 import { ModelsGui } from "./ModelsGui.js";
-import { GuiScene, Material, Model, Texture } from "./Scene.js";
+import { Material, Model, Texture } from "./Scene.js";
 import { GuiShared } from "./GuiShared.js";
 import { TevGui } from "./TevGui.js";
 import { TexturesGui } from "./TexturesGui.js";
 import { encodeRoot, decodeRoot } from "./ImportExport.js";
+import { AutoSave } from "./AutoSave.js";
 
 export class Gui {
     private modelsGui: ModelsGui;
@@ -31,6 +32,7 @@ export class Gui {
     private textureCache: TextureCache;
 
     private shared: GuiShared;
+    private autoSave: AutoSave;
 
     private canvasElem: HTMLCanvasElement;
     private imguiSize = new ImVec2();
@@ -99,11 +101,35 @@ export class Gui {
             textureCache,
             this.shared
         );
+
+        // Initialize AutoSave
+        this.autoSave = new AutoSave(
+            () => this.shared,
+            () => this.shared.textures,
+            (name: string) => this.createNewMaterial(name)
+        );
+
+        // Load autosaved state if available (after construction is complete)
+        // This happens synchronously now since textures load synchronously in loadTextures()
+        if (this.autoSave.hasAutosavedState()) {
+            const error = this.autoSave.loadAutosavedState();
+            if (error) {
+                console.warn("Failed to load autosaved state:", error);
+            }
+        }
+
+        // Start autosaving
+        this.autoSave.start();
     }
 
-    public getGuiScene(): GuiScene {
-        return { models: this.shared.models, materials: this.shared.materials };
+    public getGuiScene(): GuiShared {
+        return this.shared;
     }
+
+    private createNewMaterial(name: string): Material {
+        return new Material(this.device, this.renderCache, this.textureCache, name);
+    }
+
 
     private loadTextures(gma: Gma) {
         // Gather list of unique textures
@@ -114,45 +140,38 @@ export class Gui {
             }
         }
 
-        const texturePromises = [];
-
+        const textures: Texture[] = [];
+        
         let gxTextureIdx = 0;
         for (let gxTexture of uniqueTextures.values()) {
             const mipChain = calcMipChain(gxTexture, gxTexture.mipCount);
-            const mipPromises = [];
+            const imguiTextureIds: ImTextureRef[] = [];
+            
             for (let mipLevel of mipChain.mipLevels) {
-                mipPromises.push(
-                    decodeTexture(mipLevel).then((decoded) => {
-                        const array = new Uint8Array(
-                            decoded.pixels.buffer,
-                            decoded.pixels.byteOffset,
-                            decoded.pixels.byteLength
-                        );
-                        const id = ImGuiImplWeb.LoadTexture(array, {
-                            width: mipLevel.width,
-                            height: mipLevel.height,
-                        });
-                        return new ImTextureRef(id);
-                    })
+                const decoded = decodeTexture(mipLevel);
+                const array = new Uint8Array(
+                    decoded.pixels.buffer,
+                    decoded.pixels.byteOffset,
+                    decoded.pixels.byteLength
                 );
+                const id = ImGuiImplWeb.LoadTexture(array, {
+                    width: mipLevel.width,
+                    height: mipLevel.height,
+                });
+                imguiTextureIds.push(new ImTextureRef(id));
             }
-            texturePromises.push(
-                Promise.all(mipPromises).then((imguiTexIds) => {
-                    const texture: Texture = {
-                        idx: gxTextureIdx,
-                        imguiTextureIds: imguiTexIds,
-                        gxTexture: gxTexture,
-                    };
-                    return texture;
-                })
-            );
+            
+            const texture: Texture = {
+                idx: gxTextureIdx,
+                imguiTextureIds: imguiTextureIds,
+                gxTexture: gxTexture,
+            };
+            textures.push(texture);
             gxTextureIdx++;
         }
 
-        Promise.all(texturePromises).then((textures) => {
-            textures.sort((a, b) => a.gxTexture.name.localeCompare(b.gxTexture.name));
-            this.shared.textures.push(...textures);
-        });
+        textures.sort((a, b) => a.gxTexture.name.localeCompare(b.gxTexture.name));
+        this.shared.textures.push(...textures);
     }
 
     public render() {
@@ -269,7 +288,7 @@ export class Gui {
                 const error = decodeRoot(
                     jsonData, 
                     this.shared.textures, 
-                    this.getGuiScene(),
+                    this.shared,
                     (name: string) => new Material(this.device, this.renderCache, this.textureCache, name)
                 );
 
@@ -324,5 +343,10 @@ export class Gui {
         document.body.removeChild(a);
 
         URL.revokeObjectURL(url);
+    }
+
+    public destroy(): void {
+        // Stop autosaving when the GUI is destroyed
+        this.autoSave.destroy();
     }
 }

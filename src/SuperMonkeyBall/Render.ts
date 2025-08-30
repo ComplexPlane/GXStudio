@@ -20,7 +20,7 @@ import * as UI from "../ui.js";
 import * as Viewer from "../viewer.js";
 import { StageData, World } from "./World.js";
 import { Gui } from "./gxstudio/Gui.js";
-import { GuiScene } from "./gxstudio/Scene.js";
+import { GuiShared } from "./gxstudio/GuiShared.js";
 
 // TODO(complexplane): Put somewhere else
 export type RenderContext = {
@@ -29,7 +29,7 @@ export type RenderContext = {
     viewerInput: Viewer.ViewerRenderInput;
     opaqueInstList: GfxRenderInstList;
     translucentInstList: GfxRenderInstList;
-    guiScene: GuiScene;
+    guiScene: GuiShared;
 };
 
 export class Renderer implements Viewer.SceneGfx {

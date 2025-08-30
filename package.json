@@ -47,7 +47,7 @@
     "build:BanjoKazooie": "cd src/BanjoKazooie/tools && tsx extractor.ts",
     "build:TheWitness": "cd src/TheWitness/tools && tsx extractor.ts",
     "test:DeBlob2": "cd src/DeBlob2/tools && tsx systest.ts",
-    "typecheck": "tsc -w --noEmit",
+    "typecheck": "tsc --noEmit",
     "watch:rust": "pnpm run build:rust-dev && onchange rust/src/**/*.rs rust/noclip-macros/src/**/*.rs -- pnpm run build:rust-dev"
   },
   "bin": {

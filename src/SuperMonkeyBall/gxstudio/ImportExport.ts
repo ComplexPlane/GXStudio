@@ -1,7 +1,8 @@
 import * as z from "zod";
 import { ColorAnim, ColorChannel, CurveKind, ScalarAnim, ScalarChannel } from "./Anim";
 import * as GX from "../../gx/gx_enum.js";
-import { GuiScene, Material, TevStage, Texture, TextureRef } from "./Scene";
+import { Material, TevStage, Texture, TextureRef } from "./Scene";
+import { GuiShared } from "./GuiShared.js";
 
 const SCHEMA_VERSION = "1.0.0";
 
@@ -110,7 +111,7 @@ export function encodeRoot(materials: Material[]): z.infer<typeof ROOT_SCHEMA> {
 export function decodeRoot(
     j: any,
     textures: Texture[],
-    scene: GuiScene,
+    scene: GuiShared,
     newMaterialFunc: (name: string) => Material,
 ): string | null {
     const root = ROOT_SCHEMA.safeParse(j);
