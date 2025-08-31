@@ -135,6 +135,8 @@ export class MaterialInst {
                 GX.RasColorChannelID.COLOR0A0,
             );
 
+            mb.setTevKColorSel(buildState.stage, tevStage.kcsel);
+
             mb.setTevColorIn(
                 buildState.stage,
                 tevStage.colorInA,

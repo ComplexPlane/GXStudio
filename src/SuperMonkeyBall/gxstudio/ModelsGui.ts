@@ -46,7 +46,7 @@ export class ModelsGui {
                                 "Material",
                                 maybeMaterials,
                                 mesh.material,
-                                (m) => (m === null ? "<default>" : m.name),
+                                (m) => (m === null ? "<default>" : `${m.name}###${m.uuid}`),
                             );
                             ImGui.TreePop();
                         }
