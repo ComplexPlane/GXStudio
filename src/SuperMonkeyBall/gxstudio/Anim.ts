@@ -20,11 +20,32 @@ export enum ScalarChannel {
     UV6_TranslateV = 13,
     UV7_TranslateU = 14,
     UV7_TranslateV = 15,
+
     A0 = 16,
     A1 = 17,
     A2 = 18,
     APREV = 19,
+
+    UV0_Scale = 20,
+    UV1_Scale = 21,
+    UV2_Scale = 22,
+    UV3_Scale = 23,
+    UV4_Scale = 24,
+    UV5_Scale = 25,
+    UV6_Scale = 26,
+    UV7_Scale = 27,
 }
+
+const SCALE_CHANNELS = [
+    ScalarChannel.UV0_Scale,
+    ScalarChannel.UV1_Scale,
+    ScalarChannel.UV2_Scale,
+    ScalarChannel.UV3_Scale,
+    ScalarChannel.UV4_Scale,
+    ScalarChannel.UV5_Scale,
+    ScalarChannel.UV6_Scale,
+    ScalarChannel.UV7_Scale,
+];
 
 export enum ColorChannel {
     // Do not change these values, they're part of the export schema
@@ -121,12 +142,22 @@ function animateColor(anim: ColorAnim, t: number, outColor: Color) {
 }
 
 export function animateScalars(dstScalarState: ScalarState, anims: ScalarAnim[], t: number) {
+    // Set to defaults
     for (let key of dstScalarState.keys()) {
-        dstScalarState.set(key, 0);
+        if (SCALE_CHANNELS.includes(key)) {
+            dstScalarState.set(key, 1);
+        } else {
+            dstScalarState.set(key, 0);
+        }
     }
+    // Apply specifieds animations
     for (let anim of anims) {
         const curr = dstScalarState.get(anim.channel)!;
-        dstScalarState.set(anim.channel, curr + animateScalar(anim, t));
+        if (SCALE_CHANNELS.includes(anim.channel)) {
+            dstScalarState.set(anim.channel, curr * animateScalar(anim, t));
+        } else {
+            dstScalarState.set(anim.channel, curr + animateScalar(anim, t));
+        }
     }
 }
 

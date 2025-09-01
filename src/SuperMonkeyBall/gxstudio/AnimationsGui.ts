@@ -22,22 +22,37 @@ type InterpKindInfo = {
 };
 
 export const SCALAR_CHANNELS: ScalarChannelInfo[] = [
-    { id: ScalarChannel.UV0_TranslateU, label: "TexCoord0 U Translate" },
-    { id: ScalarChannel.UV0_TranslateV, label: "TexCoord0 V Translate" },
-    { id: ScalarChannel.UV1_TranslateU, label: "TexCoord1 U Translate" },
-    { id: ScalarChannel.UV1_TranslateV, label: "TexCoord1 V Translate" },
-    { id: ScalarChannel.UV2_TranslateU, label: "TexCoord2 U Translate" },
-    { id: ScalarChannel.UV2_TranslateV, label: "TexCoord2 V Translate" },
-    { id: ScalarChannel.UV3_TranslateU, label: "TexCoord3 U Translate" },
-    { id: ScalarChannel.UV3_TranslateV, label: "TexCoord3 V Translate" },
-    { id: ScalarChannel.UV4_TranslateU, label: "TexCoord4 U Translate" },
-    { id: ScalarChannel.UV4_TranslateV, label: "TexCoord4 V Translate" },
-    { id: ScalarChannel.UV5_TranslateU, label: "TexCoord5 U Translate" },
-    { id: ScalarChannel.UV5_TranslateV, label: "TexCoord5 V Translate" },
-    { id: ScalarChannel.UV6_TranslateU, label: "TexCoord6 U Translate" },
-    { id: ScalarChannel.UV6_TranslateV, label: "TexCoord6 V Translate" },
-    { id: ScalarChannel.UV7_TranslateU, label: "TexCoord7 U Translate" },
-    { id: ScalarChannel.UV7_TranslateV, label: "TexCoord7 V Translate" },
+    { id: ScalarChannel.UV0_TranslateU, label: "TexCoord0 Translate U" },
+    { id: ScalarChannel.UV0_TranslateV, label: "TexCoord0 Translate V" },
+    { id: ScalarChannel.UV0_Scale, label: "TexCoord0 Scale" },
+
+    { id: ScalarChannel.UV1_TranslateU, label: "TexCoord1 Translate U" },
+    { id: ScalarChannel.UV1_TranslateV, label: "TexCoord1 Translate V" },
+    { id: ScalarChannel.UV1_Scale, label: "TexCoord1 Scale" },
+    
+    { id: ScalarChannel.UV2_TranslateU, label: "TexCoord2 Translate U" },
+    { id: ScalarChannel.UV2_TranslateV, label: "TexCoord2 Translate V" },
+    { id: ScalarChannel.UV2_Scale, label: "TexCoord2 Scale" },
+    
+    { id: ScalarChannel.UV3_TranslateU, label: "TexCoord3 Translate U" },
+    { id: ScalarChannel.UV3_TranslateV, label: "TexCoord3 Translate V" },
+    { id: ScalarChannel.UV3_Scale, label: "TexCoord3 Scale" },
+
+    { id: ScalarChannel.UV4_TranslateU, label: "TexCoord4 Translate U" },
+    { id: ScalarChannel.UV4_TranslateV, label: "TexCoord4 Translate V" },
+    { id: ScalarChannel.UV4_Scale, label: "TexCoord4 Scale" },
+
+    { id: ScalarChannel.UV5_TranslateU, label: "TexCoord5 Translate U" },
+    { id: ScalarChannel.UV5_TranslateV, label: "TexCoord5 Translate V" },
+    { id: ScalarChannel.UV5_Scale, label: "TexCoord5 Scale" },
+
+    { id: ScalarChannel.UV6_TranslateU, label: "TexCoord6 Translate U" },
+    { id: ScalarChannel.UV6_TranslateV, label: "TexCoord6 Translate V" },
+    { id: ScalarChannel.UV6_Scale, label: "TexCoord6 Scale" },
+
+    { id: ScalarChannel.UV7_TranslateU, label: "TexCoord7 Translate U" },
+    { id: ScalarChannel.UV7_TranslateV, label: "TexCoord7 Translate V" },
+    { id: ScalarChannel.UV7_Scale, label: "TexCoord7 Scale" },
 
     { id: ScalarChannel.A0, label: "Alpha Register C0" },
     { id: ScalarChannel.A1, label: "Alpha Register C1" },
