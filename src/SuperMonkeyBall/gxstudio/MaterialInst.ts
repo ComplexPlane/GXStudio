@@ -1,4 +1,4 @@
-import { mat4, vec2, vec3 } from "gl-matrix";
+import { mat4, quat, vec2, vec3 } from "gl-matrix";
 import { Color, colorCopy, colorLerp, colorNewCopy, White } from "../../Color.js";
 import { GfxDevice } from "../../gfx/platform/GfxPlatform.js";
 import { GfxRenderCache } from "../../gfx/render/GfxRenderCache.js";
@@ -27,15 +27,53 @@ const SWAP_TABLES: SwapTable[] = [
     [GX.TevColorChan.R, GX.TevColorChan.G, GX.TevColorChan.B, GX.TevColorChan.B],
 ];
 
-const TEXMTX_UV_CHANNELS = [
-    { u: ScalarChannel.UV0_TranslateU, v: ScalarChannel.UV0_TranslateV },
-    { u: ScalarChannel.UV1_TranslateU, v: ScalarChannel.UV1_TranslateV },
-    { u: ScalarChannel.UV2_TranslateU, v: ScalarChannel.UV2_TranslateV },
-    { u: ScalarChannel.UV3_TranslateU, v: ScalarChannel.UV3_TranslateV },
-    { u: ScalarChannel.UV4_TranslateU, v: ScalarChannel.UV4_TranslateV },
-    { u: ScalarChannel.UV5_TranslateU, v: ScalarChannel.UV5_TranslateV },
-    { u: ScalarChannel.UV6_TranslateU, v: ScalarChannel.UV6_TranslateV },
-    { u: ScalarChannel.UV7_TranslateU, v: ScalarChannel.UV7_TranslateV },
+type UVTransform = {
+    uTranslate: ScalarChannel;
+    vTranslate: ScalarChannel;
+    scale: ScalarChannel;
+};
+
+const TEXMTX_UV_CHANNELS: UVTransform[] = [
+    {
+        uTranslate: ScalarChannel.UV0_TranslateU,
+        vTranslate: ScalarChannel.UV0_TranslateV,
+        scale: ScalarChannel.UV0_Scale,
+    },
+    {
+        uTranslate: ScalarChannel.UV1_TranslateU,
+        vTranslate: ScalarChannel.UV1_TranslateV,
+        scale: ScalarChannel.UV1_Scale,
+    },
+    {
+        uTranslate: ScalarChannel.UV2_TranslateU,
+        vTranslate: ScalarChannel.UV2_TranslateV,
+        scale: ScalarChannel.UV2_Scale,
+    },
+    {
+        uTranslate: ScalarChannel.UV3_TranslateU,
+        vTranslate: ScalarChannel.UV3_TranslateV,
+        scale: ScalarChannel.UV3_Scale,
+    },
+    {
+        uTranslate: ScalarChannel.UV4_TranslateU,
+        vTranslate: ScalarChannel.UV4_TranslateV,
+        scale: ScalarChannel.UV4_Scale,
+    },
+    {
+        uTranslate: ScalarChannel.UV5_TranslateU,
+        vTranslate: ScalarChannel.UV5_TranslateV,
+        scale: ScalarChannel.UV5_Scale,
+    },
+    {
+        uTranslate: ScalarChannel.UV6_TranslateU,
+        vTranslate: ScalarChannel.UV6_TranslateV,
+        scale: ScalarChannel.UV6_Scale,
+    },
+    {
+        uTranslate: ScalarChannel.UV7_TranslateU,
+        vTranslate: ScalarChannel.UV7_TranslateV,
+        scale: ScalarChannel.UV7_Scale,
+    },
 ];
 
 const COLOR_CHANNELS = [
@@ -73,7 +111,9 @@ const TEXGEN_MTXS = [
 const scratchMaterialParams = new MaterialParams();
 const scratchColor1: Color = colorNewCopy(White);
 const scratchColor2: Color = colorNewCopy(White);
-const scratchVec3 = vec3.create();
+const scratchVec3a = vec3.create();
+const scratchVec3b = vec3.create();
+const scratchQuata = quat.create();
 
 export class MaterialInst {
     private materialHelper: GXMaterialHelperGfx;
@@ -237,15 +277,26 @@ export class MaterialInst {
         animateScalars(this.scalarState, this.scalarAnims, t);
         animateColors(this.colorState, this.colorAnims, t);
 
-        const translation = scratchVec3;
+        const translation = scratchVec3a;
+        const scale = scratchVec3b;
+        const rotation = scratchQuata;
+
+        quat.identity(rotation);
+
         for (let i = 0; i < TEXMTX_UV_CHANNELS.length; i++) {
             vec3.set(
                 translation,
-                this.scalarState.get(TEXMTX_UV_CHANNELS[i].u)!,
-                this.scalarState.get(TEXMTX_UV_CHANNELS[i].v)!,
+                this.scalarState.get(TEXMTX_UV_CHANNELS[i].uTranslate)!,
+                this.scalarState.get(TEXMTX_UV_CHANNELS[i].vTranslate)!,
                 0,
             );
-            mat4.fromTranslation(materialParams.u_TexMtx[i], translation);
+            vec3.set(
+                scale,
+                this.scalarState.get(TEXMTX_UV_CHANNELS[i].scale)!,
+                this.scalarState.get(TEXMTX_UV_CHANNELS[i].scale)!,
+                0,
+            );
+            mat4.fromRotationTranslationScale(materialParams.u_TexMtx[i], rotation, translation, scale);
         }
 
         for (const colorMapping of COLOR_CHANNELS) {

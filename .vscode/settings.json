@@ -5,4 +5,5 @@
     },
     "npm.packageManager": "pnpm",
     "typescript.tsdk": "node_modules\\typescript\\lib",
+    "editor.formatOnSave": false
 }

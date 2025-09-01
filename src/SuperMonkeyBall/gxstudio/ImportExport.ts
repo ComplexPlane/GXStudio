@@ -170,6 +170,7 @@ function decodeMaterial(
     material.tevStages = m.tevStages.map((s) => decodeTevStage(s, textures));
     material.scalarAnims = m.scalarAnims.map(decodeScalarAnim);
     material.colorAnims = m.colorAnims.map(decodeColorAnim);
+    material.rebuild();
     return material;
 }
 
