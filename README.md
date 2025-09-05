@@ -2,6 +2,8 @@
 
 Material editor for Super Monkey Ball 1 and 2, built on the [noclip.website](https://github.com/magcius/noclip.website) engine.
 
+Live at: [gxstudio.complexplane.dev](https://gxstudio.complexplane.dev)
+
 ## Controls
 
 Key | Description
